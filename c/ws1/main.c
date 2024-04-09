@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "tentimesn.h"
-#include "flip.h"
-#include "swap.h"
-#include "swapsizet.h"
-#include "copyarray.h"
-
+void swap(int *a, int *b);
+void swapt(size_t *a, size_t *b);
+void swaptp(size_t **ap, size_t **bp);
+int PowerTen(int n);
+int *CopyArray(int *arr, int size);
+int flip(int n);
 	
 	
 int main()

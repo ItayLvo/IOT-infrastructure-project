@@ -29,4 +29,6 @@ char *StrTok(char *str, const char *delim);
 
 int IsPalindrome(char *str);
 
+char *DeleteSpace(char *str);
+
 #endif

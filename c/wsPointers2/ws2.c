@@ -1,5 +1,5 @@
 #include <stdio.h>	/* printf */
-#include "sevenboom.h"	/* all implementations of string.h exercises */
+#include "ws2.h"	
 #include <string.h>
 
 int main()

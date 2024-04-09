@@ -24,8 +24,22 @@ int main()
     		free(token);
         	token = StrTok(NULL, delim);
     	}
+	
+	
+	char str[] = "   hello   ,hi  .  bye   ";
+	char *ptr = str;
+	ptr = DeleteSpace(ptr);
+	
+	printf("%s\n", ptr);
 	*/
 	
+	char arr[5];
+	arr[0] = 'a';
+	int x;
+	
+	x = StrLen(arr);
+	
+	printf("%d\n", x);
 	
 	return 0;
 }
@@ -364,6 +378,42 @@ int IsPalindrome(char *str)
 }
 
 
+char *DeleteSpace(char *str)
+{
+	char *ptrstart = str;
+	char *ptrend = str + strlen(str);
+	ptrend--;
+	
+	printf("started func %s\n", ptrstart);
+	
+	while (*ptrstart == ' ')
+	{
+		str++;
+		ptrstart++;
+		printf("first while: %s\n\n", ptrstart);
+	}
+	
+	while(*ptrend == ' ')
+	{
+		*ptrend = '\0';
+		ptrend--;
+		printf("second while: %s\n\n", ptrstart);
+	}
+	
+	while (*ptrstart != '\0')
+	{
+		while ((strlen(ptrstart) > 1) && (*ptrstart == ' ' && *(ptrstart + 1) == ' '))
+		{
+
+			ptrstart = StrCpy(ptrstart, (ptrstart + 1));
+			printf("third while: %s\n\n", ptrstart);
+		}
+		ptrstart++;
+	}
+	
+	return str;
+	
+}
 
 
 
