@@ -32,14 +32,12 @@ int main()
 	
 	printf("%s\n", ptr);
 	*/
-	
-	char arr[5];
-	arr[0] = 'a';
-	int x;
-	
-	x = StrLen(arr);
-	
-	printf("%d\n", x);
+	int i=0;
+	while(i<5)
+	{
+		printf("hi %d \n", i);
+		i++;
+	}
 	
 	return 0;
 }
@@ -48,6 +46,8 @@ int main()
 size_t StrLen(const char *str)
 {
 	size_t count = 0;
+	
+	
 	assert(str);
 	
 	
