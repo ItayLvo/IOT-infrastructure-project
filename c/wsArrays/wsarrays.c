@@ -13,8 +13,9 @@ static int countmoves; /* counts runtime complexity of josephus, can be deleted 
 
 int main(int argc, char *argv[], char *envp[])
 {
+	
 	int i = 0;
-	char **envstring;
+	char **envstring = NULL;
 	envstring = CopyEnv(envp, envstring);
 	
 	
@@ -29,28 +30,30 @@ int main(int argc, char *argv[], char *envp[])
 	i = 0;
 	while ((envstring[i]) != NULL)
 	{	
-		printf("%s\n",envstring[i]);
 		free(envstring[i]);
 		i++;
 	}
 	
 	free(envstring);
 	
+	
+	/*testing the 2D array exercise */
+	
 	/*
-	**** testing the 2D array exercise ****
 	int size = 2;
 	int i;
 	int mat[2][2] = {{1,2},{3,4}};
+	int **ptr = (int **)mat;
+	
 	int arr[2];
 	int *res = arr;
-	res = MatrixSum(size, mat, res);
+	res = MatrixSum(size, (int **)ptr, res);
 	
 	for (i = 0; i < size; i++)
 	{
 		printf("%d\n", res[i]);
 	}
 	*/
-	
 	
 	
 	/*
@@ -84,8 +87,6 @@ char *ToLowerString(char *str)
 	return str;
 }
 
-
-
 char **CopyEnv(char **envp, char **envstring)
 {
 	int i = 0;
@@ -99,18 +100,16 @@ char **CopyEnv(char **envp, char **envstring)
 	}
 	
 	
-	envstring = (char **)malloc(sizeof(char *) * count_strings + 1);
+	envstring = (char **)malloc(sizeof(char *) * (count_strings + 1));
 	assert(envstring);
 	
 	i = 0;
 	while ((envp[i]) != NULL)
 	{
-		envstring[i] = (char *)malloc(sizeof(char) * strlen(envp[i]) + 1);
+		envstring[i] = (char *)malloc(sizeof(char) * (strlen(envp[i]) + 1));
 		assert(envstring[i]);
 		
 		strcpy(envstring[i], envp[i]);
-		/* envstring[i] = envp[i]; */
-		/* envstring[i] = strdup(envp[i]); */
 		
 		i++;
 	}
@@ -121,7 +120,7 @@ char **CopyEnv(char **envp, char **envstring)
 
 
 
-int *MatrixSum(int size, int mat[2][2], int *res)
+int *MatrixSum(int size, int **mat, int *res)
 {
 	int i, j, countrow = 0;
 	for (i = 0; i < size; i++)
