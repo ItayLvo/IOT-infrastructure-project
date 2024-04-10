@@ -1,20 +1,47 @@
 #include "wsarrays.h"
 #include <stdio.h>
-#include <string.h> /*strlen*/
-#include <stdlib.h> /*malloc*/
+#include <string.h>	/*strlen, strdup*/
+#include <stdlib.h>	/*malloc*/
+#include <stddef.h>
+#include <ctype.h>	/*tolower*/
+#include <assert.h>	/*assert*/
 
 
-int main()
+
+static int countmoves; /* counts runtime complexity of josephus, can be deleted */
+
+
+int main(int argc, char *argv[], char *envp[])
 {
-
+	int i = 0;
+	char **envstring;
+	envstring = CopyEnv(envp, envstring);
+	
+	
+	while ((envstring[i]) != NULL)
+	{
+		envstring[i] = ToLowerString(envstring[i]);
+		printf("%s\n",envstring[i]);
+		i++;
+	}
+	printf("\n\n\n");
+	
+	i = 0;
+	while ((envstring[i]) != NULL)
+	{	
+		printf("%s\n",envstring[i]);
+		free(envstring[i]);
+		i++;
+	}
+	
+	free(envstring);
+	
 	/*
-	
-	testing the 2D array exercise
-	
+	**** testing the 2D array exercise ****
 	int size = 2;
 	int i;
 	int mat[2][2] = {{1,2},{3,4}};
-	int arr[10];
+	int arr[2];
 	int *res = arr;
 	res = MatrixSum(size, mat, res);
 	
@@ -23,6 +50,11 @@ int main()
 		printf("%d\n", res[i]);
 	}
 	*/
+	
+	
+	
+	/*
+	**** testing for josephus ****
 	int n, i;
 	printf("Enter n: \n");
 	scanf("%d", &n);
@@ -32,13 +64,62 @@ int main()
 		arr[i] = 1;
 	}
 	
-	/* int arr[6] = {1,1,1,1,1,1}; */
 	printf("last soldier is: %d\n", josephus(arr, n));
+	printf("num of moves: %d\n",  countmoves);
 	
 	free(arr);
+	*/
+	
 	
 	return 0;
 }
+
+char *ToLowerString(char *str)
+{
+	int i;
+	for(i = 0; str[i] != '\0'; i++)
+	{
+		str[i] = tolower(str[i]);
+	}
+	return str;
+}
+
+
+
+char **CopyEnv(char **envp, char **envstring)
+{
+	int i = 0;
+	char **ptrenv = envp;
+	int count_strings = 0;
+	
+	while ((ptrenv[i]) != NULL)
+	{
+		count_strings++;
+		i++;
+	}
+	
+	
+	envstring = (char **)malloc(sizeof(char *) * count_strings + 1);
+	assert(envstring);
+	
+	i = 0;
+	while ((envp[i]) != NULL)
+	{
+		envstring[i] = (char *)malloc(sizeof(char) * strlen(envp[i]) + 1);
+		assert(envstring[i]);
+		
+		strcpy(envstring[i], envp[i]);
+		/* envstring[i] = envp[i]; */
+		/* envstring[i] = strdup(envp[i]); */
+		
+		i++;
+	}
+	envstring[i] = NULL;
+	
+	return envstring;
+}
+
+
 
 int *MatrixSum(int size, int mat[2][2], int *res)
 {
@@ -72,9 +153,12 @@ int josephus(int arr[], int size)
 			printf("\tcurrent soldier with sword: %d\n", i % size);
 			printf("\tgoing to kill soldier: %d\n\n", NextAliveIndex(arr, size, i % size));
 		}
+		
+		
 		if (arr[i % size] == 0)
 		{
 			;
+			countmoves++;
 		}
 		
 		else
@@ -103,6 +187,7 @@ int NextAliveIndex(int arr[], int size, int index)
 	{
 		countsteps++;
 		i++;
+		countmoves++;
 	}
 	
 	if (countsteps == (size - 1))

@@ -7,4 +7,8 @@ int josephus(int arr[], int size);
 
 int NextAliveIndex(int arr[], int size, int index);
 
+char **CopyEnv(char **envp, char **newstr);
+
+char *ToLowerString(char *str);
+
 #endif
