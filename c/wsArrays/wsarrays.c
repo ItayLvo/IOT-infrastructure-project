@@ -6,14 +6,28 @@
 #include <ctype.h>	/*tolower*/
 #include <assert.h>	/*assert*/
 
-
-
-static int countmoves; /* counts runtime complexity of josephus, can be deleted */
+void TestJosephus();
+void TestMatrix();
+void TestEnvp(char *envp[]);
 
 
 int main(int argc, char *argv[], char *envp[])
 {
+	/* Testing the 2D array exercise */
+	TestEnvp(envp);
 	
+	/* Testing the 2D array exercise */
+	TestMatrix();
+	
+	/* Testing for Josephus */
+	TestJosephus();
+	
+	return 0;
+}
+
+
+void TestEnvp(char *envp[])
+{
 	int i = 0;
 	char **envstring = NULL;
 	envstring = CopyEnv(envp, envstring);
@@ -35,29 +49,27 @@ int main(int argc, char *argv[], char *envp[])
 	}
 	
 	free(envstring);
-	
-	
-	/*testing the 2D array exercise */
-	
-	/*
+}
+
+
+void TestMatrix()
+{
 	int size = 2;
 	int i;
 	int mat[2][2] = {{1,2},{3,4}};
-	int **ptr = (int **)mat;
 	
 	int arr[2];
 	int *res = arr;
-	res = MatrixSum(size, (int **)ptr, res);
+	res = MatrixSum(size, mat, res);
 	
 	for (i = 0; i < size; i++)
 	{
 		printf("%d\n", res[i]);
 	}
-	*/
-	
-	
-	/*
-	**** testing for josephus ****
+}
+
+void TestJosephus()
+{
 	int n, i;
 	printf("Enter n: \n");
 	scanf("%d", &n);
@@ -68,13 +80,8 @@ int main(int argc, char *argv[], char *envp[])
 	}
 	
 	printf("last soldier is: %d\n", josephus(arr, n));
-	printf("num of moves: %d\n",  countmoves);
 	
 	free(arr);
-	*/
-	
-	
-	return 0;
 }
 
 char *ToLowerString(char *str)
@@ -120,7 +127,7 @@ char **CopyEnv(char **envp, char **envstring)
 
 
 
-int *MatrixSum(int size, int **mat, int *res)
+int *MatrixSum(int size, int mat[2][2], int *res)
 {
 	int i, j, countrow = 0;
 	for (i = 0; i < size; i++)
@@ -144,7 +151,7 @@ int josephus(int arr[], int size)
 	
 	while(1)
 	{
-		if (arr[(i % size)] != 0)
+		if (arr[(i % size)] != 0)	/* GUI that prints status every iteration, can be deleted */
 		{
 			for (j = 0; j < size; j++)
 				printf("[%d] ", arr[j]);
@@ -153,16 +160,8 @@ int josephus(int arr[], int size)
 			printf("\tgoing to kill soldier: %d\n\n", NextAliveIndex(arr, size, i % size));
 		}
 		
-		
-		if (arr[i % size] == 0)
+		if (arr[i % size] != 0)
 		{
-			;
-			countmoves++;
-		}
-		
-		else
-		{
-
 			arr[NextAliveIndex(arr, size, i % size)] = 0;
 			result = NextAliveIndex(arr, size, i % size);
 			if (result == -1)
@@ -170,11 +169,8 @@ int josephus(int arr[], int size)
 				return i % size;
 			}
 		}
-		
-		i++;
-		
+		i++;	
 	}
-	
 }
 
 int NextAliveIndex(int arr[], int size, int index)
@@ -186,7 +182,6 @@ int NextAliveIndex(int arr[], int size, int index)
 	{
 		countsteps++;
 		i++;
-		countmoves++;
 	}
 	
 	if (countsteps == (size - 1))
