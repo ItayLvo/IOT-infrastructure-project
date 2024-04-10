@@ -1,6 +1,7 @@
 #include "wsarrays.h"
 #include <stdio.h>
 #include <string.h> /*strlen*/
+#include <stdlib.h> /*malloc*/
 
 
 int main()
@@ -22,8 +23,20 @@ int main()
 		printf("%d\n", res[i]);
 	}
 	*/
-	int arr[6] = {1,1,1,1,1,1};
-	printf("last soldier is: %d\n", josephus(arr, 6));
+	int n, i;
+	printf("Enter n: \n");
+	scanf("%d", &n);
+	int *arr = (int *)malloc(sizeof(int) * n);
+	for (i = 0; i < n; i++)
+	{
+		arr[i] = 1;
+	}
+	
+	/* int arr[6] = {1,1,1,1,1,1}; */
+	printf("last soldier is: %d\n", josephus(arr, n));
+	
+	free(arr);
+	
 	return 0;
 }
 
@@ -47,13 +60,15 @@ int *MatrixSum(int size, int mat[2][2], int *res)
 
 int josephus(int arr[], int size)
 {
-	int i = 0, result;
+	int i = 0, result, j;
 	
 	while(1)
 	{
 		if (arr[(i % size)] != 0)
 		{
-			printf("[%d] [%d] [%d] [%d] [%d] [%d]\n", arr[0], arr[1], arr[2], arr[3], arr[4], arr[5]);
+			for (j = 0; j < size; j++)
+				printf("[%d] ", arr[j]);
+			printf("\n");
 			printf("\tcurrent soldier with sword: %d\n", i % size);
 			printf("\tgoing to kill soldier: %d\n\n", NextAliveIndex(arr, size, i % size));
 		}
@@ -64,10 +79,8 @@ int josephus(int arr[], int size)
 		
 		else
 		{
-			/* printf("(before killing) next alive soldier is in index: %d\n", NextAliveIndex(arr, size, (i % size))); */
+
 			arr[NextAliveIndex(arr, size, i % size)] = 0;
-			/* printf("after killing: [%d] [%d] [%d] [%d] [%d]\n", arr[0], arr[1], arr[2], arr[3], arr[4]);*/
-			/* printf("(after killing) next alive soldier is in index: %d\n", NextAliveIndex(arr, size, (i % size)));*/
 			result = NextAliveIndex(arr, size, i % size);
 			if (result == -1)
 			{
