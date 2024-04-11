@@ -13,14 +13,14 @@ void TestEnvp(char *envp[]);
 
 int main(int argc, char *argv[], char *envp[])
 {
-	/* Testing the 2D array exercise */
-	TestEnvp(envp);
+	/* Testing the *envp[] exercise 
+	TestEnvp(envp); */
 	
-	/* Testing the 2D array exercise */
-	TestMatrix();
+	/* Testing the 2D array exercise 
+	TestMatrix();*/
 	
-	/* Testing for Josephus */
-	TestJosephus();
+	/* Testing for Josephus 
+	TestJosephus();*/
 	
 	return 0;
 }
@@ -39,7 +39,7 @@ void TestEnvp(char *envp[])
 		printf("%s\n",envstring[i]);
 		i++;
 	}
-	printf("\n\n\n");
+	printf("\n\n");
 	
 	i = 0;
 	while ((envstring[i]) != NULL)
@@ -84,6 +84,11 @@ void TestJosephus()
 	free(arr);
 }
 
+
+
+
+
+
 char *ToLowerString(char *str)
 {
 	int i;
@@ -108,13 +113,19 @@ char **CopyEnv(char **envp, char **envstring)
 	
 	
 	envstring = (char **)malloc(sizeof(char *) * (count_strings + 1));
-	assert(envstring);
+	if(envstring == NULL)
+	{
+		return NULL;
+	}
 	
 	i = 0;
 	while ((envp[i]) != NULL)
 	{
 		envstring[i] = (char *)malloc(sizeof(char) * (strlen(envp[i]) + 1));
-		assert(envstring[i]);
+		if(envstring[i] == NULL)
+		{
+			return NULL;
+		}
 		
 		strcpy(envstring[i], envp[i]);
 		
@@ -124,6 +135,10 @@ char **CopyEnv(char **envp, char **envstring)
 	
 	return envstring;
 }
+
+
+
+
 
 
 
@@ -141,6 +156,10 @@ int *MatrixSum(int size, int mat[2][2], int *res)
 	}
 	return res;
 }
+
+
+
+
 
 
 
