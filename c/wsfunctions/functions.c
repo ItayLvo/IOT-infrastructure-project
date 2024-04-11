@@ -20,7 +20,6 @@ int main()
 	return 0;
 }
 
-
 void LUTImplementation(void)
 {
 	char userch = '\0';
