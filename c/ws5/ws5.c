@@ -25,36 +25,6 @@ int main(int argc, char *argv[])
 	struct print_me array[10];
 	int i = 0;
 	
-	/*
-	for (i = 0; i < 10; i++)
-	{
-		array[i].data = i;
-		array[i].Print = &Print;
-	}
-
-	for (i = 0; i < 10; i++)
-	{
-		array[i].Print(array[i].data);
-	}
-
-
-    	printf("Enter strings: \n");
-    	while (1)
-    	{
-        	printf("\n");
-        	fgets(input, sizeof(input), stdin);
-        	
-        	input[strcspn(input, "\n")] = '\0';
-        	
-        	if (strcmp(input, "") == 0)
-           	{
-           		break;
-           	}
-        
-        AppendToFile(argv[1], input);
-    	}
-	*/
-	
 	struct flag flags[] = {
 	{"-remove", CompareRemove, OperationRemove}, 
 	{"-count", CompareCount, OperationCount}, 
