@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 		input[strcspn(input, "\n")] = '\0';	/* replace enter with null terminator to create valid string */
 
 		
-		for (i = 0; i < 4; ++i)		/* loop through 4 possible options of flags[] - "chain of responsibility" */
+		for (i = 0; i < 4; ++i)			/* loop through 4 possible options of flags[] - "chain of responsibility" design pattern */
 		{
 		 	if (flags[i].CompareFunc(input) == 1)
 		 	{
@@ -59,12 +59,9 @@ int main(int argc, char *argv[])
 			break;
 		}
 		
-		else
+		else if (handled == 0)
 		{
-			if (handled == 0)
-			{
 			AppendToFile(argv[1], input);
-			}
 		}
 	}
 

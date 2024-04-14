@@ -16,4 +16,4 @@ int CompareExit(char *input);
 int CompareCount(char *input);
 int CompareRemove(char *input);
 
-#endif
+#endif /* __WSFILES_H__ */
