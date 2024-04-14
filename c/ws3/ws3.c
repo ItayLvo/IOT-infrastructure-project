@@ -1,10 +1,11 @@
-#include "wsarrays.h"
 #include <stdio.h>
 #include <string.h>	/*strlen, strdup*/
 #include <stdlib.h>	/*malloc*/
 #include <stddef.h>
 #include <ctype.h>	/*tolower*/
 #include <assert.h>	/*assert*/
+
+#include "ws3.h"
 
 void TestJosephus();
 void TestMatrix();

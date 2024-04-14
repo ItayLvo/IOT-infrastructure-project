@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "wsfiles.h"
+
+#include "ws5.h"
 
 struct print_me
 {

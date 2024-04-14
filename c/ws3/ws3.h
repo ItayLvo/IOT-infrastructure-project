@@ -1,5 +1,5 @@
-#ifndef WSARRAYS_H
-#define WSARRAYS_H
+#ifndef __WSARRAYS_H__
+#define __WSARRAYS_H__
 
 int *MatrixSum(int size, int mat[2][2], int *res);
 
@@ -11,4 +11,4 @@ char **CopyEnv(char **envp, char **newstr);
 
 char *ToLowerString(char *str);
 
-#endif
+#endif /*__WSARRAYS_H__ */
