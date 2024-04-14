@@ -1,11 +1,12 @@
-#include <stdio.h>
+#include <stdio.h>	/*printf*/
 #include <string.h>	/*strlen, strdup*/
 #include <stdlib.h>	/*malloc*/
-#include <stddef.h>
+#include <stddef.h>	/*size_t*/
 #include <ctype.h>	/*tolower*/
 #include <assert.h>	/*assert*/
 
 #include "ws3.h"
+
 
 void TestJosephus();
 void TestMatrix();
@@ -71,7 +72,7 @@ void TestMatrix()
 
 void TestJosephus()
 {
-	int n, i;
+	int n = 0, i = 0;
 	printf("Enter n: \n");
 	scanf("%d", &n);
 	int *arr = (int *)malloc(sizeof(int) * n);
@@ -88,12 +89,10 @@ void TestJosephus()
 
 
 
-
-
 char *ToLowerString(char *str)
 {
-	int i;
-	for(i = 0; str[i] != '\0'; i++)
+	int i = 0;
+	for (i = 0; str[i] != '\0'; ++i)
 	{
 		str[i] = tolower(str[i]);
 	}
@@ -114,7 +113,7 @@ char **CopyEnv(char **envp, char **envstring)
 	
 	
 	envstring = (char **)malloc(sizeof(char *) * (count_strings + 1));
-	if(envstring == NULL)
+	if (envstring == NULL)
 	{
 		return NULL;
 	}
@@ -136,8 +135,6 @@ char **CopyEnv(char **envp, char **envstring)
 	
 	return envstring;
 }
-
-
 
 
 
@@ -167,7 +164,8 @@ int *MatrixSum(int size, int mat[2][2], int *res)
 
 int josephus(int arr[], int size)
 {
-	int i = 0, result, j;
+	int i = 0, j = 0;
+	int result;
 	
 	while(1)
 	{

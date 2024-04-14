@@ -13,13 +13,13 @@ int main()
 
 void SevenBoom(int from, int to)
 {
-	int i;
-	char str[3];
-	for (i = from; i < to; i++)
+	int max_num_digits = 5;
+	int i = 0;
+	char str[max_num_digits];
+	for (i = from; i < to; ++i)
 	{
-		sprintf(str, "%d", i);
-		/* printf("--%s--\n", str); */
-		if (strchr(str, 7 + '0') || i % 7 == 0)
+		sprintf(str, "%d", i);		/* turns the number to string, then stores it in *str */
+		if (strchr(str, '7') || i % 7 == 0)
 		{
 			printf("BOOM\n");
 		}
@@ -33,10 +33,7 @@ void SevenBoom(int from, int to)
 size_t StrLen(const char *str)
 {
 	size_t count = 0;
-	
-	
 	assert(str);
-	
 	
 	while (str[count] != '\0')
 	{
@@ -277,8 +274,70 @@ size_t StrSpn(const char *str1, const char *str2)
 		return 0;
 }
 
+int IsPalindrome(char *str)
+{
+	char *ptrstart = str;
+	char *ptrend = (str + strlen(str));
+	ptrend--;
+	
+	while (ptrstart <= ptrend)
+	{
+		if (*ptrstart != *ptrend)
+		{
+			return 0;
+		}
+		
+		ptrstart++;
+		ptrend--;
+	}
+	return 1;
+}
+
+
+char *DeleteSpace(char *str)
+{
+	char *ptrstart = str;
+	char *ptrend = str + strlen(str);
+	ptrend--;
+	
+	printf("started func %s\n", ptrstart);
+	
+	while (*ptrstart == ' ')
+	{
+		str++;
+		ptrstart++;
+		printf("first while: %s\n\n", ptrstart);
+	}
+	
+	while(*ptrend == ' ')
+	{
+		*ptrend = '\0';
+		ptrend--;
+		printf("second while: %s\n\n", ptrstart);
+	}
+	
+	while (*ptrstart != '\0')
+	{
+		while ((strlen(ptrstart) > 1) && (*ptrstart == ' ' && *(ptrstart + 1) == ' '))
+		{
+
+			ptrstart = StrCpy(ptrstart, (ptrstart + 1));
+			printf("third while: %s\n\n", ptrstart);
+		}
+		ptrstart++;
+	}
+	
+	return str;
+	
+}
+
+
+
 
 /*
+StrTok implementation still has bugs, currently not working
+
+
 char *StrTok(char *str, const char *delim)
 {	
 	static int count = 0;
@@ -345,62 +404,7 @@ char *StrTok(char *str, const char *delim)
 */
 
 
-int IsPalindrome(char *str)
-{
-	char *ptrstart = str;
-	char *ptrend = (str + strlen(str));
-	ptrend--;
-	
-	while (ptrstart <= ptrend)
-	{
-		if (*ptrstart != *ptrend)
-		{
-			return 0;
-		}
-		
-		ptrstart++;
-		ptrend--;
-	}
-	return 1;
-}
 
-
-char *DeleteSpace(char *str)
-{
-	char *ptrstart = str;
-	char *ptrend = str + strlen(str);
-	ptrend--;
-	
-	printf("started func %s\n", ptrstart);
-	
-	while (*ptrstart == ' ')
-	{
-		str++;
-		ptrstart++;
-		printf("first while: %s\n\n", ptrstart);
-	}
-	
-	while(*ptrend == ' ')
-	{
-		*ptrend = '\0';
-		ptrend--;
-		printf("second while: %s\n\n", ptrstart);
-	}
-	
-	while (*ptrstart != '\0')
-	{
-		while ((strlen(ptrstart) > 1) && (*ptrstart == ' ' && *(ptrstart + 1) == ' '))
-		{
-
-			ptrstart = StrCpy(ptrstart, (ptrstart + 1));
-			printf("third while: %s\n\n", ptrstart);
-		}
-		ptrstart++;
-	}
-	
-	return str;
-	
-}
 
 
 

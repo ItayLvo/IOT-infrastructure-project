@@ -12,7 +12,7 @@ int flip(int n);
 int main()
 {
 	int n = 3;
-	int a=5, b=10;
+	int a = 5, b = 10;
 	
 	printf("10^n = 10^%d = %d\n\n", n, PowerTen(n));
 	
@@ -22,7 +22,7 @@ int main()
 	swap(&a, &b);
 	printf("a = %d, b = %d\n", a, b);
 	
-	
+	/* testing some expressions */
 	int x = 20;
 	int y = 35;
 	x = y++ + x++;
@@ -36,13 +36,15 @@ int main()
 
 int *CopyArray(int *arr, int size)
 {
-	int i;
+	int i = 0;
 	int *newarr = malloc(size * sizeof(arr[0]));
 	
 	if (newarr == NULL)
+	{
 		return NULL;
+	}
 		
-	for (i = 0; i < size; i++)
+	for (i = 0; i < size; ++i)
 	{
 		newarr[i] = arr[i];
 	}
@@ -96,11 +98,23 @@ void swaptp2(size_t **ap, size_t **bp)
 }
 
 
-/*
+int PowerTen(int n)
+{
+	int result = 1;
+	int i = 0;
+	
+	for (i = 0; i < n; ++i)
+	{
+		result = result * 10;
+	}
+	
+	return result;
+}
 
-//
-//
-//tests to test swap, swapt, etc... methods listed above
+
+/*
+tests to test swap, swapt, etc... methods listed above
+
 int main()
 {
 
@@ -135,25 +149,10 @@ int main()
 }
 */
 
-int PowerTen(int n)
-{
-	int result = 1;
-	int i;
-	
-	for (i = 0; i < n; i++)
-	{
-		result = result * 10;
-	}
-	
-	return result;
-}
+
 
 
 /*
-/*
-**
-**
-**
 
 Exercises - C Expressions worksheet
 
