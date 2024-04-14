@@ -10,6 +10,12 @@ struct print_me
 };
 
 
+typedef struct {
+    char *inputString;
+    int (*CompareFunc)(char *);
+    void (*OperationFunc)(char *, char *);
+} OperationHandler;
+
 
 int main(int argc, char *argv[])
 {
@@ -47,6 +53,26 @@ int main(int argc, char *argv[])
 	
 
 	return 0;
+}
+
+
+void OperationCount(char *filename, char *input) {
+    FILE *file = fopen(filename, "r");
+    int count = 0;
+    char line[100];
+    
+    if (file == NULL) 
+    {
+        return;
+    }
+    
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
+        count++;
+    }
+    
+    fclose(file);
+    printf("number of lines in file %s: %d\n", filename, count);
 }
 
 
