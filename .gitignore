@@ -1,4 +1,11 @@
-*.txt
+*.*
+
+!*.c
+!*.h
+!.gitignore
+
+!*.git
+!*.git/*
 
 /build
 */build
