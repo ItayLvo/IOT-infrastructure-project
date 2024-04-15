@@ -19,15 +19,34 @@ int main()
 	printf("i = %d\t", i);
 	printf("%ld\n", IsPowerOfTwo(i));
 	}
-	
-	return 0;
 	*/
 	
+	
+	/* testing for PrintThreeBitsOn */
+	/*
 	unsigned int arr[] = {1,2,3,7,4,15,11,1,13,0,4};
 	PrintThreeBitsOn(arr, sizeof(arr));
+	*/
+	
+	
 	
 	return 0;
 	
+}
+
+
+int MirrorBits(int n)
+{
+	int ans = 0;
+	int i = 0;
+	
+	for (int i = 0; i < 32; i++)
+	{
+		ans = ans << 1;
+		ans = ans | (n & 1); /* adds the right-most digit of n to ans. if it was 1, it remains 1 */
+		n = n >> 1;
+	}
+	return ans;
 }
 
 
