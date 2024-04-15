@@ -23,24 +23,53 @@ int main()
 	return 0;
 	*/
 	
+	unsigned int arr[] = {1,2,3,7,4,15,11,1,13,0,4};
+	PrintThreeBitsOn(arr, sizeof(arr));
 	
+	return 0;
+	
+}
+
+
+void PrintThreeBitsOn(unsigned int arr[], size_t size)
+{
+	size_t i = 0;
+	int temp = 0;
+	int count = 0;
+	
+	for (i = 0; i < size / sizeof(arr[0]); ++i)
+	{
+		temp = arr[i];
+		while (temp)
+		{
+			if (temp & 1)
+			{
+				++count;
+				
+			}
+			temp = temp >> 1;	
+		}
+		
+		if (3 == count)
+		{
+			printf("%ld has 3 bits on exactly\n", arr[i]); 
+		}
+		count = 0;
+	}
 }
 
 
 int AddOne(int x) 
 { 
 	int tmp = 1; 
-     
-	/* flip all the bits until we find a 0 */
 
 	while (x & tmp) 
 	{ 
 		x = x ^ tmp; 
 		tmp  = tmp << 1; 
 	} 
-	/* flip the rightmost 0 bit */
 
-	x = x ^ m; 
+	x = x ^ tmp; 
 	return x; 
 } 
 
