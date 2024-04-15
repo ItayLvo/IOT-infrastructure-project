@@ -4,28 +4,14 @@
 
 #include "ws5.h"
 
-struct print_me
-{
-   	int data;
-   	void (*Print)(int);
-};
 
-
-struct flag
-{
-    char *inputString;
-    int (*CompareFunc)(char *);
-    void (*OperationFunc)(char *, char *);
-};
 
 
 int main(int argc, char *argv[])
 {
 	char input[100];
-	struct print_me array[10];
-	int i = 0;
 	
-	struct flag flags[] = {
+	struct flag_t flags_handlers_arr[] = {
 	{"-remove", CompareRemove, OperationRemove}, 
 	{"-count", CompareCount, OperationCount}, 
 	{"-exit", CompareExit, OperationExit},
@@ -44,17 +30,23 @@ int main(int argc, char *argv[])
 		input[strcspn(input, "\n")] = '\0';	/* replace enter with null terminator to create valid string */
 
 		
-		for (i = 0; i < 4; ++i)			/* loop through 4 possible options of flags[] - "chain of responsibility" design pattern */
+		for (i = 0; i < 4; ++i)			/* loop through 4 possible options of flags[], "chain of responsibility" design pattern */
 		{
-		 	if (flags[i].CompareFunc(input) == 1)
+		 	if (flags_handlers_arr[i].CompareFunc(input) == 1)
 		 	{
-				flags[i].OperationFunc(argv[1], input);
-		        	handled = 1;
-		        	break;
+				if (flags_handlers_arr[i].OperationFunc(argv[1], input) == TRUE)
+				{
+		        		handled = 1;
+		        		break;
+		        	}
+		        	else	/* operation function returned FALSE (enum) */
+		        	{
+		        		printf("operation function failed\n");
+		        	}
 			}
 		}
 		
-		if ((handled == 1 && strcmp(input, "-exit") == 0) || strcmp(input, "") == 0)
+		if ((handled == 1 && strcmp(input, "-exit") == 0))
 		{
 			break;
 		}
@@ -127,54 +119,63 @@ int CompareAppend(char *input)
 }
 
 
-void OperationExit(char *filename, char *input)
+enum STATUS OperationExit(char *filename, char *input)
 {
     printf("closing program\n");
+    return TRUE;
 }
 
 
 
 
-
-void OperationRemove(char *filename, char *input)
+enum STATUS OperationRemove(char *filename, char *input)
 {
  	if (remove(filename) == 0)
  	{
 		printf("file %s removed\n", filename);
+		return TRUE;
 	}
 	else
 	{
-        	printf("failed to remove file %s.\n", filename);
+        	printf("failed to remove file %s\n", filename);
+        	return FALSE;
         }
 }
 
 
-void OperationAppend(char *filename, char *input)
+enum STATUS OperationAppend(char *filename, char *input)
 {
 	FILE *file = fopen(filename, "r+");
 	size_t file_size;
-	char *fileContent;
+	char *file_content;
+	
+	if (file == NULL) 
+    	{
+        	return FALSE;
+    	}
 	
 	fseek(file, 0, SEEK_END);
 	file_size = ftell(file);
-	fileContent = (char *)malloc(file_size + 1);
+	file_content = (char *)malloc(file_size + 1);
 	rewind(file);
-	fread(fileContent, 1, file_size, file);
-	fileContent[file_size] = '\0';
+	fread(file_content, 1, file_size, file);
+	file_content[file_size] = '\0';
 
 	rewind(file);
 
-	fprintf(file, "%s\n%s", input + 1, fileContent);
+	fprintf(file, "%s\n%s", input + 1, file_content);
 
-	free(fileContent);
+	free(file_content);
 	fclose(file);
 
 	printf("String %s appended to the start of file %s\n", input + 1, filename);
+	
+	return TRUE;
 }
 
 
 
-void OperationCount(char *filename, char *input)
+enum STATUS OperationCount(char *filename, char *input)
 {
     FILE *file = fopen(filename, "r");
     int count = 0;
@@ -182,7 +183,7 @@ void OperationCount(char *filename, char *input)
     
     if (file == NULL) 
     {
-        return;
+        return FALSE;
     }
     
     while (fgets(line, sizeof(line), file) != NULL)
@@ -192,6 +193,8 @@ void OperationCount(char *filename, char *input)
     
     fclose(file);
     printf("number of lines in file %s: %d\n", filename, count);
+    
+    return TRUE;
 }
 
 
