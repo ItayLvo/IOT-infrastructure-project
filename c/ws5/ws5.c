@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 		input[strcspn(input, "\n")] = '\0';	/* replace enter with null terminator to create valid string */
 
 		
-		for (i = 0; i < 4; ++i)			/* loop through 4 possible options of flags[], "chain of responsibility" design pattern */
+		for (i = 0; i < 4; ++i)			/* loop through 4 possible options of flags_handlers_arr[] */
 		{
 		 	if (flags_handlers_arr[i].CompareFunc(input) == 1)
 		 	{
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 		        		handled = 1;
 		        		break;
 		        	}
-		        	else	/* operation function returned FALSE (enum) */
+		        	else	/* operation function returned FALSE */
 		        	{
 		        		printf("operation function failed\n");
 		        	}
@@ -158,9 +158,9 @@ enum STATUS OperationAppend(char *filename, char *input)
 	file_size = ftell(file);
 	file_content = (char *)malloc(file_size + 1);
 	rewind(file);
+	
 	fread(file_content, 1, file_size, file);
 	file_content[file_size] = '\0';
-
 	rewind(file);
 
 	fprintf(file, "%s\n%s", input + 1, file_content);
