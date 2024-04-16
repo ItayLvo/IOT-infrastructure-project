@@ -1,6 +1,6 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <stdlib.h>	/*malloc*/
+#include <string.h>	/*strcmp*/
+#include <stdio.h>	/*printf, size_t*/
 
 #include "ws5.h"
 
