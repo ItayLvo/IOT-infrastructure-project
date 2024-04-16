@@ -2,9 +2,6 @@
 #include "ws6.h"
 
 
-
-
-
 int main()
 {
 	
@@ -30,11 +27,11 @@ int main()
 	
 	
 	/* testing for MirrorBits */
-	/*
+	
 	HelperPrintInBinary(14);
 	HelperPrintInBinary(MirrorBits(14));
 	printf("%d\n", MirrorBits(14));
-	*/
+	
 	
 	
 	/* testing for SwapThirdAndFifth */
@@ -44,7 +41,7 @@ int main()
 	
 	/* testing for Closest */
 	/*
-	Closest(153);
+	ClosestToSixteenNoRemains(153);
 	*/
 	
 	
@@ -112,7 +109,7 @@ void Swap(int *a, int *b)
 	*a = *a ^ *b;
 }
 
-int Closest(unsigned int n)
+int ClosestToSixteenNoRemains(unsigned int n)
 {
 	printf("%d\n", n & 65520);
 	return (n & 65520);

@@ -16,7 +16,7 @@ void HelperPrintInBinary(int num);
 int CheckBothSecondSixth(unsigned char ch);
 int CheckSecondOrSixth(unsigned char ch);
 int SwapThirdAndFifth(unsigned char ch);
-int Closest(unsigned int n);
+int ClosestToSixteenNoRemains(unsigned int n);
 void Swap(int *a, int *b);
 int CountBitsOnLoop(unsigned int n);
 void PrintFloat(float f);
