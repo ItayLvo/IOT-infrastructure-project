@@ -123,6 +123,8 @@ void SwitchImplementation(void)
 			case 27:
 				system("stty icanon echo");
 				exit(0);
+			default:
+				break;
 		}
 		
 		
