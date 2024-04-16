@@ -47,10 +47,38 @@ int main()
 	Closest(153);
 	*/
 	
+	
+	/* testing for CountBitsOn */
+	/*
+	printf("%d\n", CountBitsOnLoop(54));
+	*/
+	
+	
 	return 0;
 	
 }
 
+
+int CountBitsOnLoop(unsigned int n)
+{
+	int count = 0;
+	while (n != 0)
+	{
+		if ((n & 1) == 1)
+		{
+			++count;
+		}
+		n = n >> 1;
+	}
+	return count;
+}
+
+void Swap(int *a, int *b)
+{
+	*a = *a ^ *b;
+	*b = *a ^ *b;
+	*a = *a ^ *b;
+}
 
 int Closest(unsigned int n)
 {
@@ -125,9 +153,10 @@ int SwapThirdAndFifth(unsigned char ch)
 void HelperPrintInBinary(int num)
 {
 	int i;
-	for (i = 31; i >= 0; i--)
+	for (i = 31; i >= 0; --i)
 	{
 		printf("%d", (num >> i) & 1);	
+		
 		if (i % 4 == 0)
 		{
 			printf(" ");

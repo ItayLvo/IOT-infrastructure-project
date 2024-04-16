@@ -17,5 +17,7 @@ int CheckBothSecondSixth(unsigned char ch);
 int CheckSecondOrSixth(unsigned char ch);
 int SwapThirdAndFifth(unsigned char ch);
 int Closest(unsigned int n);
+void Swap(int *a, int *b);
+int CountBitsOnLoop(unsigned int n);
 
 #endif /* __WS6_H__ */
