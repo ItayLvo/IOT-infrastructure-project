@@ -8,11 +8,6 @@
 #include "ws3.h"
 
 
-void TestJosephus();
-void TestMatrix();
-void TestEnvp(char *envp[]);
-
-
 int main(int argc, char *argv[], char *envp[])
 {
 	/* Testing the *envp[] exercise 

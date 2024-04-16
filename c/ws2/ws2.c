@@ -144,8 +144,10 @@ char *StrChr(const char *str, int c)
 char *StrDup(const char *s)
 {
 	int i = 0;
-	char *newstr = (char *)malloc(sizeof(char) * strlen(s) + 1);
+	char *newstr;
 	assert(s);
+	
+	newstr = (char *)malloc(sizeof(char) * strlen(s) + 1);
 	
 	if (newstr == NULL)
 	{
@@ -187,11 +189,14 @@ char *StrCat(char *s1, const char *s2)
 char *StrnCat(char *s1, const char *s2, size_t n)
 {
 	size_t count = 0;
-	char *ptr1 = s1;
-	const char *ptr2 = s2;
+	char *ptr1;
+	const char *ptr2;
 	
 	assert(s1);
 	assert(s2);
+	
+	ptr1 = s1;
+	ptr2 = s2;
 	
 	ptr1 = ptr1 + strlen(s1); /* initialize ptr1 to point at the null terminator of s1 */
 	
