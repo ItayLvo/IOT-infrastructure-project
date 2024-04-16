@@ -1,15 +1,15 @@
 #include <stdio.h> /*printf*/
 #include "ws6.h"
 
+
+
+
+
 int main()
 {
-	long i = 0;
-	
 	
 	/* testing Pow2: x = 2, y = 3, should return 2*(2^3) = 16 */
 	/* printf("%ld\n", Pow2(2, 3)); */
-	
-	
 	
 	
 	/* testing for IsPowerOfTwo */
@@ -29,24 +29,125 @@ int main()
 	*/
 	
 	
+	/* testing for MirrorBits */
+	/*
+	HelperPrintInBinary(25);
+	PrintBinary(MirrorBits(25));
+	printf("%d\n", MirrorBits(25));	*/
+	
+	
+	
+	/* testing for SwapThirdAndFifth */
+	/*
+	SwapThirdAndFifth((unsigned char)'r');
+	*/
+	
+	/* testing for Closest */
+	/*
+	Closest(153);
+	*/
 	
 	return 0;
 	
 }
 
 
+int Closest(unsigned int n)
+{
+	printf("%d\n", n & 65520);
+	return (n & 65520);
+}
+
+
+int CheckBothSecondSixth(unsigned char ch)
+{
+	if (((ch >> 1) & 1) && ((ch << 1) & 8))
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+
+int CheckSecondOrSixth(unsigned char ch)
+{
+	if (((ch >> 1) & 1) || ((ch << 1) & 8))
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+
+int SwapThirdAndFifth(unsigned char ch)
+{
+	char third_bit = 0;
+	char fifth_bit = 0;
+	
+	printf("current char: \n");
+	HelperPrintInBinary(ch);
+	
+	
+	third_bit = third_bit | (ch & 4);
+	fifth_bit = fifth_bit | (ch & 16);
+	
+	printf("third bit: \n");
+	HelperPrintInBinary(third_bit);
+	printf("fifth bit: \n");
+	HelperPrintInBinary(fifth_bit);
+	
+	if ((third_bit << 2) == fifth_bit)
+	{
+		printf("3rd and 5th are the same bit (not replacing)\n");
+	}
+	else
+	{
+		printf("replacing\n");
+		if (third_bit == 0)
+		{
+			ch = ch ^ fifth_bit;
+			ch = ch | 4;
+		}
+		else	/* fifth_bit == 0 */
+		{
+			ch = ch ^ third_bit;
+			ch = ch | 16;
+		}
+	}
+	
+	printf("afte swap: \n");
+	HelperPrintInBinary(ch);
+	
+	return 0;
+}
+
+
+void HelperPrintInBinary(int num)
+{
+	int i;
+	for (i = 31; i >= 0; i--)
+	{
+		printf("%d", (num >> i) & 1);	
+		if (i % 4 == 0)
+		{
+			printf(" ");
+		}
+	}
+	printf("\n");
+}
+
 int MirrorBits(int n)
 {
-	int ans = 0;
+	int reversed_num = 0;
 	int i = 0;
 	
-	for (int i = 0; i < 32; i++)
+	for (i = 0; i < 32; i++)
 	{
-		ans = ans << 1;
-		ans = ans | (n & 1); /* adds the right-most digit of n to ans. if it was 1, it remains 1 */
+		reversed_num = reversed_num << 1;
+		reversed_num = reversed_num | (n & 1); /* adds the right-most digit of n to ans. if it was 1, it remains 1 */
 		n = n >> 1;
 	}
-	return ans;
+	return reversed_num;
 }
 
 
@@ -71,7 +172,7 @@ void PrintThreeBitsOn(unsigned int arr[], size_t size)
 		
 		if (3 == count)
 		{
-			printf("%ld has 3 bits on exactly\n", arr[i]); 
+			printf("%d has 3 bits on exactly\n", arr[i]); 
 		}
 		count = 0;
 	}

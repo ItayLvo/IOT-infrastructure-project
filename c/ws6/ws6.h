@@ -12,5 +12,10 @@ int IsPowerOfTwo(unsigned int n);
 int AddOne(int x);
 void PrintThreeBitsOn(unsigned int arr[], size_t size);
 int MirrorBits(int n);
+void HelperPrintInBinary(int num);
+int CheckBothSecondSixth(unsigned char ch);
+int CheckSecondOrSixth(unsigned char ch);
+int SwapThirdAndFifth(unsigned char ch);
+int Closest(unsigned int n);
 
 #endif /* __WS6_H__ */
