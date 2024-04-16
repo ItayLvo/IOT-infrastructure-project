@@ -31,10 +31,10 @@ int main()
 	
 	/* testing for MirrorBits */
 	/*
-	HelperPrintInBinary(25);
-	PrintBinary(MirrorBits(25));
-	printf("%d\n", MirrorBits(25));	*/
-	
+	HelperPrintInBinary(14);
+	HelperPrintInBinary(MirrorBits(14));
+	printf("%d\n", MirrorBits(14));
+	*/
 	
 	
 	/* testing for SwapThirdAndFifth */
@@ -54,9 +54,41 @@ int main()
 	*/
 	
 	
+	/* testing for PrintFloat */
+	/*
+	float f = 2.5;
+	PrintFloat(2.5);
+	*/
+	
+	/* testing for Q1 */
+	/*
+	unsigned int x = 5;
+	printf("%u %u %u\n", x, x << 2, x >> 2);
+	*/
+	
+	
+	
 	return 0;
 	
 }
+
+
+/*
+void PrintFloat(float f)
+{
+	int i;
+	for (i = 31; i >= 0; --i)
+	{
+		printf("%d", (f >> i) & 1);	
+		
+		if (i % 4 == 0)
+		{
+			printf(" ");
+		}
+	}
+	printf("\n");
+}
+*/
 
 
 int CountBitsOnLoop(unsigned int n)

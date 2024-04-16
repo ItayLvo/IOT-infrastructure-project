@@ -19,5 +19,6 @@ int SwapThirdAndFifth(unsigned char ch);
 int Closest(unsigned int n);
 void Swap(int *a, int *b);
 int CountBitsOnLoop(unsigned int n);
+void PrintFloat(float f);
 
 #endif /* __WS6_H__ */
