@@ -121,22 +121,12 @@ int Closest(unsigned int n)
 
 int CheckBothSecondSixth(unsigned char ch)
 {
-	if (((ch >> 1) & 1) && ((ch << 1) & 8))
-	{
-		return 1;
-	}
-	
-	return 0;
+	return ((ch & 2) && (ch & 64));
 }
 
 int CheckSecondOrSixth(unsigned char ch)
 {
-	if (((ch >> 1) & 1) || ((ch << 1) & 8))
-	{
-		return 1;
-	}
-	
-	return 0;
+	return ((ch & 2) || (ch & 64));
 }
 
 int SwapThirdAndFifth(unsigned char ch)
