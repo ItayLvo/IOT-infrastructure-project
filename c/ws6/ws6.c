@@ -1,82 +1,18 @@
+/*
+itay
+reviewed by shahar
+*/
+
 #include <stdio.h> /*printf*/
 #include "ws6.h"
 
 
-int main()
+static void HelperPrintInBinary(int num)
 {
-	
-	/* testing Pow2: x = 2, y = 3, should return 2*(2^3) = 16 */
-	/* printf("%ld\n", Pow2(2, 3)); */
-	
-	
-	/* testing for IsPowerOfTwo */
-	/*
-	for (i = 0; i < 17; i++)
-	{
-	printf("i = %d\t", i);
-	printf("%ld\n", IsPowerOfTwo(i));
-	}
-	*/
-	
-	
-	/* testing for PrintThreeBitsOn */
-	/*
-	unsigned int arr[] = {1,2,3,7,4,15,11,1,13,0,4};
-	PrintThreeBitsOn(arr, sizeof(arr));
-	*/
-	
-	
-	/* testing for MirrorBits */
-	
-	HelperPrintInBinary(14);
-	HelperPrintInBinary(MirrorBits(14));
-	printf("%d\n", MirrorBits(14));
-	
-	
-	
-	/* testing for SwapThirdAndFifth */
-	/*
-	SwapThirdAndFifth((unsigned char)'r');
-	*/
-	
-	/* testing for Closest */
-	/*
-	ClosestToSixteenNoRemains(153);
-	*/
-	
-	
-	/* testing for CountBitsOn */
-	/*
-	printf("%d\n", CountBitsOnLoop(54));
-	*/
-	
-	
-	/* testing for PrintFloat */
-	/*
-	float f = 2.5;
-	PrintFloat(2.5);
-	*/
-	
-	/* testing for Q1 */
-	/*
-	unsigned int x = 5;
-	printf("%u %u %u\n", x, x << 2, x >> 2);
-	*/
-	
-	
-	
-	return 0;
-	
-}
-
-
-/*
-void PrintFloat(float f)
-{
-	int i;
+	int i = 0;
 	for (i = 31; i >= 0; --i)
 	{
-		printf("%d", (f >> i) & 1);	
+		printf("%d", (num >> i) & 1);	
 		
 		if (i % 4 == 0)
 		{
@@ -85,12 +21,22 @@ void PrintFloat(float f)
 	}
 	printf("\n");
 }
-*/
+
+
+
+void PrintFloat(float f)
+{
+	unsigned int *int_ptr;
+	
+	int_ptr = (unsigned int *)&f;
+	HelperPrintInBinary(*int_ptr);
+}
 
 
 int CountBitsOnLoop(unsigned int n)
 {
 	int count = 0;
+	
 	while (n != 0)
 	{
 		if ((n & 1) == 1)
@@ -99,6 +45,7 @@ int CountBitsOnLoop(unsigned int n)
 		}
 		n = n >> 1;
 	}
+	
 	return count;
 }
 
@@ -126,6 +73,20 @@ int CheckSecondOrSixth(unsigned char ch)
 	return ((ch & 2) || (ch & 64));
 }
 
+
+int CountBitsOn_NoLoop(unsigned int n)
+{
+	/* LUT for each nibble (4 bits) */
+	const unsigned char bit_count_table[16] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
+
+	/* sum the number of set bits in each nibble */
+	return	bit_count_table[n & 0xF] + bit_count_table[(n >> 4) & 0xF] +
+		bit_count_table[(n >> 8) & 0xF] + bit_count_table[(n >> 12) & 0xF] +
+		bit_count_table[(n >> 16) & 0xF] + bit_count_table[(n >> 20) & 0xF] +
+		bit_count_table[(n >> 24) & 0xF] + bit_count_table[(n >> 28) & 0xF];
+}
+
+
 int SwapThirdAndFifth(unsigned char ch)
 {
 	char third_bit = 0;
@@ -150,7 +111,7 @@ int SwapThirdAndFifth(unsigned char ch)
 	else
 	{
 		printf("replacing\n");
-		if (third_bit == 0)
+		if (0 == third_bit)
 		{
 			ch = ch ^ fifth_bit;
 			ch = ch | 4;
@@ -169,32 +130,18 @@ int SwapThirdAndFifth(unsigned char ch)
 }
 
 
-void HelperPrintInBinary(int num)
-{
-	int i;
-	for (i = 31; i >= 0; --i)
-	{
-		printf("%d", (num >> i) & 1);	
-		
-		if (i % 4 == 0)
-		{
-			printf(" ");
-		}
-	}
-	printf("\n");
-}
-
 int MirrorBits(int n)
 {
 	int reversed_num = 0;
 	int i = 0;
 	
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < 32; ++i)
 	{
 		reversed_num = reversed_num << 1;
 		reversed_num = reversed_num | (n & 1); /* adds the right-most digit of n to ans. if it was 1, it remains 1 */
 		n = n >> 1;
 	}
+	
 	return reversed_num;
 }
 
@@ -230,14 +177,32 @@ void PrintThreeBitsOn(unsigned int arr[], size_t size)
 int AddOne(int x) 
 { 
 	int tmp = 1; 
-
-	while (x & tmp) 
-	{ 
+	
+	printf("starting. x is: \n");
+	HelperPrintInBinary(x);
+	
+	while ((x & tmp) != 0) 
+	{
+		printf("top of while loop. x is: \n");
+		HelperPrintInBinary(x); 
+		printf("tmp is: \n");
+		HelperPrintInBinary(tmp); 
 		x = x ^ tmp; 
+		printf("x after x=x^tmp is: \n");
+		HelperPrintInBinary(x); 
 		tmp  = tmp << 1; 
+		printf("tmp after tmp = tmp << 1 is: \n");
+		HelperPrintInBinary(tmp); 
 	} 
-
+	
+	printf("\nleft loop. x after loop is: \n");
+	HelperPrintInBinary(x); 
+	
 	x = x ^ tmp; 
+	
+	printf("x after final x = x ^ tmp is: \n");
+	HelperPrintInBinary(x); 
+	
 	return x; 
 } 
 
@@ -255,21 +220,20 @@ int IsPowerOfTwoLoop(unsigned int n)
 		return 0;
 	}
 	
-	while (n != 0)
+	while (0 != n)
 	{
 		if (n & 1)
 		{
 			++count;
 		}
-		
 		if (count > 1)
 		{
 			return 0;
 		}
 		
 		n = (n >> 1);
-		
 	}
+	
 	return 1;
 }
 
@@ -284,6 +248,7 @@ int IsPowerOfTwo(unsigned int n)
 	
 	x = (n & (n - 1));	/* x is 0 if there are no overlaping bits in (n) and (n-1). if any bits overlap, x is 1 */
 	x = !x;			/* if x was 0, x will now be 1 */
+	
 	return x;
 }
 
