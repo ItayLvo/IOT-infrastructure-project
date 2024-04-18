@@ -1,33 +1,29 @@
 #ifndef __STRUCTS_H__
 #define __STRUCTS_H__
+#include <string.h> /*sprintf*/
 
-typedef union types {
-	int n;
-	float f;
-	char *string;
-	} object_u;
-	
-	
-typedef enum type_t = {INT, FLOAT, STRING} data_type_t;
-
-
-typedef void(*AddFunc)(int n, type_t type, object_u obj);
-typedef void(*PrintFunc)(object_u obj, type_t type);
-typedef void(*CleanFunc)(object_u obj, type_t type);
+typedef void(AddFunc)(int n, void *value);
+typedef void(PrintFunc)(void *value);
+typedef void(CleanFunc)(void *value);
 
 
 typedef struct element {
-	data_type_t type;	/*enum*/
-	types_u object;		/*union*/
-	PrintFunc print = NULL;
-	AddFunc add = NULL;
-	CleanFunc clean = NULL;
+	void *value;	/*pointer to int, or char[], or struct, etc*/
+	PrintFunc *print;
+	AddFunc *add;
+	CleanFunc *clean;
 	} element_t;
 	
-	
-generic_type_t *CreateGenericArray(int n);
-generic_type_t *InitGenericArray(generic_type_t *arr, int index, generic_type_t element);
 
+void AddNumbers(int n, void *value);
+void AddString(int n, void *value);
+void PrintFloat(void *value);
+void PrintString(void *value);
+void PrintInt(void *value);
+void CleanNothing(void *value);
+void CleanString(void *value);
 
 
 #endif /* __STRUCTS_H__ */
+
+
