@@ -1,43 +1,26 @@
 #include <stdio.h>	/* printf, scanf */
 #include <stdlib.h>	/* exit */
+#include "ws4.h"
 
-int Add(int a, int b);
-
-void FuncAPressed(void);
-void FuncTPressed(void);
-void FuncESQPressed(void);
-void FuncEmpty(void);
-
-void IfImplementation(void);
-void SwitchImplementation(void);
-void LUTImplementation(void);
-
-
-
-int main()
-{
-	LUTImplementation();
-	return 0;
-}
 
 void LUTImplementation(void)
 {
 	char userch = '\0';
-	typedef void (*function)(void);
+	typedef void (*Handlers_t)(void);
 	size_t i = 0;
-	function funcs[256];
+	Handlers_t funcs[256];
 	
 	for (i = 0; i < (sizeof(funcs) / sizeof(funcs[0])); i++)
 	{
 		funcs[i] = FuncEmpty;
 	}
-	funcs[27] = FuncESQPressed;
+	funcs[27] = FuncESCPressed;
 	funcs[65] = FuncAPressed;
 	funcs[84] = FuncTPressed;
 	
 	system("stty -icanon -echo");
 	
-	while(1)
+	while(27 != userch) /* 27 = ESC key*/
 	{
 		
 		printf("enter a character: \n");
@@ -60,10 +43,10 @@ void FuncTPressed(void)
 {
 	printf("T-pressed\n");
 }
-void FuncESQPressed(void)
+void FuncESCPressed(void)
 {
 	system("stty icanon echo");
-	exit(0);
+	return;
 }
 
 
@@ -74,7 +57,7 @@ void IfImplementation(void)
 
 	system("stty -icanon -echo");
 	
-	while(1)
+	while(27 != userch)
 	{
 		
 		printf("enter a character: \n");
@@ -106,7 +89,7 @@ void SwitchImplementation(void)
 	
 	system("stty -icanon -echo");
 	
-	while(1)
+	while(27 != userch)
 	{
 		
 		printf("enter a character: \n");
@@ -122,14 +105,10 @@ void SwitchImplementation(void)
 				break;
 			case 27:
 				system("stty icanon echo");
-				exit(0);
+				return;
 			default:
 				break;
 		}
-		
-		
-		
-
 	}
 	
 	system("stty icanon echo");
