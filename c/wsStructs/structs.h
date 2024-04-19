@@ -15,12 +15,13 @@ typedef struct element {
 	} element_t;
 	
 
-void AddNumbers(int n, void *value);
+void AddInt(int n, void *value);
+void AddFloat(int n, void *value);
 void AddString(int n, void *value);
 void PrintFloat(void *value);
 void PrintString(void *value);
 void PrintInt(void *value);
-void CleanNothing(void *value);
+void CleanNumbers(void *value);
 void CleanString(void *value);
 
 
