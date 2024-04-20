@@ -1,3 +1,9 @@
+/*
+name: itay lvovich
+reviewer: vova
+status: added fixes after cr
+*/
+
 #include <stdio.h>	/*printf*/
 #include <string.h>	/*strlen, strdup*/
 #include <stdlib.h>	/*malloc*/
@@ -7,6 +13,8 @@
 
 #include "ws3.h"
 
+
+static int NextAliveIndex(int arr[], int size, int index);
 
 char *ToLowerString(char *str)
 {
@@ -34,7 +42,7 @@ char **CopyEnv(char **envp, char **envstring)
 	
 	envstring = (char **)malloc(sizeof(char *) * (count_strings + 1));
 	
-	if (envstring == NULL)
+	if (NULL == envstring)
 	{
 		return NULL;
 	}
@@ -43,7 +51,7 @@ char **CopyEnv(char **envp, char **envstring)
 	while ((envp[i]) != NULL)
 	{
 		envstring[i] = (char *)malloc(sizeof(char) * (strlen(envp[i]) + 1));
-		if(envstring[i] == NULL)
+		if(NULL == envstring[i])
 		{
 			int index_mallocd = 0;
 			for (index_mallocd = 0; index_mallocd < i; index_mallocd++)
@@ -54,8 +62,7 @@ char **CopyEnv(char **envp, char **envstring)
 		}
 		
 		strcpy(envstring[i], envp[i]);
-		
-		i++;
+		++i;
 	}
 	envstring[i] = NULL;
 	
@@ -64,12 +71,12 @@ char **CopyEnv(char **envp, char **envstring)
 
 
 
-int *MatrixSum(int mat[ROW][COL], int *res)
+int *MatrixSum(int **mat, int rows, int cols, int *res)
 {
 	int i = 0, j = 0, countrow = 0;
-	for (i = 0; i < ROW; i++)
+	for (i = 0; i < rows; i++)
 	{
-		for (j = 0; j < COL; j++)
+		for (j = 0; j < cols; j++)
 		{
 			countrow += mat[i][j];
 		}
@@ -82,7 +89,7 @@ int *MatrixSum(int mat[ROW][COL], int *res)
 
 
 
-int josephus(int arr[], int size)
+int Josephus(int arr[], int size)
 {
 	int i = 0, j = 0;
 	int result = 0;
@@ -113,12 +120,6 @@ int josephus(int arr[], int size)
 			{
 				arr[next_alive_index] = 0;
 			}
-			/*
-			result = NextAliveIndex(arr, size, i % size);
-			if (result == -1)
-			{
-				return i % size;
-			}*/
 		}
 		i++;	
 	}
@@ -126,7 +127,7 @@ int josephus(int arr[], int size)
 	return i % size;
 }
 
-int NextAliveIndex(int arr[], int size, int index)
+static int NextAliveIndex(int arr[], int size, int index)
 {
 	int i = 0;
 	int countsteps = 0;
@@ -141,10 +142,8 @@ int NextAliveIndex(int arr[], int size, int index)
 	{
 		return -1;
 	}
-	else
-	{
-		return ((index + i + 1) % size);
-	}
+	
+	return ((index + i + 1) % size);
 }
 
 

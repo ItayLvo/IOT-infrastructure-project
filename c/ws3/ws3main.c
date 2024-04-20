@@ -10,12 +10,11 @@ static void TestMatrix();
 
 int main(int argc, char *argv[], char *envp[])
 {
-	/* Testing the *envp[] exercise 
-	TestEnvp(envp); */
+	/* Testing the *envp[] exercise */
+	TestEnvp(envp);
 	
 	/* Testing the 2D array exercise */
-	/*
-	TestMatrix();*/
+	TestMatrix();
 	
 	/* Testing for Josephus */
 	TestJosephus();
@@ -53,18 +52,37 @@ static void TestEnvp(char *envp[])
 
 static void TestMatrix()
 {
-	int mat[2][2]= {{1,2},{3,4}};
-	size_t i = 0;
-	int arr[2];
+	int rows = 2, cols = 2;
+	int i = 0;
+	int arr[2] = {0};
 	int *res = arr;
+	int **mat = (int **)malloc(rows * sizeof(int *));
 	
-	res = MatrixSum(mat, res);
+	for (i = 0; i < rows; i++)
+	{
+		mat[i] = (int *)malloc(cols * sizeof(int));
+	}
 	
+	mat[0][0] = 1;
+	mat[0][1] = 2;
+	mat[1][0] = 3;
+	mat[1][1] = 4;
+
+	res = MatrixSum(mat, rows, cols, res);
+
 	for (i = 0; i < sizeof(arr)/sizeof(arr[0]); i++)
 	{
 		printf("%d\n", res[i]);
+	}	
+	
+	for (i = 0; i < rows; i++)
+	{
+		free(mat[i]);
 	}
+	
+	free(mat);
 }
+
 
 static void TestJosephus()
 {
@@ -84,7 +102,7 @@ static void TestJosephus()
 		arr[i] = 1;
 	}
 	
-	printf("last soldier is: %d\n", josephus(arr, n));
+	printf("last soldier is: %d\n", Josephus(arr, n));
 	
 	free(arr);
 }

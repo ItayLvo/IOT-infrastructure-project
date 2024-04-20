@@ -1,14 +1,9 @@
 #ifndef __WSARRAYS_H__
 #define __WSARRAYS_H__
 
-#define COL 2
-#define ROW 2
+int *MatrixSum(int **mat, int rows, int cols, int *res);
 
-int *MatrixSum(int mat[ROW][COL], int *res);
-
-int josephus(int arr[], int size);
-
-int NextAliveIndex(int arr[], int size, int index);
+int Josephus(int arr[], int size);
 
 char **CopyEnv(char **envp, char **newstr);
 
