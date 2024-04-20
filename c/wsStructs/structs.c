@@ -4,6 +4,8 @@
 #include <string.h> /*strcpy*/
 #include "structs.h"
 
+
+
 static int NumberOfDigits (int n);
 
 void AddInt(int n, void *value)
@@ -22,15 +24,18 @@ void AddString(int n, void *value)
 {
 	int original_len = strlen((char *)value);
 	int n_number_of_digits = NumberOfDigits(n);
-	char *string_place_holder = strdup(value);
+	char *new_value = (char *)malloc(sizeof(char) * (original_len + n_number_of_digits + 1));
+	if (new_value == NULL)
+	{
+		printf("failed malloc in AddString\n");
+		return;
+	}
 	
-	free(value);
+	strcpy(new_value, (char *)value);
+	sprintf(new_value + original_len, "%d", n);
+	memcpy(value, new_value, strlen(new_value) + 1);
 	
-	value = (char *)malloc(sizeof(char) * (original_len + n_number_of_digits) + 1);
-	sprintf((char *)value, "%s", string_place_holder);
-	sprintf((char *)value + original_len, "%d", n);
-	
-	free(string_place_holder);
+	free(new_value);
 }
 
 void PrintFloat(void *value)
@@ -55,7 +60,7 @@ void CleanNumbers(void *value)
 
 void CleanString(void *value)
 {
-	free((char *)value);
+	/* do nothing*/
 }
 
 static int NumberOfDigits (int n)

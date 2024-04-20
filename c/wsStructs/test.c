@@ -3,22 +3,11 @@
 #include <string.h> 	/*strdup*/
 #include "structs.h"
 
-/*
-typedef struct element {
-	void *value = NULL;	
-	PrintFunc print = NULL;
-	AddFunc add = NULL;
-	CleanFunc clean = NULL;
-	} element_t;
-	
-void AddNumbers(int n, void *value);
-void AddString(int n, void *value);
-void PrintFloat(void *value);
-void PrintString(void *value);
-void PrintInt(void *value);
-void CleanNothing(void *value);
-void CleanString(void *value);
-*/
+#define MAX2(a,b) (((a)>(b))?(a):(b))
+#define MAX3(a,b,c) ((c)>(MAX2(a,b))?(c):(MAX2(a,b)))
+
+#define SIZEOF_VAR(var) ((char *)(&var + 1) - (char *)(&var))
+
 
 int main()
 {
@@ -30,7 +19,7 @@ int main()
 	int *ptr_x = &x;
 	float f = 3.3;
 	float *ptr_f = &f;
-	char *str = strdup("itay");
+	char str[100] = "itay";
 	
 	element_t e_int;
 	element_t e_string;
@@ -60,10 +49,17 @@ int main()
 		element_arr[i].print(element_arr[i].value);
 		element_arr[i].clean(element_arr[i].value);
 	}
+	
+	/*testing the MAX2/3 macros:*/
+	printf("%d\n", MAX2(3, 5));
+	printf("%d\n", MAX3(2,6,3));
 
+
+	/*testing the SIZEOF_VAR macro:*/
+	printf("%ld\n", SIZEOF_VAR(ptr_x));
+	
 	return 0;
 }
-
 
 
 
