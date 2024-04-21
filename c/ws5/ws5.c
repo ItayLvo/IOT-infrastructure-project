@@ -98,7 +98,7 @@ int CompareExit(char *input)
 
 int CompareAppend(char *input)
 {
-	if (input[0] == '<')
+	if ('<' == input[0])
 	{
 		return EQUAL;
 	}
@@ -117,7 +117,7 @@ enum STATUS OperationExit(char *filename, char *input)
 
 enum STATUS OperationRemove(char *filename, char *input)
 {
- 	if (remove(filename) == 0)
+ 	if (0 == remove(filename))
  	{
 		printf("file %s removed\n", filename);
 		return SUCCESS;
@@ -150,7 +150,7 @@ enum STATUS OperationAppend(char *filename, char *input)
 	fseek(file, 0, SEEK_END);
 	file_size = ftell(file);
 	file_content = (char *)malloc(file_size + 1);
-	if (file_content == NULL)
+	if (NULL == file_content)
 	{
 		return FALIURE;
 	}
@@ -184,7 +184,7 @@ enum STATUS OperationCount(char *filename, char *input)
 	}
 	
 	file = fopen(filename, "r");
-	if (file == NULL) 
+	if (NULL == file) 
 	{
 		return FALIURE;
 	}
@@ -204,13 +204,13 @@ enum STATUS OperationCount(char *filename, char *input)
 void AppendToFile(char *filename, char *str)
 {
 	FILE *file;
-	if (filename == NULL)
+	if (NULL == filename)
 	{
 		return;
 	}
     
 	file = fopen(filename, "a");
-	if (file == NULL)
+	if (NULL == file)
 	{
 		return;
 	}
