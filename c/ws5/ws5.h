@@ -16,6 +16,7 @@ int CompareExit(char *input);
 int CompareCount(char *input);
 int CompareRemove(char *input);
 
+
 struct print_me
 {
    	int data;

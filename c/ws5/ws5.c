@@ -16,6 +16,7 @@ finished code, not reviewed yet
 int main(int argc, char *argv[])
 {
 	char input[100] = {0};
+	int special_string_flag = 0;
 	
 	struct flag_t flags_handlers_arr[] = {
 	{"-remove", CompareRemove, OperationRemove}, 
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
 		{
 		 	if (flags_handlers_arr[i].CompareFunc(input) == 1)
 		 	{
+		 		special_string_flag = 1;
 				if (flags_handlers_arr[i].OperationFunc(argv[1], input) == TRUE)
 				{
 		        		if (strcmp(input, "-exit") == 0)
@@ -50,7 +52,11 @@ int main(int argc, char *argv[])
 		        	}
 			}
 		}
-		AppendToFile(argv[1], input);
+		if (special_string_flag == 0)
+		{
+			AppendToFile(argv[1], input);
+		}
+		special_string_flag = 0;
 	}
 
 	return 0;
