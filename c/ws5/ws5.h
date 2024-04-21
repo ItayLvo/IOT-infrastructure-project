@@ -4,7 +4,7 @@
 void Print(int num);
 void AppendToFile(char *filename, char *str);
 
-enum STATUS {FALSE, TRUE};
+enum STATUS {FALIURE, SUCCESS};
 
 enum STATUS OperationCount(char *filename, char *input);
 enum STATUS OperationAppend(char *filename, char *input);

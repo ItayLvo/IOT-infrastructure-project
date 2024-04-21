@@ -1,6 +1,7 @@
 /*
 itay
-finished code, not reviewed yet
+status: done
+reviewed by evelin
 */
 
 
@@ -10,8 +11,7 @@ finished code, not reviewed yet
 
 #include "ws5.h"
 
-
-
+#define EQUAL 1
 
 int main(int argc, char *argv[])
 {
@@ -36,17 +36,17 @@ int main(int argc, char *argv[])
 		
 		for (i = 0; i < 4; ++i)			/* loop through 4 possible options of flags_handlers_arr[] */
 		{
-		 	if (flags_handlers_arr[i].CompareFunc(input) == 1)
+		 	if (flags_handlers_arr[i].CompareFunc(input) == EQUAL)
 		 	{
 		 		special_string_flag = 1;
-				if (flags_handlers_arr[i].OperationFunc(argv[1], input) == TRUE)
+				if (flags_handlers_arr[i].OperationFunc(argv[1], input) == SUCCESS)
 				{
 		        		if (strcmp(input, "-exit") == 0)
 		        		{
 		        			return 0;
 		        		}
 		        	}
-		        	else	/* operation function returned FALSE */
+		        	else	/* operation function returned FALIURE */
 		        	{
 		        		return 1;
 		        	}
@@ -67,7 +67,7 @@ int CompareRemove(char *input)
 {
 	if (strcmp(input, "-remove") == 0)
 	{
-		return 1;
+		return EQUAL;
 	}
 
 	return 0;
@@ -78,7 +78,7 @@ int CompareCount(char *input)
 {
 	if (strcmp(input, "-count") == 0)
 	{
-		return 1;
+		return EQUAL;
 	}
 	
 	return 0;
@@ -89,7 +89,7 @@ int CompareExit(char *input)
 {
 	if (strcmp(input, "-exit") == 0)
 	{
-		return 1;
+		return EQUAL;
 	}
 	
 	return 0;
@@ -100,7 +100,7 @@ int CompareAppend(char *input)
 {
 	if (input[0] == '<')
 	{
-		return 1;
+		return EQUAL;
 	}
 	
 	return 0;
@@ -110,9 +110,8 @@ int CompareAppend(char *input)
 enum STATUS OperationExit(char *filename, char *input)
 {
     printf("closing program\n");
-    return TRUE;
+    return SUCCESS;
 }
-
 
 
 
@@ -121,12 +120,12 @@ enum STATUS OperationRemove(char *filename, char *input)
  	if (remove(filename) == 0)
  	{
 		printf("file %s removed\n", filename);
-		return TRUE;
+		return SUCCESS;
 	}
 	else
 	{
         	printf("failed to remove file %s\n", filename);
-        	return FALSE;
+        	return FALIURE;
         }
 }
 
@@ -139,13 +138,13 @@ enum STATUS OperationAppend(char *filename, char *input)
 	
 	if (NULL == filename) 
     	{
-        	return FALSE;
+        	return FALIURE;
     	}
     	
     	file = fopen(filename, "r+");
     	if (NULL == file)
     	{
-    		return FALSE;
+    		return FALIURE;
     	}
 	
 	fseek(file, 0, SEEK_END);
@@ -153,7 +152,7 @@ enum STATUS OperationAppend(char *filename, char *input)
 	file_content = (char *)malloc(file_size + 1);
 	if (file_content == NULL)
 	{
-		return FALSE;
+		return FALIURE;
 	}
 	rewind(file);
 	
@@ -168,7 +167,7 @@ enum STATUS OperationAppend(char *filename, char *input)
 
 	printf("String %s appended to the start of file %s\n", input + 1, filename);
 	
-	return TRUE;
+	return SUCCESS;
 }
 
 
@@ -181,13 +180,13 @@ enum STATUS OperationCount(char *filename, char *input)
 	
 	if (NULL == filename)
 	{
-		return FALSE;
+		return FALIURE;
 	}
 	
 	file = fopen(filename, "r");
 	if (file == NULL) 
 	{
-		return FALSE;
+		return FALIURE;
 	}
     
 	while (fgets(line, sizeof(line), file) != NULL)
@@ -198,7 +197,7 @@ enum STATUS OperationCount(char *filename, char *input)
 	fclose(file);
 	printf("number of lines in file %s: %d\n", filename, count);
     
-	return TRUE;
+	return SUCCESS;
 }
 
 

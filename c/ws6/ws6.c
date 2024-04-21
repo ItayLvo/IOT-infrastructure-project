@@ -58,8 +58,8 @@ void Swap(int *a, int *b)
 
 int ClosestToSixteenNoRemains(unsigned int n)
 {
-	printf("%d\n", n & 65520);
-	return (n & 65520);
+	printf("%d\n", n & 0xFFFFFFF0);
+	return (n & 0xFFFFFFF0);
 }
 
 
