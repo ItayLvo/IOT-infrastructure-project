@@ -1,7 +1,7 @@
 #define _DEFAULT_SOURCE	/*to allow stdup*/
 #include <stdio.h> /*printf*/
 #include <stdlib.h> /*malloc, realloc*/
-#include <string.h> /*strcpy*/
+#include <string.h> /*strcpy, strlen, memcpy*/
 #include "structs.h"
 
 
