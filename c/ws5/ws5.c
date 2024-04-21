@@ -70,7 +70,7 @@ int CompareRemove(char *input)
 
 int CompareCount(char *input)
 {
-    if (strcmp(input, "-count") == 0)
+	if (strcmp(input, "-count") == 0)
 	{
 		return 1;
 	}
@@ -198,20 +198,20 @@ enum STATUS OperationCount(char *filename, char *input)
 
 void AppendToFile(char *filename, char *str)
 {
-    FILE *file;
-    if (filename == NULL)
-    {
-    	return;
-    }
+	FILE *file;
+	if (filename == NULL)
+	{
+		return;
+	}
     
-    file = fopen(filename, "a");
-    if (file == NULL)
-    {
-    	return;
-    }
+	file = fopen(filename, "a");
+	if (file == NULL)
+	{
+		return;
+	}
     
-    fprintf(file, "%s\n", str);
-    fclose(file);
+	fprintf(file, "%s\n", str);
+	fclose(file);
 }
 
 void Print(int num)
