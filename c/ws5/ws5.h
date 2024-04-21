@@ -1,8 +1,3 @@
-/*
-itay
-done, not reviewed yet
-*/
-
 #ifndef __WSFILES_H__
 #define __WSFILES_H__
 

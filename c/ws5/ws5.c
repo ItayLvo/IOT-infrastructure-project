@@ -1,3 +1,9 @@
+/*
+itay
+finished code, not reviewed yet
+*/
+
+
 #include <stdlib.h>	/*malloc*/
 #include <string.h>	/*strcmp*/
 #include <stdio.h>	/*printf, size_t*/
@@ -9,7 +15,7 @@
 
 int main(int argc, char *argv[])
 {
-	char input[100];
+	char input[100] = {0};
 	
 	struct flag_t flags_handlers_arr[] = {
 	{"-remove", CompareRemove, OperationRemove}, 
@@ -18,11 +24,8 @@ int main(int argc, char *argv[])
 	{"<", CompareAppend, OperationAppend}
 	};
 
-
-
-	while (1)
+	while (strcmp(input, "-exit") != 0)
 	{
-		int handled = 0;
 		int i = 0;
 		printf("\n");
 		
@@ -36,32 +39,22 @@ int main(int argc, char *argv[])
 		 	{
 				if (flags_handlers_arr[i].OperationFunc(argv[1], input) == TRUE)
 				{
-		        		handled = 1;
-		        		break;
+		        		if (strcmp(input, "-exit") == 0)
+		        		{
+		        			return 0;
+		        		}
 		        	}
 		        	else	/* operation function returned FALSE */
 		        	{
-		        		printf("operation function failed\n");
+		        		return 1;
 		        	}
 			}
 		}
-		
-		if ((handled == 1 && strcmp(input, "-exit") == 0))
-		{
-			break;
-		}
-		
-		else if (handled == 0)
-		{
-			AppendToFile(argv[1], input);
-		}
+		AppendToFile(argv[1], input);
 	}
-
-	
 
 	return 0;
 }
-
 
 
 int CompareRemove(char *input)
@@ -70,11 +63,8 @@ int CompareRemove(char *input)
 	{
 		return 1;
 	}
-	
-	else
-	{
-		return 0;
-	}
+
+	return 0;
 }
 
 
@@ -85,10 +75,7 @@ int CompareCount(char *input)
 		return 1;
 	}
 	
-	else
-	{
-		return 0;
-	}
+	return 0;
 }
 
 
@@ -99,10 +86,7 @@ int CompareExit(char *input)
 		return 1;
 	}
 	
-	else
-	{
-		return 0;
-	}
+	return 0;
 }
 
 
@@ -112,10 +96,8 @@ int CompareAppend(char *input)
 	{
 		return 1;
 	}
-	else
-	{
-		return 0;
-	}
+	
+	return 0;
 }
 
 
@@ -145,18 +127,28 @@ enum STATUS OperationRemove(char *filename, char *input)
 
 enum STATUS OperationAppend(char *filename, char *input)
 {
-	FILE *file = fopen(filename, "r+");
-	size_t file_size;
+	FILE *file;
+	size_t file_size = 0;
 	char *file_content;
 	
-	if (file == NULL) 
+	if (NULL == filename) 
     	{
         	return FALSE;
+    	}
+    	
+    	file = fopen(filename, "r+");
+    	if (NULL == file)
+    	{
+    		return FALSE;
     	}
 	
 	fseek(file, 0, SEEK_END);
 	file_size = ftell(file);
 	file_content = (char *)malloc(file_size + 1);
+	if (file_content == NULL)
+	{
+		return FALSE;
+	}
 	rewind(file);
 	
 	fread(file_content, 1, file_size, file);
@@ -177,30 +169,47 @@ enum STATUS OperationAppend(char *filename, char *input)
 
 enum STATUS OperationCount(char *filename, char *input)
 {
-    FILE *file = fopen(filename, "r");
-    int count = 0;
-    char line[100];
+	FILE *file;
+	int count = 0;
+	char line[100];
+	
+	if (NULL == filename)
+	{
+		return FALSE;
+	}
+	
+	file = fopen(filename, "r");
+	if (file == NULL) 
+	{
+		return FALSE;
+	}
     
-    if (file == NULL) 
-    {
-        return FALSE;
-    }
+	while (fgets(line, sizeof(line), file) != NULL)
+	{
+		++count;
+	}
     
-    while (fgets(line, sizeof(line), file) != NULL)
-    {
-        count++;
-    }
+	fclose(file);
+	printf("number of lines in file %s: %d\n", filename, count);
     
-    fclose(file);
-    printf("number of lines in file %s: %d\n", filename, count);
-    
-    return TRUE;
+	return TRUE;
 }
 
 
 void AppendToFile(char *filename, char *str)
 {
-    FILE *file = fopen(filename, "a");
+    FILE *file;
+    if (filename == NULL)
+    {
+    	return;
+    }
+    
+    file = fopen(filename, "a");
+    if (file == NULL)
+    {
+    	return;
+    }
+    
     fprintf(file, "%s\n", str);
     fclose(file);
 }

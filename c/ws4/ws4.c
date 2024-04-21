@@ -1,7 +1,6 @@
 /*
 name: itay
-status: done, not reviewed
-reviwer:
+status: finished
 */
 
 #include <stdio.h>	/* printf, scanf */
