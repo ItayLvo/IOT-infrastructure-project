@@ -39,11 +39,11 @@ int main(int argc, char *argv[])
 	
 	
 	CreateStudent(&student1, "moshe", "hi", 1,2,3,4,5);
-	printf("%s\n", student1.first_name);
+	PrintStudent(&student1);
 	MarshalStudent(&student1, argv[1]);
 	ReadStudent(&new_student, argv[1]);
-	
-	printf("%s\n", new_student.first_name);
+	printf("\n");
+	PrintStudent(&new_student);
 	
 	return 0;
 }
