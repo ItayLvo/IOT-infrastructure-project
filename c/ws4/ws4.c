@@ -1,26 +1,36 @@
+/*
+name: itay
+status: done, not reviewed
+reviwer:
+*/
+
 #include <stdio.h>	/* printf, scanf */
 #include <stdlib.h>	/* exit */
 #include "ws4.h"
 
+#define ESC 27
+#define A 65
+#define T 84
+#define ASCII_SIZE 256
 
 void LUTImplementation(void)
 {
 	char userch = '\0';
 	typedef void (*Handlers_t)(void);
 	size_t i = 0;
-	Handlers_t funcs[256];
+	Handlers_t funcs[ASCII_SIZE];
 	
-	for (i = 0; i < (sizeof(funcs) / sizeof(funcs[0])); i++)
+	for (i = 0; i < (sizeof(funcs) / sizeof(funcs[0])); ++i)
 	{
 		funcs[i] = FuncEmpty;
 	}
-	funcs[27] = FuncESCPressed;
-	funcs[65] = FuncAPressed;
-	funcs[84] = FuncTPressed;
+	funcs[ESC] = FuncESCPressed;
+	funcs[A] = FuncAPressed;
+	funcs[T] = FuncTPressed;
 	
 	system("stty -icanon -echo");
 	
-	while(27 != userch) /* 27 = ESC key*/
+	while(ESC != userch) /* 27 = ESC key*/
 	{
 		
 		printf("enter a character: \n");
@@ -57,17 +67,17 @@ void IfImplementation(void)
 
 	system("stty -icanon -echo");
 	
-	while(27 != userch)
+	while(ESC != userch)
 	{
 		
 		printf("enter a character: \n");
 		scanf("%c", &userch);
 
 		
-		if (userch == 27)
+		if (userch == ESC)
 		{
 			system("stty icanon echo");
-			exit(0);
+			return;
 		}
 		else if (userch == 'A')
 		{
@@ -89,7 +99,7 @@ void SwitchImplementation(void)
 	
 	system("stty -icanon -echo");
 	
-	while(27 != userch)
+	while(ESC != userch)
 	{
 		
 		printf("enter a character: \n");
@@ -103,7 +113,7 @@ void SwitchImplementation(void)
 			case 'T':
 				printf("T-pressed\n");
 				break;
-			case 27:
+			case ESC:
 				system("stty icanon echo");
 				return;
 			default:
@@ -136,7 +146,7 @@ void TypedefEx()
 
 int Add(int a, int b)
 {
-	int x = 3+6;
+	int x = 3 + 6;
 	x++;
-	return a+b;
+	return a + b;
 }

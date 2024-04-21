@@ -4,6 +4,12 @@
 int main()
 {
 	LUTImplementation();
+	
+	/*
+	SwitchImplementation();
+	LUTImplementation();
+	*/
+	
 	return 0;
 }
 
