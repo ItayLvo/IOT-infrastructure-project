@@ -97,17 +97,6 @@ int Josephus(int arr[], int size)
 	
 	while(-1 != result)
 	{
-		if (arr[(i % size)] != 0)	/* GUI that prints status every iteration, can be deleted */
-		{
-			for (j = 0; j < size; j++)
-			{
-				printf("[%d] ", arr[j]);
-			}
-			printf("\n");
-			printf("\tcurrent soldier with sword: %d\n", i % size);
-			printf("\tgoing to kill soldier: %d\n\n", NextAliveIndex(arr, size, i % size));
-		}
-		
 		if (arr[i % size] != 0)
 		{
 			next_alive_index = NextAliveIndex(arr, size, i % size);
