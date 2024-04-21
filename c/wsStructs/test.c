@@ -19,8 +19,7 @@ int main()
 	int *ptr_x = &x;
 	float f = 3.3;
 	float *ptr_f = &f;
-	
-	char str[100] = "itay";
+	char str[256] = "itay";
 	
 	element_t e_int;
 	element_t e_string;

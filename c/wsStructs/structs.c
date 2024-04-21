@@ -60,7 +60,7 @@ void CleanNumbers(void *value)
 
 void CleanString(void *value)
 {
-	/* do nothing*/
+	/* do nothing */
 }
 
 static int NumberOfDigits (int n)
