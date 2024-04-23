@@ -2,6 +2,8 @@
 #define __WSFILES_H__
 #define EQUAL 1
 
+int CompareAndOperate(char *user_input, char *argv[]);
+
 void AppendToFile(char *filename, char *str);
 
 enum STATUS {FALIURE, SUCCESS};
