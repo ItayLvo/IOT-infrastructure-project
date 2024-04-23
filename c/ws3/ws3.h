@@ -5,8 +5,8 @@ int *MatrixSum(int **mat, int rows, int cols, int *res);
 
 int Josephus(int arr[], int size);
 
-char **CopyEnv(char **envp, char **newstr);
+void CopyAndToLowerEnvp(char *envp[]);
 
-char *ToLowerString(char *str);
+char **CopyEnv(char **envp, char **newstr);
 
 #endif /*__WSARRAYS_H__ */

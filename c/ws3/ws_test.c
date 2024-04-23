@@ -5,13 +5,12 @@
 
 
 static void TestJosephus();
-static void TestEnvp(char *envp[]);
 static void TestMatrix();
 
 int main(int argc, char *argv[], char *envp[])
 {
 	/* Testing the *envp[] exercise */
-	TestEnvp(envp);
+	CopyAndToLowerEnvp(envp);
 	
 	/* Testing the 2D array exercise */
 	TestMatrix();
@@ -20,34 +19,7 @@ int main(int argc, char *argv[], char *envp[])
 	TestJosephus();
 	
 	return 0;
-}
-
-
-static void TestEnvp(char *envp[])
-{
-	int i = 0;
-	
-	char **envstring = NULL;
-	
-	envstring = CopyEnv(envp, envstring);
-	
-	while ((NULL != envstring[i]))
-	{
-		envstring[i] = ToLowerString(envstring[i]);
-		printf("%s\n",envstring[i]);
-		i++;
-	}
-	printf("\n\n");
-	
-	i = 0;
-	while ((NULL != envstring[i]))
-	{	
-		free(envstring[i]);
-		i++;
-	}
-	
-	free(envstring);
-}
+} 
 
 
 static void TestMatrix()
@@ -57,10 +29,24 @@ static void TestMatrix()
 	int arr[2] = {0};
 	int *res = arr;
 	int **mat = (int **)malloc(rows * sizeof(int *));
+	if (NULL == mat)
+	{
+		return;
+	}
 	
 	for (i = 0; i < rows; i++)
 	{
 		mat[i] = (int *)malloc(cols * sizeof(int));
+		if (NULL == mat[i])
+		{
+			int j = 0;
+			for (j = 0; j < i; ++j)
+			{
+				free(mat[i]);
+			}
+			free(mat);
+			return;
+		}
 	}
 	
 	mat[0][0] = 1;
@@ -70,12 +56,12 @@ static void TestMatrix()
 
 	res = MatrixSum(mat, rows, cols, res);
 
-	for (i = 0; i < sizeof(arr)/sizeof(arr[0]); i++)
+	for (i = 0; i < sizeof(arr)/sizeof(arr[0]); ++i)
 	{
 		printf("%d\n", res[i]);
 	}	
 	
-	for (i = 0; i < rows; i++)
+	for (i = 0; i < rows; ++i)
 	{
 		free(mat[i]);
 	}
@@ -97,7 +83,7 @@ static void TestJosephus()
 		return;
 	}
 	
-	for (i = 0; i < n; i++)
+	for (i = 0; i < n; ++i)
 	{
 		arr[i] = 1;
 	}

@@ -16,7 +16,7 @@ status: added fixes after cr
 
 static int NextAliveIndex(int arr[], int size, int index);
 
-char *ToLowerString(char *str)
+static char *ToLowerString(char *str)
 {
 	int i = 0;
 	
@@ -28,7 +28,32 @@ char *ToLowerString(char *str)
 	return str;
 }
 
-char **CopyEnv(char **envp, char **envstring)
+void CopyAndToLowerEnvp(char *envp[])
+{
+	int i = 0;
+	char **env_string = NULL;
+	
+	env_string = CopyEnv(envp, env_string);
+	
+	while ((NULL != env_string[i]))
+	{
+		env_string[i] = ToLowerString(env_string[i]);
+		printf("%s\n",env_string[i]);
+		++i;
+	}
+	printf("\n\n");
+	
+	i = 0;
+	while ((NULL != env_string[i]))
+	{	
+		free(env_string[i]);
+		++i;
+	}
+	free(env_string);
+}
+
+
+char **CopyEnv(char **envp, char **env_string)
 {
 	int i = 0;
 	char **ptrenv = envp;
@@ -40,9 +65,9 @@ char **CopyEnv(char **envp, char **envstring)
 		++i;
 	}
 	
-	envstring = (char **)malloc(sizeof(char *) * (count_strings + 1));
+	env_string = (char **)malloc(sizeof(char *) * (count_strings + 1));
 	
-	if (NULL == envstring)
+	if (NULL == env_string)
 	{
 		return NULL;
 	}
@@ -50,38 +75,38 @@ char **CopyEnv(char **envp, char **envstring)
 	i = 0;
 	while ((envp[i]) != NULL)
 	{
-		envstring[i] = (char *)malloc(sizeof(char) * (strlen(envp[i]) + 1));
-		if(NULL == envstring[i])
+		env_string[i] = (char *)malloc(sizeof(char) * (strlen(envp[i]) + 1));
+		if(NULL == env_string[i])
 		{
 			int index_mallocd = 0;
 			for (index_mallocd = 0; index_mallocd < i; index_mallocd++)
 			{
-				free(envstring[index_mallocd]);
+				free(env_string[index_mallocd]);
 			}
 			return NULL;
 		}
 		
-		strcpy(envstring[i], envp[i]);
+		strcpy(env_string[i], envp[i]);
 		++i;
 	}
-	envstring[i] = NULL;
+	env_string[i] = NULL;
 	
-	return envstring;
+	return env_string;
 }
 
 
 
 int *MatrixSum(int **mat, int rows, int cols, int *res)
 {
-	int i = 0, j = 0, countrow = 0;
+	int i = 0, j = 0, count_row = 0;
 	for (i = 0; i < rows; i++)
 	{
 		for (j = 0; j < cols; j++)
 		{
-			countrow += mat[i][j];
+			count_row += mat[i][j];
 		}
-		res[i]=countrow;
-		countrow = 0;
+		res[i]=count_row;
+		count_row = 0;
 	}
 	
 	return res;
@@ -91,7 +116,7 @@ int *MatrixSum(int **mat, int rows, int cols, int *res)
 
 int Josephus(int arr[], int size)
 {
-	int i = 0, j = 0;
+	int i = 0;
 	int result = 0;
 	int next_alive_index = 0;
 	
@@ -119,15 +144,15 @@ int Josephus(int arr[], int size)
 static int NextAliveIndex(int arr[], int size, int index)
 {
 	int i = 0;
-	int countsteps = 0;
+	int count_steps = 0;
 	
-	while (arr[(index + i + 1) % size] != 1 && countsteps < size)
+	while (arr[(index + i + 1) % size] != 1 && count_steps < size)
 	{
-		++countsteps;
+		++count_steps;
 		++i;
 	}
 	
-	if (countsteps == (size - 1))
+	if (count_steps == (size - 1))
 	{
 		return -1;
 	}
