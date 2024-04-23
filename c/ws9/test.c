@@ -1,4 +1,4 @@
-#include <stdio.h> /*printf*/
+#include <stdio.h> /* FILE * */
 #include "serialize.h"
 
 
@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	PrintStudent(&student1);
 	MarshalStudent(&student1, argv[1]);
 	ReadStudent(&new_student, argv[1]);
-	PrintStudent(&new_student);
+	PrintStudent(&new_student); /* memory errors here in valgrind */
 	
 	FreeStudent(&student1);
 	FreeStudent(&new_student);

@@ -3,6 +3,8 @@
 #include <stdlib.h> /*malloc*/
 #include "serialize.h"
 
+static FILE *WriteHumanisticGrade(humanistic_grade_t grades, FILE *file_ptr);
+static FILE *WriteRealGrade(real_grade_t grades, FILE *file_ptr);
 
 static size_t first_name_size = 0;
 static size_t last_name_size = 0;
@@ -30,7 +32,7 @@ void CreateStudent(student_t *student, char *f_name, char *l_name, float art_gra
 
 void MarshalStudent(student_t *student, char *file_name)
 {
-	FILE *file_ptr;
+	FILE *file_ptr = NULL;
 	
 	if (NULL == file_name)
 	{
@@ -87,7 +89,7 @@ FILE *WriteGrade(grade_t grade, FILE *file_ptr)
 }
 
 
-FILE *WriteHumanisticGrade(humanistic_grade_t grades, FILE *file_ptr)
+static FILE *WriteHumanisticGrade(humanistic_grade_t grades, FILE *file_ptr)
 {
 	WriteFloat(&(grades.art_grade), file_ptr);
 	WriteFloat(&(grades.history_grade), file_ptr);
@@ -96,7 +98,7 @@ FILE *WriteHumanisticGrade(humanistic_grade_t grades, FILE *file_ptr)
 }
 
 
-FILE *WriteRealGrade(real_grade_t grades, FILE *file_ptr)
+static FILE *WriteRealGrade(real_grade_t grades, FILE *file_ptr)
 {
 	WriteFloat(&(grades.math_grade), file_ptr);
 	WriteFloat(&(grades.physics_grade), file_ptr);
@@ -107,7 +109,6 @@ FILE *WriteRealGrade(real_grade_t grades, FILE *file_ptr)
 
 FILE *WriteFloat(float *grade, FILE *file_ptr)
 {
-	
 	if (NULL == file_ptr)
 	{
 		return NULL;
@@ -121,7 +122,7 @@ FILE *WriteFloat(float *grade, FILE *file_ptr)
 
 void ReadStudent(student_t *student, char *file_name)
 {
-	FILE *file_ptr;
+	FILE *file_ptr = NULL;
 	
 	if (NULL == file_name)
 	{
@@ -149,10 +150,17 @@ FILE *ReadStrings(student_t *student, FILE *file_ptr)
 	}
 	
 	student->first_name = (char *)malloc(first_name_size * sizeof(char));
+	if (NULL != student->first_name)
+	{
+		fread(student->first_name, first_name_size, 1, file_ptr);
+	}
+	
 	student->last_name = (char *)malloc(last_name_size * sizeof(char));
 	
-	fread(student->first_name, first_name_size, 1, file_ptr);
-	fread(student->last_name, last_name_size, 1, file_ptr);
+	if (NULL != student->last_name)
+	{
+		fread(student->last_name, last_name_size, 1, file_ptr);
+	}
 	
 	return file_ptr;
 }
@@ -193,8 +201,6 @@ void PrintStudent(student_t *student)
 	printf("%f\n", student->grade.real_grades.physics_grade);
 	printf("%f\n", student->grade.sports_grade);
 }
-
-
 
 
 

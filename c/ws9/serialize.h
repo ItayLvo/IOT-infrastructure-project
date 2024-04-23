@@ -46,10 +46,6 @@ FILE *WriteGrade(grade_t grade, FILE *file_ptr);
 
 FILE *WriteFloat(float *grade, FILE *file_ptr);
 
-FILE *WriteHumanisticGrade(humanistic_grade_t grades, FILE *file_ptr);
-
-FILE *WriteRealGrade(real_grade_t grades, FILE *file_ptr);
-
 FILE *ReadStrings(student_t *student, FILE *file_ptr);
 
 FILE *ReadGrades(student_t *student, FILE *file_ptr);
