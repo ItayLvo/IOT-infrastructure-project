@@ -1,7 +1,7 @@
 #ifndef __WSFILES_H__
 #define __WSFILES_H__
+#define EQUAL 1
 
-void Print(int num);
 void AppendToFile(char *filename, char *str);
 
 enum STATUS {FALIURE, SUCCESS};
@@ -16,21 +16,19 @@ int CompareExit(char *input);
 int CompareCount(char *input);
 int CompareRemove(char *input);
 
+typedef struct flag_t
+{
+    char *inputString;
+    int (*CompareFunc)(char *);
+    enum STATUS (*OperationFunc)(char *, char *);
+} flag_t;
 
+
+void Print(int num);
 struct print_me
 {
    	int data;
    	void (*Print)(int);
 };
-
-
-struct flag_t
-{
-    char *inputString;
-    int (*CompareFunc)(char *);
-    enum STATUS (*OperationFunc)(char *, char *);
-};
-
-
 
 #endif /* __WSFILES_H__ */

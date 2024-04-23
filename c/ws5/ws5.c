@@ -1,66 +1,13 @@
 /*
-itay
+name: itay
 status: done
 reviewed by evelin
 */
 
-
 #include <stdlib.h>	/*malloc*/
 #include <string.h>	/*strcmp*/
 #include <stdio.h>	/*printf, size_t*/
-
 #include "ws5.h"
-
-#define EQUAL 1
-
-int main(int argc, char *argv[])
-{
-	char input[100] = {0};
-	int special_string_flag = 0;
-	
-	struct flag_t flags_handlers_arr[] = {
-	{"-remove", CompareRemove, OperationRemove}, 
-	{"-count", CompareCount, OperationCount}, 
-	{"-exit", CompareExit, OperationExit},
-	{"<", CompareAppend, OperationAppend}
-	};
-
-	while (strcmp(input, "-exit") != 0)
-	{
-		int i = 0;
-		printf("\n");
-		
-		fgets(input, sizeof(input), stdin);
-		input[strcspn(input, "\n")] = '\0';	/* replace enter with null terminator to create valid string */
-
-		
-		for (i = 0; i < 4; ++i)			/* loop through 4 possible options of flags_handlers_arr[] */
-		{
-		 	if (flags_handlers_arr[i].CompareFunc(input) == EQUAL)
-		 	{
-		 		special_string_flag = 1;
-				if (flags_handlers_arr[i].OperationFunc(argv[1], input) == SUCCESS)
-				{
-		        		if (strcmp(input, "-exit") == 0)
-		        		{
-		        			return 0;
-		        		}
-		        	}
-		        	else	/* operation function returned FALIURE */
-		        	{
-		        		return 1;
-		        	}
-			}
-		}
-		if (special_string_flag == 0)
-		{
-			AppendToFile(argv[1], input);
-		}
-		special_string_flag = 0;
-	}
-
-	return 0;
-}
 
 
 int CompareRemove(char *input)
@@ -132,9 +79,9 @@ enum STATUS OperationRemove(char *filename, char *input)
 
 enum STATUS OperationAppend(char *filename, char *input)
 {
-	FILE *file;
+	FILE *file = NULL;
 	size_t file_size = 0;
-	char *file_content;
+	char *file_content = NULL;
 	
 	if (NULL == filename) 
     	{
@@ -174,7 +121,7 @@ enum STATUS OperationAppend(char *filename, char *input)
 
 enum STATUS OperationCount(char *filename, char *input)
 {
-	FILE *file;
+	FILE *file = NULL;
 	int count = 0;
 	char line[100];
 	
@@ -203,7 +150,7 @@ enum STATUS OperationCount(char *filename, char *input)
 
 void AppendToFile(char *filename, char *str)
 {
-	FILE *file;
+	FILE *file = NULL;
 	if (NULL == filename)
 	{
 		return;
@@ -223,3 +170,4 @@ void Print(int num)
 {
 	printf("%d\n", num);
 }
+
