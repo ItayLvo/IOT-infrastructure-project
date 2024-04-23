@@ -1,43 +1,25 @@
 #include <stdio.h> /*printf*/
 #include <string.h> /*strlen*/
+#include <stdlib.h> /*malloc*/
 #include "serialize.h"
 
 
-/*
-typedef struct real_grade_t
-{
-	float math_grade;
-	float physics_grade;
-} real_grade_t;
-
-
-typedef struct humanistic_grade_t
-{
-	float art_grade;
-	float history_grade;
-} humanistic_grade_t;
-
-
-typedef struct grade_t
-{
-	humanistic_grade_t humanistic_grades;
-	real_grade_t real_grades;
-	float sports_grade;
-} grade_t;
-
-
-typedef struct student_t
-{
-	char *first_name;
-	char *last_name;
-	grade_t grade;
-} student_t;
-*/
+static size_t first_name_size = 0;
+static size_t last_name_size = 0;
 
 void CreateStudent(student_t *student, char *f_name, char *l_name, float art_grade, float history_grade, float math_grade, float physics_grade, float sports_grade)
 {
-	student->first_name = f_name;
-	student->last_name = l_name;
+	student->first_name = (char *)malloc(strlen(f_name) + 1);
+	if (NULL != student->first_name)
+	{
+	strcpy(student->first_name, f_name);
+	}
+	student->last_name = (char *)malloc(strlen(l_name) + 1);
+	if (NULL != student->last_name)
+	{
+	strcpy(student->last_name, l_name);
+	}
+	
 	student->grade.humanistic_grades.art_grade = art_grade;
 	student->grade.humanistic_grades.history_grade = history_grade;
 	student->grade.real_grades.math_grade = math_grade;
@@ -48,7 +30,6 @@ void CreateStudent(student_t *student, char *f_name, char *l_name, float art_gra
 
 void MarshalStudent(student_t *student, char *file_name)
 {
-	size_t student_size = sizeof(*student);
 	FILE *file_ptr;
 	
 	if (NULL == file_name)
@@ -63,15 +44,14 @@ void MarshalStudent(student_t *student, char *file_name)
 		return;
 	}
 	
+	first_name_size = strlen(student->first_name) + 1;
+	last_name_size = strlen(student->last_name) + 1;
 	
 	file_ptr = WriteString(student->first_name, file_ptr);
 	file_ptr = WriteString(student->last_name, file_ptr);
 	file_ptr = WriteGrade(student->grade, file_ptr);
 	
-	/*fwrite(student, student_size, 1, file_ptr);*/
-	
 	fclose(file_ptr);
-	
 }
 
 
@@ -85,8 +65,6 @@ FILE *WriteString(char *str, FILE *file_ptr)
 	}
 	
 	string_len = strlen(str) + 1;
-	
-	printf("sizeof str is: %ld\n", string_len);
 	
 	fwrite(str, string_len, 1, file_ptr);
 
@@ -143,7 +121,6 @@ FILE *WriteFloat(float *grade, FILE *file_ptr)
 
 void ReadStudent(student_t *student, char *file_name)
 {
-	int file_size = 0;
 	FILE *file_ptr;
 	
 	if (NULL == file_name)
@@ -157,13 +134,52 @@ void ReadStudent(student_t *student, char *file_name)
 	{
 		return;
 	}
+	file_ptr = ReadStrings(student, file_ptr);
+	file_ptr = ReadGrades(student, file_ptr);
 	
-	fseek(file_ptr, 0, SEEK_END);
-	file_size = ftell(file_ptr); 
-	rewind(file_ptr);
-	
-	fread(student, file_size, 1, file_ptr);
 	fclose(file_ptr);
+}
+
+
+FILE *ReadStrings(student_t *student, FILE *file_ptr)
+{
+	if (NULL == file_ptr)
+	{
+		return NULL;
+	}
+	
+	student->first_name = (char *)malloc(first_name_size * sizeof(char));
+	student->last_name = (char *)malloc(last_name_size * sizeof(char));
+	
+	fread(student->first_name, first_name_size, 1, file_ptr);
+	fread(student->last_name, last_name_size, 1, file_ptr);
+	
+	return file_ptr;
+}
+
+
+
+FILE *ReadGrades(student_t *student, FILE *file_ptr)
+{
+	if (NULL == file_ptr)
+	{
+		return NULL;
+	}
+	
+	fread(&(student->grade.humanistic_grades.art_grade), sizeof(float), 1, file_ptr);
+	fread(&(student->grade.humanistic_grades.history_grade), sizeof(float), 1, file_ptr);
+	fread(&(student->grade.real_grades.math_grade), sizeof(float), 1, file_ptr);
+	fread(&(student->grade.real_grades.physics_grade), sizeof(float), 1, file_ptr);
+	fread(&(student->grade.sports_grade), sizeof(float), 1, file_ptr);
+
+	return file_ptr;
+}
+
+
+void FreeStudent(student_t *student)
+{
+	free(student->first_name);
+	free(student->last_name);
 }
 
 

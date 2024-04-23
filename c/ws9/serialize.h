@@ -50,6 +50,12 @@ FILE *WriteHumanisticGrade(humanistic_grade_t grades, FILE *file_ptr);
 
 FILE *WriteRealGrade(real_grade_t grades, FILE *file_ptr);
 
+FILE *ReadStrings(student_t *student, FILE *file_ptr);
+
+FILE *ReadGrades(student_t *student, FILE *file_ptr);
+
+void FreeStudent(student_t *student);
+
 #endif /* __SERIALIZE_H__ */
 
 
