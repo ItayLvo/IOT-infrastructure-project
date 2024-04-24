@@ -40,7 +40,7 @@ void *Memset(void *dest, int c, size_t n)
 	
 	word = CreateWordSizedChunk(c);
 	
-	/* handle word chunks */
+	/* handle word-size chunks */
 	word_ptr = (unsigned int *)ptr;		/* convering ptr from (char *) to (unsigned int *) */
 	for (i = 0; i < word_count; ++i)
 	{

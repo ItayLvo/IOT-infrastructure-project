@@ -5,23 +5,22 @@
 
 int main(int argc, char *argv[])
 {
-	char str[50];
+	char str[30];
 	char *ptr = (char *)str;
 	int c = 'z';
-	size_t count = 10;
+	size_t count = 11;
 	int i = 0;
 	
-	for (i = 0; i < 50; ++i)
+	for (i = 0; i < 30; ++i)
 	{
 		*ptr = 'a';
 		++ptr;
 	}
-	
 	ptr = str;
 	
-	ptr = Memset(ptr+5, c, count);
+	ptr = Memset(ptr, c, count);
 	
-	for(i = 0; i < 50; ++i, ++ptr)
+	for(i = 0; i < 30; ++i, ++ptr)
 	{
 		printf("%c\n", *ptr);
 	}
