@@ -6,12 +6,11 @@ int CompareAndOperate(char *user_input, char *argv[]);
 
 void AppendToFile(char *filename, char *str);
 
-enum STATUS {FALIURE, SUCCESS};
-
-enum STATUS OperationCount(char *filename, char *input);
-enum STATUS OperationAppend(char *filename, char *input);
-enum STATUS OperationRemove(char *filename, char *input);
-enum STATUS OperationExit(char *filename, char *input);
+typedef enum STATUS {FALIURE, SUCCESS} STATUS;
+STATUS OperationCount(char *filename, char *input);
+STATUS OperationAppend(char *filename, char *input);
+STATUS OperationRemove(char *filename, char *input);
+STATUS OperationExit(char *filename, char *input);
 
 int CompareAppend(char *input);
 int CompareExit(char *input);
@@ -22,7 +21,7 @@ typedef struct flag_t
 {
     char *inputString;
     int (*CompareFunc)(char *);
-    enum STATUS (*OperationFunc)(char *, char *);
+    STATUS (*OperationFunc)(char *, char *);
 } flag_t;
 
 

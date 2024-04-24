@@ -101,7 +101,7 @@ int CompareAppend(char *input)
 }
 
 
-enum STATUS OperationExit(char *filename, char *input)
+STATUS OperationExit(char *filename, char *input)
 {
     printf("closing program\n");
     return SUCCESS;
@@ -109,7 +109,7 @@ enum STATUS OperationExit(char *filename, char *input)
 
 
 
-enum STATUS OperationRemove(char *filename, char *input)
+STATUS OperationRemove(char *filename, char *input)
 {
  	if (0 == remove(filename))
  	{
@@ -124,7 +124,7 @@ enum STATUS OperationRemove(char *filename, char *input)
 }
 
 
-enum STATUS OperationAppend(char *filename, char *input)
+STATUS OperationAppend(char *filename, char *input)
 {
 	FILE *file = NULL;
 	size_t file_size = 0;
@@ -166,7 +166,7 @@ enum STATUS OperationAppend(char *filename, char *input)
 
 
 
-enum STATUS OperationCount(char *filename, char *input)
+STATUS OperationCount(char *filename, char *input)
 {
 	FILE *file = NULL;
 	int count = 0;
