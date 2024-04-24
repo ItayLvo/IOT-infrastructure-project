@@ -51,7 +51,6 @@ int CompareAndOperate(char *user_input, char *argv[])
 	{
 		AppendToFile(argv[1], user_input);
 	}
-	special_string_flag = 0;
 	
 	return 0;
 }
