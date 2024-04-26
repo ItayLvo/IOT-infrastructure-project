@@ -1,29 +1,29 @@
 #include <stdio.h>	/*printf*/
 #include <stddef.h>	/*size_t*/
+#include <string.h>	/*strcpy*/
 #include "ws10.h"
 
 
 int main(int argc, char *argv[])
 {
 	char str[30];
-	char *ptr = (char *)str;
+	char str2[30];
+	char *ptr = str;
+	char *ptr2 = str2;
 	int c = 'z';
 	size_t count = 11;
-	int i = 0;
 	
-	for (i = 0; i < 30; ++i)
-	{
-		*ptr = 'a';
-		++ptr;
-	}
-	ptr = str;
+	str[30]='\0';
+	str2[30]='\0';
 	
-	ptr = Memset(ptr, c, count);
+	strcpy(ptr,"!!!!!");
+	strcpy(ptr2,"?????");
 	
-	for(i = 0; i < 30; ++i, ++ptr)
-	{
-		printf("%c\n", *ptr);
-	}
+	ptr = Memset(ptr, c, 2);
+	ptr2 = Memcpy(ptr2, ptr, 3);
+	
+	printf("%s\n%s\n", ptr, ptr2);
+	
 	
 	return 0;
 }
