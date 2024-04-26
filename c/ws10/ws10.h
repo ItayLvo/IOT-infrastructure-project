@@ -1,6 +1,6 @@
 #ifndef __WS10_H__
 #define __WS10_H__
-#include <stddef.h>/*size_t*/
+#include <stddef.h>	/*size_t*/
 
 void *Memset(void *str, int c, size_t n);
 

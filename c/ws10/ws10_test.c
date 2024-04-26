@@ -4,25 +4,35 @@
 #include "ws10.h"
 
 
-int main(int argc, char *argv[])
+int main()
 {
-	char str[30];
+	char str1[30];
 	char str2[30];
-	char *ptr = str;
+	char str3[30];
+	char str4[30];
+	
+	char *ptr1 = str1;
 	char *ptr2 = str2;
-	int c = 'z';
-	size_t count = 11;
+	char *ptr3 = str3;
+	char *ptr4;
 	
-	str[30]='\0';
-	str2[30]='\0';
+	int c = 's';
+	size_t count = 5;
 	
-	strcpy(ptr,"!!!!!");
-	strcpy(ptr2,"?????");
 	
-	ptr = Memset(ptr, c, 2);
-	ptr2 = Memcpy(ptr2, ptr, 3);
+	strcpy(ptr1,"1111111111");
+	strcpy(ptr2,"2222222222");
 	
-	printf("%s\n%s\n", ptr, ptr2);
+	ptr1 = Memset(ptr1, c, count);
+	ptr2 = Memcpy(ptr2, ptr1, count + 2);
+	
+	strcpy(ptr3,"0123456789");
+	
+	ptr4 = ptr3 + 3;
+	ptr4 = Memmove(ptr4, ptr3, count);
+
+
+	printf("%s\n%s\n%s\n%s\n", ptr1, ptr2, ptr3, ptr4);
 	
 	
 	return 0;

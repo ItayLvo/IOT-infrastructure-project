@@ -10,36 +10,33 @@
 static unsigned int CreateWordSizedChunk(char c);
 static void *MemmoveOverlap(void *dest, const void * src, size_t n);
 
+
 void *Memset(void *dest, int c, size_t n)
 {
 	size_t i = 0;
 	char *ptr = dest;
 	size_t word_count = 0;
 	unsigned int word = 0;
-	unsigned int *word_ptr = NULL;
-	
-	
+	int *word_ptr = NULL;
 	
 	if (NULL == dest)
 	{
 		return NULL;
 	}
 	
-	
-	/* handle un-aligned bytes one by one until aligning to word size */
-	while ((((unsigned int)(unsigned long)ptr % WORD_SIZE) != 0) && n > 0)
+	/* write un-aligned bytes one by one until aligning to word size */
+	while ((((int)(long)ptr % WORD_SIZE) != 0) && n > 0)
 	{
-		*ptr = (unsigned char)c;
+		*ptr = (char)c;
 		++ptr;
 		--n;
 	}
 	
-	
 	word_count = n / WORD_SIZE;
 	word = CreateWordSizedChunk(c);
 	
-	/* handle word-size chunks */
-	word_ptr = (unsigned int *)ptr;		/* convering ptr from (char *) to (unsigned int *) */
+	/* write word-size chunks */
+	word_ptr = (int *)ptr;		/* convering ptr from (char *) to (unsigned int *) */
 	for (i = 0; i < word_count; ++i)
 	{
 		*word_ptr = word;
@@ -47,8 +44,7 @@ void *Memset(void *dest, int c, size_t n)
 		n = n - WORD_SIZE;
 	}
 	
-	
-	/* dealing with left-over bytes, that are smaller than word size */
+	/* dealing with left-over bytes (smaller than word size) one by one */
 	ptr = (char *)word_ptr;		/* converting ptr back to (char *) */
 	while (0 < n)
 	{
@@ -66,8 +62,8 @@ void *Memcpy(void *dest, const void * src, size_t n)
 	char *ptr_dest = dest;
 	const char *ptr_src = src;
 	size_t word_count = 0;
-	unsigned int *word_ptr_dest = NULL;
-	unsigned int *word_ptr_src = NULL;
+	int *word_ptr_dest = NULL;
+	int *word_ptr_src = NULL;
 	size_t i = 0;
 
 	if (NULL == dest || NULL == src)
@@ -75,8 +71,7 @@ void *Memcpy(void *dest, const void * src, size_t n)
 		return dest;
 	}
 	
-	
-	while ((((unsigned long)ptr_dest % WORD_SIZE) != 0) && n > 0)
+	while ((((long)ptr_dest % WORD_SIZE) != 0) && n > 0)
 	{
 		*ptr_dest = *ptr_src;
 		++ptr_dest;
@@ -86,8 +81,8 @@ void *Memcpy(void *dest, const void * src, size_t n)
 	
 	word_count = n / WORD_SIZE;
 	
-	word_ptr_dest = ((unsigned int *)ptr_dest);	/* convering ptr from (char *) to (unsigned int *) */
-	word_ptr_src = ((unsigned int *)ptr_src);
+	word_ptr_dest = ((int *)ptr_dest);	/* convering ptr from (char *) to (unsigned int *) */
+	word_ptr_src = ((int *)ptr_src);
 	for (i = 0; i < word_count; ++i)
 	{
 		*word_ptr_dest = *word_ptr_src;
@@ -138,14 +133,14 @@ void *Memmove(void *dest, const void * src, size_t n)
 
 static void *MemmoveOverlap(void *dest, const void * src, size_t n)
 {
-	char *ptr_dest = dest;
-	const char *ptr_src = src;
+	char *ptr_dest = (char *)dest + n - 1;
+	const char *ptr_src = (const char *)src + n - 1;
 	size_t word_count = 0;
-	unsigned int *word_ptr_dest = NULL;
-	unsigned int *word_ptr_src = NULL;
+	int *word_ptr_dest = NULL;
+	int *word_ptr_src = NULL;
 	size_t i = 0;
 	
-	while ((((unsigned long)ptr_dest % WORD_SIZE) != 0) && n > 0)
+	while ((((long)ptr_dest % WORD_SIZE) != 0) && n > 0)
 	{
 		*ptr_dest = *ptr_src;
 		--ptr_dest;
@@ -155,8 +150,8 @@ static void *MemmoveOverlap(void *dest, const void * src, size_t n)
 	
 	word_count = n / WORD_SIZE;
 	
-	word_ptr_dest = ((unsigned int *)ptr_dest);	/* convering ptr from (char *) to (unsigned int *) */
-	word_ptr_src = ((unsigned int *)ptr_src);
+	word_ptr_dest = ((int *)ptr_dest);	/* convering ptr from (char *) to (unsigned int *) */
+	word_ptr_src = ((int *)ptr_src);
 	for (i = 0; i < word_count; ++i)
 	{
 		*word_ptr_dest = *word_ptr_src;
