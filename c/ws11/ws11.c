@@ -1,32 +1,46 @@
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strlen */
+#include <math.h>	/* pow */
 
 #include "ws11.h"
 
-
 static char *ReverseStringHelper(char *str);
+static int ReverseDigits(int num);
 
-int Atoi(const char *str)
+int Atoi(const char *str, int base)
 {
 	int result = 0;
 	char negative_flag = *str;
 	const char *runner = str;
+	int digit_counter = strlen(str);
 	
 	if (negative_flag == '-')
 	{
 		++runner;
+		--digit_counter;
 	}
 	
 	while (*runner != '\0')
 	{
-		if (*runner < '0' || *runner > '9')
+		if (10 >= base && (*runner < '0' || *runner > '9'))
 		{
 			return 0;
 		}
-		result = result * 10;
-		result = result + (*runner - '0');
+		
+		if (*runner <= 'z' && *runner >= 'a')
+		{
+			result += ((int)*runner - 87) * pow(base, digit_counter - 1);
+		}
+		else
+		{
+			result += (*runner - '0') * pow(base, digit_counter - 1);
+		}
+		
 		++runner;
+		--digit_counter;
 	}
+	
+	/* result = ReverseDigits(result); */
 	
 	if (negative_flag == '-')
 	{
@@ -105,3 +119,15 @@ static char *ReverseStringHelper(char *str)
 	}
 	return str;
 }
+
+
+static int ReverseDigits(int num) 
+{ 
+	int rev_num = 0; 
+	while (num > 0)
+	{ 
+		rev_num = rev_num * 10 + num % 10; 
+		num = num / 10; 
+	} 
+	return rev_num; 
+} 
