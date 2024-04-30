@@ -2,6 +2,7 @@
 #include <string.h>	/* strlen */
 
 void PrintOnlyInTwoArrays(char *a, char *b, char *c);
+void CheckEndian();
 
 int main()
 {
@@ -9,6 +10,8 @@ int main()
 	char *b = "abcde";
 	char *c = " bc e";
 	PrintOnlyInTwoArrays(a, b, c);
+	
+	CheckEndian();
 	
 	return 0;
 }
@@ -43,4 +46,18 @@ void PrintOnlyInTwoArrays(char *a, char *b, char *c)
 	}
 	
 	printf("\n");
+}
+
+void CheckEndian()
+{
+	int x = 1;
+	
+	if (*(char*)(&x) == 1)
+	{
+		printf("\nlittle endian\n");
+	}
+	else
+	{
+		printf("\big endian\n");
+	}
 }
