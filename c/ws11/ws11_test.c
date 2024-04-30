@@ -11,18 +11,19 @@ int main()
 	char str[100];
 	puts("enter a string that represents a number: \n");
 	scanf("%s", str);
-	
-	
 	TestAtoi(str);
+	
+	
 	printf("----\nAtoi test cases: \n");
 	TestAtoi("0");
 	TestAtoi("12345678");
 	TestAtoi("-12345678");
 	TestAtoi("abc123abc");
-	
 	printf("------\n");
 	printf("\nbase = 2, atoi(11001011) = %d\n", Atoi("11001011", 2));
+	printf("expected result = 203\n");
 	printf("\nbase = 16, atoi(1f2c) = %d\n", Atoi("1f2c", 16));
+	printf("expected result = 7980\n");
 	
 	TestItoa();
 	
@@ -34,6 +35,11 @@ void TestAtoi(char *str)
 	printf("\natoi: %d\nAtoi: %d\n", atoi(str), Atoi(str, 10));
 	assert(atoi(str) == Atoi(str, 10));
 	printf("assert Atoi equal to atoi for string = '%s' passed\n", str);
+}
+
+void TestAtoiWithBase(char *str, int base)
+{
+
 }
 
 void TestItoa()
