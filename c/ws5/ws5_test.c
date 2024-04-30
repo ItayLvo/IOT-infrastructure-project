@@ -21,6 +21,10 @@ int main(int argc, char *argv[])
 		CompareAndOperate(user_input, argv);
 	}
 
+
+	printf("enter file location: \n");
+
+	
 	return 0;
 }
 

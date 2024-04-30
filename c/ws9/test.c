@@ -1,4 +1,5 @@
 #include <stdio.h> /* FILE * */
+
 #include "serialize.h"
 
 
@@ -16,6 +17,7 @@ int main(int argc, char *argv[])
 	
 	FreeStudent(&student1);
 	FreeStudent(&new_student);
+	
 	return 0;
 }
 

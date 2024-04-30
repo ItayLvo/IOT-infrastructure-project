@@ -74,7 +74,7 @@ int CheckSecondOrSixth(unsigned char ch)
 }
 
 
-int CountBitsOn_NoLoop(unsigned int n)
+int CountBitsOnNoLoop(unsigned int n)
 {
 	/* LUT for each nibble (4 bits) */
 	const unsigned char bit_count_table[16] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
@@ -87,7 +87,7 @@ int CountBitsOn_NoLoop(unsigned int n)
 }
 
 
-int SwapThirdAndFifth(unsigned char ch)
+unsigned char SwapThirdAndFifth(unsigned char ch)
 {
 	char third_bit = 0;
 	char fifth_bit = 0;
@@ -106,7 +106,7 @@ int SwapThirdAndFifth(unsigned char ch)
 	
 	if ((third_bit << 2) == fifth_bit)
 	{
-		printf("3rd and 5th are the same bit (not replacing)\n");
+		return ch; /* 3rd and 5th are the same bit (not replacing) */
 	}
 	else
 	{
@@ -126,7 +126,7 @@ int SwapThirdAndFifth(unsigned char ch)
 	printf("afte swap: \n");
 	HelperPrintInBinary(ch);
 	
-	return 0;
+	return ch;
 }
 
 
@@ -178,30 +178,12 @@ int AddOne(int x)
 { 
 	int tmp = 1; 
 	
-	printf("starting. x is: \n");
-	HelperPrintInBinary(x);
-	
 	while ((x & tmp) != 0) 
 	{
-		printf("top of while loop. x is: \n");
-		HelperPrintInBinary(x); 
-		printf("tmp is: \n");
-		HelperPrintInBinary(tmp); 
 		x = x ^ tmp; 
-		printf("x after x=x^tmp is: \n");
-		HelperPrintInBinary(x); 
 		tmp  = tmp << 1; 
-		printf("tmp after tmp = tmp << 1 is: \n");
-		HelperPrintInBinary(tmp); 
 	} 
-	
-	printf("\nleft loop. x after loop is: \n");
-	HelperPrintInBinary(x); 
-	
 	x = x ^ tmp; 
-	
-	printf("x after final x = x ^ tmp is: \n");
-	HelperPrintInBinary(x); 
 	
 	return x; 
 } 

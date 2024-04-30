@@ -1,15 +1,23 @@
+/* itay
+reviewed by: shahar
+status: needs adjustments after CR
+*/
+
+
 #include <stdio.h> /*printf*/
 #include <string.h> /*strlen*/
 #include <stdlib.h> /*malloc*/
+
 #include "serialize.h"
 
 static FILE *WriteHumanisticGrade(humanistic_grade_t grades, FILE *file_ptr);
 static FILE *WriteRealGrade(real_grade_t grades, FILE *file_ptr);
 
-static size_t first_name_size = 0;
-static size_t last_name_size = 0;
+static size_t g_first_name_size = 0;
+static size_t g_last_name_size = 0;
 
-void CreateStudent(student_t *student, char *f_name, char *l_name, float art_grade, float history_grade, float math_grade, float physics_grade, float sports_grade)
+void CreateStudent(student_t *student, char *f_name, char *l_name, float art_grade, float history_grade,
+			float math_grade, float physics_grade, float sports_grade)
 {
 	student->first_name = (char *)malloc(strlen(f_name) + 1);
 	if (NULL != student->first_name)
@@ -40,14 +48,14 @@ void MarshalStudent(student_t *student, char *file_name)
 	}
 	
 	
-	file_ptr = fopen(file_name, "ab");
+	file_ptr = fopen(file_name, "wb");
 	if (NULL == file_ptr)
 	{
 		return;
 	}
 	
-	first_name_size = strlen(student->first_name) + 1;
-	last_name_size = strlen(student->last_name) + 1;
+	g_first_name_size = strlen(student->first_name) + 1;
+	g_last_name_size = strlen(student->last_name) + 1;
 	
 	file_ptr = WriteString(student->first_name, file_ptr);
 	file_ptr = WriteString(student->last_name, file_ptr);
@@ -149,17 +157,17 @@ FILE *ReadStrings(student_t *student, FILE *file_ptr)
 		return NULL;
 	}
 	
-	student->first_name = (char *)malloc(first_name_size * sizeof(char));
+	student->first_name = (char *)malloc(g_first_name_size * sizeof(char));
 	if (NULL != student->first_name)
 	{
-		fread(student->first_name, first_name_size, 1, file_ptr);
+		fread(student->first_name, g_first_name_size, 1, file_ptr);
 	}
 	
-	student->last_name = (char *)malloc(last_name_size * sizeof(char));
+	student->last_name = (char *)malloc(g_last_name_size * sizeof(char));
 	
 	if (NULL != student->last_name)
 	{
-		fread(student->last_name, last_name_size, 1, file_ptr);
+		fread(student->last_name, g_last_name_size, 1, file_ptr);
 	}
 	
 	return file_ptr;

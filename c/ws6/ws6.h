@@ -9,11 +9,11 @@ void PrintThreeBitsOn(unsigned int arr[], size_t size);
 int MirrorBits(int n);
 int CheckBothSecondSixth(unsigned char ch);
 int CheckSecondOrSixth(unsigned char ch);
-int SwapThirdAndFifth(unsigned char ch);
+unsigned char SwapThirdAndFifth(unsigned char ch);
 int ClosestToSixteenNoRemains(unsigned int n);
 void Swap(int *a, int *b);
 int CountBitsOnLoop(unsigned int n);
 void PrintFloat(float f);
-int CountBitsOn_NoLoop(unsigned int n);
+int CountBitsOnNoLoop(unsigned int n);
 
 #endif /* __WS6_H__ */
