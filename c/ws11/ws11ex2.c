@@ -1,9 +1,14 @@
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strlen */
+#include <stdint.h>	/* uint16_t */
+
+#define IS_BIG_ENDIAN (*(uint16_t *)"\0\xff" < 0x0100)
+ 
+
 
 void PrintOnlyInTwoArrays(char *a, char *b, char *c);
 void CheckEndian();
-
+void CheckEndianMacro();
 int main()
 {
 	char *a = "ab de";
@@ -12,6 +17,8 @@ int main()
 	PrintOnlyInTwoArrays(a, b, c);
 	
 	CheckEndian();
+	
+	CheckEndianMacro();
 	
 	return 0;
 }
@@ -59,5 +66,18 @@ void CheckEndian()
 	else
 	{
 		printf("\big endian\n");
+	}
+}
+
+void CheckEndianMacro()
+{
+
+	if (IS_BIG_ENDIAN)
+	{
+		printf("macro: big endian\n");
+	}
+	else
+	{
+		printf("macro: little endian\n");
 	}
 }
