@@ -11,6 +11,7 @@ int main()
 	char str[100];
 	puts("enter a string that represents a number: \n");
 	scanf("%s", str);
+	
 	TestAtoi(str);
 	TestAtoi("0");
 	TestAtoi("12345678");
@@ -20,7 +21,6 @@ int main()
 	
 	TestItoa();
 	
-
 	return 0;
 }
 
@@ -34,14 +34,22 @@ void TestAtoi(char *str)
 void TestItoa()
 {
 	char str[100];
-
-	printf("\nItoa test: \n");
+	char test[100];
+	
+	printf("\n-----------\nItoa test: \n");
 	
 	printf("number: %d\nbase: %d\tconverted String: %s\n", 1234, 10, Itoa(1234, str, 10));
+	sprintf(test,"%d",1234);
+	printf("\t\tsprintf result: %s\n\n", test);
 	
-	printf("base: %d\t\tConverted String: %s\n", 2, Itoa(1234, str, 2));
+	printf("base: %d\t\tConverted String: %s\n\n", 2, Itoa(1234, str, 2));
 	
 	printf("base: %d\t\tConverted String: %s\n", 8, Itoa(1234, str, 8));
+	sprintf(test,"%o",1234);
+	printf("\t\tsprintf result: %s\n\n", test);
 	
 	printf("base: %d\tConverted String: %s\n", 16, Itoa(1234, str, 16));
+	sprintf(test,"%x",1234);
+	printf("\t\tsprintf result: %s\n\n", test);
+	
 }
