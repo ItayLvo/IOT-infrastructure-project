@@ -1,8 +1,7 @@
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strlen */
-#include <stdint.h>	/* uint16_t */
 
-#define IS_BIG_ENDIAN (*(uint16_t *)"\0\xff" < 0x0100)
+#define IS_BIG_ENDIAN (*(unsigned short *)"\0\xff" < 0x0100)
  
 
 
