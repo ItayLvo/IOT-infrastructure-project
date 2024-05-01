@@ -129,7 +129,7 @@ static size_t nibble_count[] = {0, 1, 1, 2, 1, 2, 2, 3,
 
 static size_t count_set_bits_in_byte(char byte)
 {
-	return nibble_count[byte & 0xF] + nibble_count[byte >> 4];
+	return nibble_count[byte & 0xF] + nibble_count[(byte >> 4) & 0xF];
 }
 
 size_t CountOn(bit_array_t bit_arr)
@@ -185,6 +185,6 @@ char *ToString(bit_array_t bit_arr, char *buffer)
 		*runner = ((data_copy >> i) & 1) + '0';
 		++runner;
 	}
-	
+	*runner = '\0';
 	return buffer;
 }
