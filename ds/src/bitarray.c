@@ -44,15 +44,15 @@ bit_array_t SetOff(bit_array_t bit_arr, size_t index)
 
 bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bool_value)
 {
-	int mask = bool_value;
-	int not_mask = 0;
+	size_t mask = 1;
+	size_t not_mask;
 	
 	mask <<= index;
 	not_mask  = ~mask;
-	
-	bit_arr &= not_mask;
-	bit_arr |= mask;
-	
+
+	bit_arr = bit_arr & not_mask;
+	bit_arr = bit_arr | (bool_value << index);
+
 	return bit_arr;
 }
 
