@@ -6,21 +6,24 @@
 #define ALL_BITS_SET_64 0xFFFFFFFFFFFFFFFF
 
 int TestSetAll();
-int TestResetAllAndCountAll();
+int TestResetAllAndCount();
 int TestSetOffAndOn();
 int TestGetVal();
 int TestFlip();
+int TestMirror();
+int TestRotate();
 
 int main()
 {
 	/*
 	TestSetAll();
-	TestResetAllAndCountAll();
+	TestResetAllAndCount();
 	TestSetOffAndOn();
 	TestGetVal();
-	*/
 	TestFlip();
-	
+	TestMirror();
+	TestRotate();
+	*/
 	
 	return 0;
 }
@@ -52,7 +55,7 @@ int TestSetAll()
 	return 0;
 }
 
-int TestResetAllAndCountAll()
+int TestResetAllAndCount()
 {
 	bit_array_t bitarr = ALL_BITS_SET_64;
 	
@@ -62,7 +65,8 @@ int TestResetAllAndCountAll()
 		return 1;
 	}
 	
-	printf("before ResetAll: CountAll(bitarr) = %ld\n", CountOn(bitarr));
+	printf("before ResetAll: CountOn(bitarr) = %ld\n", CountOn(bitarr));
+	printf("before ResetAll: CountOff(bitarr) = %ld\n", CountOff(bitarr));
 	
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
@@ -78,7 +82,8 @@ int TestResetAllAndCountAll()
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
 	free(buffer);
-	printf("before ResetAll: CountAll(bitarr) = %ld\n", CountOn(bitarr));
+	printf("after ResetAll: CountOn(bitarr) = %ld\n", CountOn(bitarr));
+	printf("after ResetAll: CountOff(bitarr) = %ld\n", CountOff(bitarr));
 	
 	return 0;
 }
@@ -191,3 +196,73 @@ int TestFlip()
 	return 0;
 }
 
+
+int TestMirror()
+{
+	bit_array_t bitarr = 0xFFFF000C;
+	
+	char *buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
+	if (NULL == buffer)
+	{
+		return 1;
+	}
+	
+	buffer = ToString(bitarr, buffer);
+	printf("%s\n", buffer);
+	free(buffer);
+	
+	bitarr = Mirror(bitarr);
+	buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
+	if (NULL == buffer)
+	{
+		return 1;
+	}
+	
+	buffer = ToString(bitarr, buffer);
+	printf("%s\n", buffer);
+	free(buffer);
+	
+	
+	return 0;
+}
+
+
+int TestRotate()
+{
+	bit_array_t bitarr = 0xFFFFFFFF00000000;
+	
+	char *buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
+	if (NULL == buffer)
+	{
+		return 1;
+	}
+	
+	buffer = ToString(bitarr, buffer);
+	printf("%s\n", buffer);
+	free(buffer);
+	
+	bitarr = RotateLeft(bitarr, 5);
+	buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
+	if (NULL == buffer)
+	{
+		return 1;
+	}
+	
+	buffer = ToString(bitarr, buffer);
+	printf("%s\n", buffer);
+	free(buffer);
+	
+	bitarr = RotateRight(bitarr, 10);
+	buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
+	if (NULL == buffer)
+	{
+		return 1;
+	}
+	
+	buffer = ToString(bitarr, buffer);
+	printf("%s\n", buffer);
+	free(buffer);
+	
+	
+	return 0;
+}
