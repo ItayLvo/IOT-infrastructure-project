@@ -37,10 +37,6 @@ void TestAtoi(char *str)
 	printf("assert Atoi equal to atoi for string = '%s' passed\n", str);
 }
 
-void TestAtoiWithBase(char *str, int base)
-{
-
-}
 
 void TestItoa()
 {
