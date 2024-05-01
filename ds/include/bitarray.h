@@ -1,55 +1,136 @@
-#ifndef __BITARRAY_H__
-#define __BITARRAY_H__
+#ifndef __BIT_ARRAY_H__
+#define __BIT_ARRAY_H__
 
-#include <stdio.h>	/* size_t */
+#include <stddef.h> /* size_t */
+
+typedef size_t bit_array_t;
+
+/*
+Description: Set all bits to 1
+Params: bit_array_t
+Return Value: bit_array_t
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t SetAll(bit_array_t bit_arr);
+
+/*
+Description: Set all bits to 0
+Params: bit_array_t
+Return Value: bit_array_t
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t ResetAll(bit_array_t bit_arr);
+
+/*
+Description: Set bit on
+Params: Bit array and an index
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t SetOn(bit_array_t bit_arr, size_t index);
+
+/*
+Description: Set bit off
+Params: Bit array and an index
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t SetOff(bit_array_t bit_arr, size_t index);
+
+/*
+Description: Set the bit to the on/off depends on user given parameter bool_value.
+Params: Bit array, index and boolean value
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bool_value);
+
+/*
+Description: Get the value of a bit of specific index
+Params: Bit array, index
+Return Value: int (bool)
+Time Complexity: O(1)
+Space: O(1)
+*/
+int GetVal(bit_array_t bit_arr, size_t index);
 
 
-typedef unsigned long bitarray_t;
-
-typedef enum
-{
-	BIT_OFF = 0,
-	BIT_ON = 1;
-}	bit_mode_t;
-
-typedef enum
-{
-	SUCCESS = 0,
-	BM_PTR_ERROR = 1,
-	RANGE_ERROR = 2,
-	DEST_ERROR = 3
-}	status_t;
-
-typedef struct bitarray
-{
-    unsigned long data;
-} bitarray;
+/*
+Description: Flips bit at specific index.
+Params: Bit array, index
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t FlipBit(bit_array_t bit_arr, size_t index);
 
 
-void SetAll(bitarray *bitarr);
+/*
+Description: Flip all the bits of the array
+Params: Bit array
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t FlipAll(bit_array_t bit_arr);
 
-void ResetAll(bitarray *bitarr);
+/*
+Description: Mirroring the bits in the array
+Params: Bit array
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t Mirror(bit_array_t bit_arr);
 
-void SetOn(bitarray *bitarr, size_t index, size_t n);
+/*
+Description: Rotates n bits to right
+Params: Bit array, n to rotate
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t RotateRight(bit_array_t bit_arr,size_t n);
 
-void SetOff(bitarray *bitarr, size_t index, size_t n);
+/*
+Description: Rotates n bits to left
+Params: Bit array, n to rotate
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t RotateLeft(bit_array_t bit_arr,size_t n);
 
-void SetBit(bitarray *bitarr, size_t index, bit_mode_t bit_mode);
+/*
+Description: Counts the bits that are on in the array
+Params: Bit array
+Return Value: size_t
+Time Complexity: O(1)
+Space: O(1)
+*/
+size_t CountOn(bit_array_t bit_arr);
 
-bit_mode_t GetVal(bitarray *bitarr, size_t index);
+/*
+Description: Counts the bits that are off in the array
+Params: Bit array
+Return Value: size_t
+Time Complexity: O(1)
+Space: O(1)
+*/
+size_t CountOff(bit_array_t bit_arr);
 
-void Flip(bitarray *bitarr);
+/*
+Description: Translate the bits to be represented as string
+Params: Bit array, buffer
+Return Value: size_t
+Time Complexity: O(n)
+Space: O(n)
+*/
+char *ToString(bit_array_t bit_arr, char *buffer);
 
-void Mirror(bitarray *bitarr);
-
-void RotateRight(bitarray *bitarr, size_t n);
-
-void RotateLeft(bitarray *bitarr, size_t n);
-
-void CountOn(bitarray *bitarr);
-
-void CountOff(bitarray *bitarr);
-
-void ToString(bitarray *bitarr);
-
-#endif	/*__BITARRAY_H__*/
+#endif /*__BIT_ARRAY_H__*/

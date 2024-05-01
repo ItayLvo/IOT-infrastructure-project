@@ -1,58 +1,154 @@
 #include <stdio.h>	/* printf */
 #include <limits.h>	/* CHAR_BIT */
 
-#include "bitarray.h"
+#include "../include/bitarray.h"
 
+#define ALL_BITS_SET_64 0xFFFFFFFFFFFFFFFF
+#define SIZE_T_BITS 64
 
-void SetAll(bitarray *bitarr)
+/*
+typedef enum
 {
-	bitarr->data = 0xFFFFFFFFFFFFFFFF;
+	BIT_OFF = 0,
+	BIT_ON = 1
+	
+} bit_mode_t;
+*/
+
+bit_array_t SetAll(bit_array_t bit_arr)
+{
+	bit_arr |= ALL_BITS_SET_64;
+	return bit_arr;
 }
 
-void ResetAll(bitarray *bitarr)
+bit_array_t ResetAll(bit_array_t bit_arr)
 {
-	bitarr -> data = 0;
+	bit_arr = 0;
+	return bit_arr;
 }
 
-void SetBit(bitarray *bitarr, size_t index, bit_mode_t bit_mode);
+bit_array_t SetOn(bit_array_t bit_arr, size_t index)
 {
-	size_t mask = bit_mode;
+	bit_arr = SetBit(bit_arr, index, 1);
+	
+	return bit_arr;
+}
+
+bit_array_t SetOff(bit_array_t bit_arr, size_t index)
+{
+	bit_arr = SetBit(bit_arr, index, 0);
+	
+	return bit_arr;
+}
+
+
+bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bool_value)
+{
+	int mask = bool_value;
+	int not_mask = 0;
+	
 	mask <<= index;
-	bitarr -> data |= mask;
+	not_mask  = ~mask;
+	
+	bit_arr &= not_mask;
+	bit_arr |= mask;
+	
+	return bit_arr;
 }
 
-bit_mode_t GetVal(bitarray *bitarr, size_t index)
+int GetVal(bit_array_t bit_arr, size_t index)
+{
+	size_t mask = 1;
+	bit_arr >>= index;
+	return (bit_arr & mask);
+}
+
+bit_array_t FlipBit(bit_array_t bit_arr, size_t index)
 {
 	size_t mask = 1;
 	mask <<= index;
-	return ((bitarr -> data) & mask);
+	bit_arr = bit_arr ^ mask;
+	
+	return bit_arr;
 }
 
-void Flip(bitarray *bitarr)
+
+bit_array_t FlipAll(bit_array_t bit_arr)
 {
-	bitarr -> data = ~(bitarr -> data);
+	bit_arr = ~(bit_arr);
+	return bit_arr;
 }
 
-void Mirror(bitarray *bitarr)
+
+bit_array_t Mirror(bit_array_t bit_arr)
 {
-	unsigned long reversed_num = 0;
-	unsigned long n = bitarr -> data;
+	bit_arr = ((bit_arr >> 1) & 0x5555555555555555) | ((bit_arr & 0x5555555555555555) << 1);
+	bit_arr = ((bit_arr >> 2) & 0x3333333333333333) | ((bit_arr & 0x3333333333333333) << 2);
+	bit_arr = ((bit_arr >> 4) & 0x0F0F0F0F0F0F0F0F) | ((bit_arr & 0x0F0F0F0F0F0F0F0F) << 4);
+	bit_arr = ((bit_arr >> 8) & 0x00FF00FF00FF00FF) | ((bit_arr & 0x00FF00FF00FF00FF) << 8);
+	bit_arr = ((bit_arr >> 16) & 0x0000FFFF0000FFFF) | ((bit_arr & 0x0000FFFF0000FFFF) << 16);
+	bit_arr = (bit_arr >> 32) | (bit_arr << 32);
+
+	return bit_arr;
+}
+
+/* O(n) implementation
+bit_array_t Mirror(bit_array_t bit_arr)
+{
+	size_t reversed_num = 0;
+	size_t n = bit_arr;
 	int i = 0;
 	
-	for (i = 0; i < sizeof(reversed_num * CHAR_BIT; ++i)
+	for (i = 0; i < sizeof(reversed_num) * CHAR_BIT; ++i)
 	{
 		reversed_num = reversed_num << 1;
-		reversed_num = reversed_num | (n & 1); /* adds the right-most digit of n to ans. if it was 1, it remains 1 */
+		reversed_num = reversed_num | (n & 1);
 		n = n >> 1;
 	}
+	bit_arr = reversed_num;
 	
-	bitarr -> data = reversed_num;
+	return bit_arr;
+}
+*/
+
+
+bit_array_t RotateRight(bit_array_t bit_arr,size_t n)
+{
+	return (bit_arr >> n) | (bit_arr << (SIZE_T_BITS - n));
 }
 
 
-void CountOn(bitarray *bitarr);
+bit_array_t RotateLeft(bit_array_t bit_arr,size_t n)
 {
-	int count = 0;
+	return (bit_arr << n) | (bit_arr >> (SIZE_T_BITS - n));
+}
+
+
+static size_t nibble_count[] = {0, 1, 1, 2, 1, 2, 2, 3,
+				1, 2, 2, 3, 2, 3, 3, 4};
+
+static size_t count_set_bits_in_byte(char byte)
+{
+	return nibble_count[byte & 0xF] + nibble_count[byte >> 4];
+}
+
+size_t CountOn(bit_array_t bit_arr)
+{
+	return count_set_bits_in_byte(bit_arr & 0xFF) +
+		count_set_bits_in_byte((bit_arr >> 8) & 0xFF) +
+		count_set_bits_in_byte((bit_arr >> 16) & 0xFF) +
+		count_set_bits_in_byte((bit_arr >> 24) & 0xFF) +
+		count_set_bits_in_byte((bit_arr >> 32) & 0xFF) +
+		count_set_bits_in_byte((bit_arr >> 40) & 0xFF) +
+		count_set_bits_in_byte((bit_arr >> 48) & 0xFF) +
+		count_set_bits_in_byte((bit_arr >> 56) & 0xFF);
+}
+
+/* O(n) implementation
+size_t CountOn(bit_array_t bit_arr)
+{
+	size_t count = 0;
+	unsigned long n = bit_arr;
 	
 	while (n != 0)
 	{
@@ -65,22 +161,30 @@ void CountOn(bitarray *bitarr);
 	
 	return count;
 }
+*/
+
+size_t CountOff(bit_array_t bit_arr)
+{	
+	size_t count = 0;
+	
+	count = (sizeof(bit_arr) * CHAR_BIT) - (CountOn(bit_arr));
+
+	return count;
+}
 
 
-void ToString(bitarray *bitarr)
+char *ToString(bit_array_t bit_arr, char *buffer)
 {
-	unsigned long data_copy = bitarr -> data;
+	size_t data_copy = bit_arr;
 	int i = 0;
-	size_t size = sizeof(long) * CHAR_BIT;
+	size_t size = sizeof(size_t) * CHAR_BIT;
+	char *runner = buffer;
 	
 	for (i = size - 1; i >= 0; --i)
 	{
-		printf("%ld", (data_copy >> i) & 1);	
-		
-		if (i % 4 == 0)
-		{
-			printf(" ");
-		}
+		*runner = ((data_copy >> i) & 1) + '0';
+		++runner;
 	}
-	printf("\n");
+	
+	return buffer;
 }
