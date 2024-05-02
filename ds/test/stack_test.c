@@ -1,10 +1,7 @@
 #include <stdio.h>	/* printf */
-#include <limits.h>	/* CHAR_BIT */
 #include <stdlib.h>	/* malloc */
 
 #include "../include/stack.h"
-
-
 
 
 int main()
@@ -14,7 +11,6 @@ int main()
 	int x = 1;
 	int *xp = &x;
 	int *test_ptr = (int *)malloc(sizeof(int) * 1);
-	
 	
 	stack_ptr = StackCreate(50, sizeof(int));
 	printf("stack size = %ld, stack capacity = %ld\n", StackSize(stack_ptr), StackCapacity(stack_ptr));

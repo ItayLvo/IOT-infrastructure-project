@@ -1,7 +1,7 @@
-#include <stdio.h>	/* printf */
 #include <stddef.h>	/* size_t */
 #include <string.h>	/* memcpy */
 #include <stdlib.h>	/* malloc */
+
 #include "../include/stack.h"
 
 struct stack
@@ -16,6 +16,11 @@ struct stack
 stack_t *StackCreate(size_t capacity, size_t type_size)
 {
 	stack_t *stack = (stack_t *)malloc(sizeof(stack_t));
+	if (NULL == stack)
+	{
+		return NULL;
+	}
+	
 	stack->buffer = (void *)malloc(capacity * type_size);
 	stack->current_size = 0;
 	stack->type_size = type_size;
