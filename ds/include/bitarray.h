@@ -142,4 +142,6 @@ Space: O(1)
 */
 bit_array_t MirrorLut(bit_array_t bit_arr);
 
+bit_array_t CountOnLut(bit_array_t bit_arr);
+
 #endif /*__BIT_ARRAY_H__*/

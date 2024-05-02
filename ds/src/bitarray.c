@@ -185,6 +185,11 @@ size_t CountOn(bit_array_t bit_arr)
 		count_set_bits_in_byte((bit_arr >> 56) & 0xFF);
 }
 
+bit_array_t CountOnLut(bit_array_t bit_arr)
+{
+	return CountOn(bit_arr);
+}
+
 /* O(n) implementation of CountOn*/
 /*
 size_t CountOn(bit_array_t bit_arr)
