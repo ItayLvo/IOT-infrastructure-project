@@ -52,14 +52,15 @@ void StackPush(stack_t *stack, const void *item)
 void StackPeek(const stack_t *stack, void *dest)
 {
 	char *ptr = NULL;
+
 	if (0 == stack->current_size)
 	{
 		dest = NULL;
 		return;
 	}
-	ptr = (char *)(stack->buffer) + (((stack->current_size) - 1) * (stack->type_size));
-	dest = memcpy(dest, ptr, stack->type_size);
 	
+	ptr = (char *)(stack->buffer) + ((stack->current_size - 1) * stack->type_size);
+	dest = memcpy(dest, ptr, stack->type_size);
 }
 
 size_t StackSize(const stack_t *stack)

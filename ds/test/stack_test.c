@@ -12,8 +12,10 @@ int main()
 	
 	stack_t *stack_ptr;
 	int x = 5;
-	int *xp = &x;
-	int *test_ptr = NULL;
+	int *xp = (int *)malloc(sizeof(int) * 1);
+	int *test_ptr = (int *)malloc(sizeof(int) * 1);
+	xp = &x;
+	
 	
 	stack_ptr = StackCreate(50, sizeof(int));
 	printf("%ld, %ld\n", StackSize(stack_ptr), StackCapacity(stack_ptr));
