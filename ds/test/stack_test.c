@@ -12,9 +12,8 @@ int main()
 	
 	stack_t *stack_ptr;
 	int x = 1;
-	int *xp = (int *)malloc(sizeof(int) * 1);
+	int *xp = &x;
 	int *test_ptr = (int *)malloc(sizeof(int) * 1);
-	xp = &x;
 	
 	
 	stack_ptr = StackCreate(50, sizeof(int));
@@ -36,6 +35,9 @@ int main()
 	StackPeek(stack_ptr, test_ptr);
 	printf("peek: %d\n", *test_ptr);
 	printf("stack size = %ld, stack capacity = %ld\n", StackSize(stack_ptr), StackCapacity(stack_ptr));
+	
+	StackDestroy(stack_ptr);
+	free(test_ptr);
 	
 	return 0;
 }
