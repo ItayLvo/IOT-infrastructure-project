@@ -6,24 +6,17 @@
 #define ALL_BITS_SET_64 0xFFFFFFFFFFFFFFFF
 #define SIZE_T_BITS 64
 
-/*
-typedef enum
-{
-	BIT_OFF = 0,
-	BIT_ON = 1
-	
-} bit_mode_t;
-*/
-
 bit_array_t SetAll(bit_array_t bit_arr)
 {
 	bit_arr |= ALL_BITS_SET_64;
+	
 	return bit_arr;
 }
 
 bit_array_t ResetAll(bit_array_t bit_arr)
 {
 	bit_arr = 0;
+	
 	return bit_arr;
 }
 
@@ -59,13 +52,16 @@ bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bool_value)
 int GetVal(bit_array_t bit_arr, size_t index)
 {
 	size_t mask = 1;
+	
 	bit_arr >>= index;
+	
 	return (bit_arr & mask);
 }
 
 bit_array_t FlipBit(bit_array_t bit_arr, size_t index)
 {
 	size_t mask = 1;
+	
 	mask <<= index;
 	bit_arr = bit_arr ^ mask;
 	
@@ -76,6 +72,7 @@ bit_array_t FlipBit(bit_array_t bit_arr, size_t index)
 bit_array_t FlipAll(bit_array_t bit_arr)
 {
 	bit_arr = ~(bit_arr);
+	
 	return bit_arr;
 }
 
@@ -92,7 +89,9 @@ bit_array_t Mirror(bit_array_t bit_arr)
 	return bit_arr;
 }
 
-/* O(n) implementation
+
+/* O(n) implementation of Mirror*/
+/* 
 bit_array_t Mirror(bit_array_t bit_arr)
 {
 	size_t reversed_num = 0;
@@ -124,12 +123,13 @@ bit_array_t RotateLeft(bit_array_t bit_arr,size_t n)
 }
 
 
-static size_t nibble_count[] = {0, 1, 1, 2, 1, 2, 2, 3,
-				1, 2, 2, 3, 2, 3, 3, 4};
+
+static size_t nibble_count_on[] = {0, 1, 1, 2, 1, 2, 2, 3,
+				   1, 2, 2, 3, 2, 3, 3, 4};
 
 static size_t count_set_bits_in_byte(char byte)
 {
-	return nibble_count[byte & 0xF] + nibble_count[(byte >> 4) & 0xF];
+	return nibble_count_on[byte & 0xF] + nibble_count_on[(byte >> 4) & 0xF];
 }
 
 size_t CountOn(bit_array_t bit_arr)
@@ -144,7 +144,8 @@ size_t CountOn(bit_array_t bit_arr)
 		count_set_bits_in_byte((bit_arr >> 56) & 0xFF);
 }
 
-/* O(n) implementation
+/* O(n) implementation of CountOn*/
+/*
 size_t CountOn(bit_array_t bit_arr)
 {
 	size_t count = 0;
@@ -175,14 +176,13 @@ size_t CountOff(bit_array_t bit_arr)
 
 char *ToString(bit_array_t bit_arr, char *buffer)
 {
-	size_t data_copy = bit_arr;
 	int i = 0;
 	size_t size = sizeof(size_t) * CHAR_BIT;
 	char *runner = buffer;
 	
 	for (i = size - 1; i >= 0; --i)
 	{
-		*runner = ((data_copy >> i) & 1) + '0';
+		*runner = ((bit_arr >> i) & 1) + '0';
 		++runner;
 	}
 	*runner = '\0';
