@@ -1,6 +1,7 @@
 #include <stdio.h>	/* printf */
 #include <limits.h>	/* CHAR_BIT */
 #include <stdlib.h>	/* malloc */
+
 #include "../include/bitarray.h"
 
 #define ALL_BITS_SET_64 0xFFFFFFFFFFFFFFFF
@@ -15,7 +16,7 @@ int TestRotate();
 
 int main()
 {
-	/*
+	
 	TestSetAll();
 	TestResetAllAndCount();
 	TestSetOffAndOn();
@@ -23,7 +24,7 @@ int main()
 	TestFlip();
 	TestMirror();
 	TestRotate();
-	*/
+	
 	
 	return 0;
 }
@@ -37,7 +38,7 @@ int TestSetAll()
 	{
 		return 1;
 	}
-	
+	printf("bitarr = 0, before SetAll():\n");
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
 	free(buffer);
@@ -47,9 +48,9 @@ int TestSetAll()
 	{
 		return 1;
 	}
-	
+	printf("after SetAll():\n");
 	buffer = ToString(bitarr, buffer);
-	printf("%s\n", buffer);
+	printf("%s\n\n", buffer);
 	free(buffer);
 	
 	return 0;
@@ -83,7 +84,7 @@ int TestResetAllAndCount()
 	printf("%s\n", buffer);
 	free(buffer);
 	printf("after ResetAll: CountOn(bitarr) = %ld\n", CountOn(bitarr));
-	printf("after ResetAll: CountOff(bitarr) = %ld\n", CountOff(bitarr));
+	printf("after ResetAll: CountOff(bitarr) = %ld\n\n", CountOff(bitarr));
 	
 	return 0;
 }
@@ -99,7 +100,7 @@ int TestSetOffAndOn()
 	{
 		return 1;
 	}
-	printf("Testing SetOff\n");
+	printf("Testing SetOff and SetOn:\n");
 	
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
@@ -139,9 +140,10 @@ int TestSetOffAndOn()
 	bitarr = SetOn(bitarr, 1);
 	bitarr = SetOn(bitarr, 3);
 	bitarr = SetOn(bitarr, 5);
+	bitarr = SetOn(bitarr, 63);
 	
 	buffer = ToString(bitarr, buffer);
-	printf("%s\n", buffer);
+	printf("%s\n\n", buffer);
 	free(buffer);
 	
 	
@@ -151,8 +153,8 @@ int TestSetOffAndOn()
 int TestGetVal()
 {
 	bit_array_t bitarr = 2;
-	
-	printf("for bitarr = 0b10, bit[0] = %d, bit[1] = %d\n", GetVal(bitarr, 0), GetVal(bitarr, 1));
+	printf("Testing GetVal: \n");
+	printf("for bitarr = 0b10, bit[0] = %d, bit[1] = %d\n\n", GetVal(bitarr, 0), GetVal(bitarr, 1));
 	
 	return 0;
 }
@@ -166,7 +168,7 @@ int TestFlip()
 	{
 		return 1;
 	}
-	
+	printf("Testing FlipAll: \n");
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
 	free(buffer);
@@ -181,8 +183,8 @@ int TestFlip()
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
 	free(buffer);
-	
-	bitarr = FlipBit(bitarr, 0);
+	printf("Testing FlipBit(bitarr, 2): \n");
+	bitarr = FlipBit(bitarr, 2);
 	buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
 	if (NULL == buffer)
 	{
@@ -190,7 +192,7 @@ int TestFlip()
 	}
 	
 	buffer = ToString(bitarr, buffer);
-	printf("%s\n", buffer);
+	printf("%s\n\n", buffer);
 	free(buffer);
 	
 	return 0;
@@ -207,6 +209,7 @@ int TestMirror()
 		return 1;
 	}
 	
+	printf("Testing Mirror: \n");
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
 	free(buffer);
@@ -219,7 +222,7 @@ int TestMirror()
 	}
 	
 	buffer = ToString(bitarr, buffer);
-	printf("%s\n", buffer);
+	printf("%s\n\n", buffer);
 	free(buffer);
 	
 	
@@ -237,6 +240,7 @@ int TestRotate()
 		return 1;
 	}
 	
+	printf("Testing Rotate: \n");
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
 	free(buffer);
@@ -260,7 +264,7 @@ int TestRotate()
 	}
 	
 	buffer = ToString(bitarr, buffer);
-	printf("%s\n", buffer);
+	printf("%s\n\n", buffer);
 	free(buffer);
 	
 	
