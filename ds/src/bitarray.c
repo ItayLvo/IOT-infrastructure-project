@@ -77,6 +77,47 @@ bit_array_t FlipAll(bit_array_t bit_arr)
 }
 
 
+
+
+
+
+
+
+static size_t nibble_mirror_lut[16] = {0x0, 0x8, 0x4, 0xC, 0x2, 0xA, 0x6, 0xE,
+				0x1, 0x9, 0x5, 0xD, 0x3, 0xB, 0x7, 0xF};
+
+
+static size_t MirrorNibbles(char byte)
+{
+	return (nibble_mirror_lut[byte & 0xF]) | (nibble_mirror_lut[(byte >> 4) & 0xF]) << 4;
+}
+
+bit_array_t MirrorLut(bit_array_t bit_arr)
+{
+
+
+	bit_array_t mirrored_bit_arr = 0;
+
+	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 0) & 0xFF) << 56);
+	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 8) & 0xFF) << 48);
+	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 16) & 0xFF) << 40);
+	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 24) & 0xFF) << 32);
+	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 32) & 0xFF) << 24);
+	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 40) & 0xFF) << 16);
+	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 48) & 0xFF) << 8);
+	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 56) & 0xFF) << 0);
+
+	return mirrored_bit_arr;
+}
+
+
+
+
+
+
+
+
+
 bit_array_t Mirror(bit_array_t bit_arr)
 {
 	bit_arr = ((bit_arr >> 1) & 0x5555555555555555) | ((bit_arr & 0x5555555555555555) << 1);

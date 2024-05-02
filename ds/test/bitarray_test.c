@@ -16,15 +16,15 @@ int TestRotate();
 
 int main()
 {
-	
+	/*
 	TestSetAll();
 	TestResetAllAndCount();
 	TestSetOffAndOn();
 	TestGetVal();
 	TestFlip();
-	TestMirror();
 	TestRotate();
-	
+	*/
+	TestMirror();
 	
 	return 0;
 }
@@ -201,7 +201,7 @@ int TestFlip()
 
 int TestMirror()
 {
-	bit_array_t bitarr = 0xFFFF000C;
+	bit_array_t bitarr = 0xFFFF5555FFFF5555;
 	
 	char *buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
 	if (NULL == buffer)
@@ -215,6 +215,18 @@ int TestMirror()
 	free(buffer);
 	
 	bitarr = Mirror(bitarr);
+	buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
+	if (NULL == buffer)
+	{
+		return 1;
+	}
+	
+	buffer = ToString(bitarr, buffer);
+	printf("%s\n", buffer);
+	free(buffer);
+	
+	printf("Testing MirrorLUT: \n");
+	bitarr = MirrorLut(bitarr);
 	buffer = (char *)malloc(sizeof(char) * sizeof(size_t) * CHAR_BIT + 1);
 	if (NULL == buffer)
 	{

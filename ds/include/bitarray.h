@@ -133,4 +133,13 @@ Space: O(n)
 */
 char *ToString(bit_array_t bit_arr, char *buffer);
 
+/*
+Description: Mirroring the bits in the array using LUT
+Params: Bit array
+Return Value: Bit array
+Time Complexity: O(1)
+Space: O(1)
+*/
+bit_array_t MirrorLut(bit_array_t bit_arr);
+
 #endif /*__BIT_ARRAY_H__*/
