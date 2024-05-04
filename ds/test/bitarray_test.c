@@ -16,6 +16,7 @@ int TestRotate();
 
 int main()
 {
+	int program_exit_status = 0;
 	/*
 	TestSetAll();
 	TestResetAllAndCount();
@@ -24,9 +25,9 @@ int main()
 	TestFlip();
 	TestRotate();
 	*/
-	TestMirror();
+	program_exit_status = TestMirror();
 	
-	return 0;
+	return program_exit_status;
 }
 
 int TestSetAll()

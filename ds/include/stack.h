@@ -13,7 +13,7 @@ Time Complexity: O(1)
 Space: O(1)
 */
 stack_t *StackCreate(size_t capacity, size_t type_size);
-
+stack_t *StackCreateOneMalloc(size_t capacity, size_t type_size);
 /*
 Description: Destroy stack. doesn't 
 Params: stack_t *
