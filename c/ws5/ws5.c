@@ -9,6 +9,7 @@ reviewed by evelin
 #include <stdio.h>	/*printf, size_t*/
 #include "ws5.h"
 
+#define EQUAL 1
 
 flag_t flags_handlers_arr[] =
 {
@@ -18,7 +19,7 @@ flag_t flags_handlers_arr[] =
 	{"<", CompareAppend, OperationAppend}
 };
 
-int CompareAndOperate(char *user_input, char *argv[])
+int CompareAndOperate(char *user_input, char *file_name)
 {
 	int i = 0;
 	typedef enum flag_status_t {FLAG_OFF, FLAG_ON} flag_status_t;
@@ -34,7 +35,7 @@ int CompareAndOperate(char *user_input, char *argv[])
 	 	if (flags_handlers_arr[i].CompareFunc(user_input) == EQUAL)
 	 	{
 	 		special_string_flag = FLAG_ON;
-			if (flags_handlers_arr[i].OperationFunc(argv[1], user_input) == SUCCESS)
+			if (flags_handlers_arr[i].OperationFunc(file_name, user_input) == SUCCESS)
 			{
 	        		if (strcmp(user_input, "-exit") == 0)
 	        		{
@@ -49,7 +50,7 @@ int CompareAndOperate(char *user_input, char *argv[])
 	}
 	if (special_string_flag == FLAG_OFF)
 	{
-		AppendToFile(argv[1], user_input);
+		AppendToFile(file_name, user_input);
 	}
 	
 	return 0;

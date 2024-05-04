@@ -1,8 +1,7 @@
 #ifndef __WSFILES_H__
 #define __WSFILES_H__
-#define EQUAL 1
 
-int CompareAndOperate(char *user_input, char *argv[]);
+int CompareAndOperate(char *user_input, char *file_name);
 
 void AppendToFile(char *filename, char *str);
 

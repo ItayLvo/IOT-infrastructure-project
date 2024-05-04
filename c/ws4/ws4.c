@@ -12,10 +12,12 @@ status: finished
 #define T 84
 #define ASCII_SIZE 256
 
+typedef void (*Handlers_t)(void);
+
 void LUTImplementation(void)
 {
 	char userch = '\0';
-	typedef void (*Handlers_t)(void);
+	
 	size_t i = 0;
 	Handlers_t funcs[ASCII_SIZE];
 	
@@ -33,7 +35,7 @@ void LUTImplementation(void)
 	{
 		
 		printf("enter a character: \n");
-		scanf("%c", &userch);
+		scanf(" %c", &userch);
 		funcs[(unsigned int)userch]();
 	}
 	system("stty icanon echo");
@@ -41,7 +43,9 @@ void LUTImplementation(void)
 
 
 void FuncEmpty(void)
-{ /* does nothing */ }
+{
+	/* does nothing */
+}
 
 
 void FuncAPressed(void)
@@ -58,8 +62,6 @@ void FuncESCPressed(void)
 	return;
 }
 
-
-
 void IfImplementation(void)
 {
 	char userch = '\0';
@@ -70,7 +72,7 @@ void IfImplementation(void)
 	{
 		
 		printf("enter a character: \n");
-		scanf("%c", &userch);
+		scanf(" %c", &userch);
 
 		
 		if (userch == ESC)
@@ -102,7 +104,7 @@ void SwitchImplementation(void)
 	{
 		
 		printf("enter a character: \n");
-		scanf("%c", &userch);
+		scanf(" %c", &userch);
 		
 		switch(userch)
 		{
@@ -124,9 +126,9 @@ void SwitchImplementation(void)
 }
 
 
+typedef int (*func)(int, int);
 void TypedefEx()
 {
-	typedef int (*func)(int, int);
 	
 	typedef char string[5];
 	string st = {'a', 'b', 'c', '\0'};
@@ -146,6 +148,6 @@ void TypedefEx()
 int Add(int a, int b)
 {
 	int x = 3 + 6;
-	x++;
+	++x;
 	return a + b;
 }
