@@ -18,14 +18,12 @@ int main()
 {
 	int program_exit_status = 0;
 	
-	/*
-	TestSetAll();
-	TestResetAllAndCount();
-	TestSetOffAndOn();
-	TestGetVal();
-	TestFlip();
-	TestRotate();
-	*/
+	program_exit_status = TestSetAll();
+	program_exit_status = TestResetAllAndCount();
+	program_exit_status = TestSetOffAndOn();
+	program_exit_status = TestGetVal();
+	program_exit_status = TestFlip();
+	program_exit_status = TestRotate();
 	program_exit_status = TestMirror();
 	
 	return program_exit_status;

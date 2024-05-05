@@ -1,6 +1,7 @@
 #include <stdio.h>	/* printf */
 #include <limits.h>	/* CHAR_BIT */
 #include <assert.h>	/* assert */
+
 #include "../include/bitarray.h"
 
 #define ALL_BITS_SET_64 0xFFFFFFFFFFFFFFFF
@@ -42,6 +43,7 @@ bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bool_value)
 	size_t mask = 1;
 	size_t not_mask;
 	assert (index >= 0 && index <= SIZE_T_BITS);
+	
 	mask <<= index;
 	not_mask  = ~mask;
 
@@ -91,8 +93,6 @@ static size_t MirrorNibbles(char byte)
 
 bit_array_t MirrorLut(bit_array_t bit_arr)
 {
-
-
 	bit_array_t mirrored_bit_arr = 0;
 
 	mirrored_bit_arr |= (MirrorNibbles((bit_arr >> 0) & 0xFF) << 56);
@@ -214,7 +214,10 @@ char *ToString(bit_array_t bit_arr, char *buffer)
 {
 	int i = 0;
 	size_t size = sizeof(size_t) * CHAR_BIT;
-	char *runner = buffer;
+	char *runner;
+	assert(buffer);
+	
+	runner = buffer;
 	
 	for (i = size - 1; i >= 0; --i)
 	{
@@ -222,5 +225,6 @@ char *ToString(bit_array_t bit_arr, char *buffer)
 		++runner;
 	}
 	*runner = '\0';
+	
 	return buffer;
 }
