@@ -17,6 +17,7 @@ int TestRotate();
 int main()
 {
 	int program_exit_status = 0;
+	
 	/*
 	TestSetAll();
 	TestResetAllAndCount();

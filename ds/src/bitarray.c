@@ -1,6 +1,6 @@
 #include <stdio.h>	/* printf */
 #include <limits.h>	/* CHAR_BIT */
-
+#include <assert.h>	/* assert */
 #include "../include/bitarray.h"
 
 #define ALL_BITS_SET_64 0xFFFFFFFFFFFFFFFF
@@ -22,6 +22,7 @@ bit_array_t ResetAll(bit_array_t bit_arr)
 
 bit_array_t SetOn(bit_array_t bit_arr, size_t index)
 {
+	assert (index >= 0 && index <= SIZE_T_BITS);
 	bit_arr = SetBit(bit_arr, index, 1);
 	
 	return bit_arr;
@@ -29,6 +30,7 @@ bit_array_t SetOn(bit_array_t bit_arr, size_t index)
 
 bit_array_t SetOff(bit_array_t bit_arr, size_t index)
 {
+	assert (index >= 0 && index <= SIZE_T_BITS);
 	bit_arr = SetBit(bit_arr, index, 0);
 	
 	return bit_arr;
@@ -39,7 +41,7 @@ bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bool_value)
 {
 	size_t mask = 1;
 	size_t not_mask;
-	
+	assert (index >= 0 && index <= SIZE_T_BITS);
 	mask <<= index;
 	not_mask  = ~mask;
 
@@ -78,11 +80,6 @@ bit_array_t FlipAll(bit_array_t bit_arr)
 
 
 
-
-
-
-
-
 static size_t nibble_mirror_lut[16] = {0x0, 0x8, 0x4, 0xC, 0x2, 0xA, 0x6, 0xE,
 				0x1, 0x9, 0x5, 0xD, 0x3, 0xB, 0x7, 0xF};
 
@@ -109,13 +106,6 @@ bit_array_t MirrorLut(bit_array_t bit_arr)
 
 	return mirrored_bit_arr;
 }
-
-
-
-
-
-
-
 
 
 bit_array_t Mirror(bit_array_t bit_arr)

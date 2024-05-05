@@ -44,7 +44,7 @@ stack_t *StackCreateOneMalloc(size_t capacity, size_t type_size)
 		return NULL;
 	}
 	
-	stack->buffer = (char *)stack  + (sizeof(stack_t) - sizeof(void *));
+	stack->buffer = (char *)stack  + (sizeof(stack_t));
 	stack->current_size = 0;
 	stack->type_size = type_size;
 	stack->capacity = capacity;
@@ -55,7 +55,6 @@ stack_t *StackCreateOneMalloc(size_t capacity, size_t type_size)
 
 void StackDestroy(stack_t *stack)
 {
-	free(stack->buffer);
 	free(stack);
 }
 
