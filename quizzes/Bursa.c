@@ -1,6 +1,7 @@
 #include <stdio.h>	/*printf*/
 
 int Bursa(int *arr, int size, int *res);
+void BursaV2(int *arr, int size, int *res);
 
 int main()
 {
@@ -9,7 +10,7 @@ int main()
 	/* result[0] = buy, result[1] = sell, result[2] = profit */
 	int result[3] = {0, 0, 0};
 	int size = sizeof(array) / sizeof(array[0]);
-	Bursa(array, size, result);
+	BursaV2(array, size, result);
 	
 	printf("%d %d %d\n", result[0], result[1], result[2]);
 	return 0;
@@ -38,4 +39,34 @@ int Bursa(int *arr, int size, int *res)
 	}
 	res[2] = profit;
 	return profit;
+}
+
+void BursaV2(int *arr, int size, int *res)
+{
+	int max_profit = 0;
+	int tmp_profit = 0;
+	int tmp_min_index = 0;
+	int min = arr[0];
+	int i = 1;
+	
+	for (i = 1; i < size; ++i)
+	{
+		if (arr[i] > min) 
+		{
+			tmp_profit = arr[i] - arr[tmp_min_index];
+			if (tmp_profit > max_profit)
+			{
+				max_profit = tmp_profit;
+				res[1] = i;
+				res[0] = tmp_min_index;
+			}
+		}
+		else if (arr[i] < min)
+		{
+			min = arr[i];
+			tmp_min_index = i;
+		}
+	}
+	res[2] = max_profit;
+	return;
 }
