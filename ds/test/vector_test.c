@@ -19,6 +19,26 @@ int main()
 	}
 	
 	printf("\n");
+	printf("shrink:\n");
+	VectorShrink(vector);
+	printf("element count = %ld\n", VectorElementCount(vector));	
+	printf("capacity = %ld\n", VectorCapacity(vector));
+	
+	VectorPushBack(vector, &x);
+	printf("element count = %ld\n", VectorElementCount(vector));	
+	printf("capacity = %ld\n", VectorCapacity(vector));
+	printf("\n");
+	printf("reserve:\n");
+	VectorReserve(vector, 60);
+	printf("element count = %ld\n", VectorElementCount(vector));	
+	printf("capacity = %ld\n", VectorCapacity(vector));
+	printf("\n");
+	/*
+	printf("shrink:\n");
+	VectorShrink(vector); */
+	printf("element count = %ld\n", VectorElementCount(vector));	
+	printf("capacity = %ld\n", VectorCapacity(vector));
+	printf("\n");
 	
 	for (i = 0; i < 15; ++i)
 	{

@@ -104,7 +104,7 @@ void VectorPopBack(vector_t *vector)
 	
 	if ((vector->capacity / SHRINK_FACTOR) >= vector->element_count)
 	{
-		vector = realloc(vector,
+		vector->buffer = realloc(vector->buffer,
 			vector->element_size * (vector->capacity / SHRINK_FACTOR));
 			
 		vector->capacity = vector->capacity / SHRINK_FACTOR;
@@ -121,6 +121,7 @@ void VectorShrink(vector_t *vector)
 	void *ptr = vector->buffer;
 	
 	ptr = realloc(ptr, vector->element_count * vector->element_size);
+	vector->capacity = vector->element_count;
 }
 
 
