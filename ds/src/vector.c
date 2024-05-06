@@ -6,12 +6,15 @@
 
 #include "../include/vector.h"
 
+#define SHRINK_FACTOR 2
+#define GROWTH_FACTOR 2
+
 struct vector
 {
 	size_t capacity;
 	size_t element_size;
-	size_t element_count
-	void *buffer 
+	size_t element_count;
+	void *buffer ;
 };
 
 
@@ -24,6 +27,11 @@ vector_t *VectorCreate(size_t capacity, size_t element_size)
 	}
 	
 	vector->buffer = (void *)malloc(capacity * element_size);
+	if (NULL == vector->buffer)
+	{
+		return NULL;
+	}
+	
 	vector->element_count = 0;
 	vector->element_size = element_size;
 	vector->capacity = capacity;
@@ -32,7 +40,7 @@ vector_t *VectorCreate(size_t capacity, size_t element_size)
 }
 
 
-void VectorDestroy(stack_t *stack)
+void VectorDestroy(vector_t *vector)
 {
 	free(vector->buffer);
 	free(vector);
@@ -45,6 +53,7 @@ void *VectorAccessVal(vector_t *vector, size_t index)
 	
 	return ptr;
 }
+
 
 size_t VectorElementCount(const vector_t *vector)
 {
@@ -64,12 +73,20 @@ int VectorPushBack(vector_t *vector, const void *new_element_data)
 	
 	if (vector->element_count == vector->capacity)
 	{
-		/*reserve...*/
+		vector->buffer = realloc(vector->buffer, vector->element_size * vector->capacity * GROWTH_FACTOR);
+		if (NULL == vector->buffer)
+		{
+			return 1;
+		}
+		vector->capacity = vector->capacity * GROWTH_FACTOR;
 	}
 	
 	ptr = (char *)(vector->buffer) + (vector->element_count * vector->element_size);
-	ptr = memcpy(ptr, new_element_data, stack->element_size);
-	++(stack->element_count);
+	ptr = memcpy(ptr, new_element_data, vector->element_size);
+	
+	++(vector->element_count);
+	
+	printf("pushed\n");
 	
 	return 0;
 }
@@ -80,17 +97,22 @@ void VectorPopBack(vector_t *vector)
 {
 	assert(vector);
 	
-	if (0 == stack->current_size)
+	if (0 == vector->element_count)
 	{
 		return;
 	}
 	
-	if ( /*low enough to shrink...*/ )
+	if ((vector->capacity / SHRINK_FACTOR) >= vector->element_count)
 	{
-		/*shrink...*/
+		vector = realloc(vector,
+			vector->element_size * (vector->capacity / SHRINK_FACTOR));
+			
+		vector->capacity = vector->capacity / SHRINK_FACTOR;
 	}
 	
-	--(stack->element_count);
+	--(vector->element_count);
+	
+	printf("popped\n");
 }
 
 
@@ -98,19 +120,7 @@ void VectorShrink(vector_t *vector)
 {
 	void *ptr = vector->buffer;
 	
-	ptr = realloc(ptr, vector->element_count);
-}
-
-
-void StackPop(stack_t *stack)
-{
-	assert(stack);
-	if (0 == stack->current_size)
-	{
-		return;
-	}
-	
-	--(stack->current_size);
+	ptr = realloc(ptr, vector->element_count * vector->element_size);
 }
 
 
@@ -118,66 +128,13 @@ int VectorReserve(vector_t *vector, size_t n_new_elements)
 {
 	void *ptr = vector->buffer;
 	
-	ptr = realloc(ptr, (vector->element_size * (vector->element_count + n_new_elements));
+	ptr = realloc(ptr, (vector->element_size * (vector->capacity + n_new_elements)));
 	if (NULL == ptr)
 	{
 		return 1;
 	}
 	
+	vector->capacity += n_new_elements;
+	
 	return 0;
 }
-
-/*
-void StackPush(stack_t *stack, const void *item)
-{
-	
-	void *ptr = NULL;
-	assert(stack);
-	
-	ptr = (char *)(stack->buffer) + (stack->current_size * stack->type_size);
-	
-	if (stack->current_size == stack->capacity)
-	{
-		printf("Stack is full\n");
-		return;
-	}
-
-	
-	ptr = memcpy(ptr, item, stack->type_size);
-	++(stack->current_size);
-}
-
-void StackPeek(const stack_t *stack, void *dest)
-{
-	char *ptr = NULL;
-	assert(stack);
-	
-	if (0 == stack->current_size)
-	{
-		dest = NULL;
-		return;
-	}
-	
-	ptr = (char *)(stack->buffer) + ((stack->current_size - 1) * stack->type_size);
-	dest = memcpy(dest, ptr, stack->type_size);
-}
-
-size_t StackSize(const stack_t *stack)
-{
-	assert(stack);
-	return stack->current_size;
-}
-
-int StackIsEmpty(const stack_t *stack)
-{
-	assert(stack);
-	return (stack->current_size == 0);
-}
-
-size_t StackCapacity(const stack_t *stack)
-{
-	assert(stack);
-	return (stack->capacity);
-}
-
-*/
