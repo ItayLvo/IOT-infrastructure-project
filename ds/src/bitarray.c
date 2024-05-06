@@ -1,3 +1,9 @@
+/*
+name: itay
+status: implemented all functions and tests
+reviewer:
+*/
+
 #include <stdio.h>	/* printf */
 #include <limits.h>	/* CHAR_BIT */
 #include <assert.h>	/* assert */
