@@ -49,7 +49,10 @@ void VectorDestroy(vector_t *vector)
 
 void *VectorAccessVal(vector_t *vector, size_t index)
 {
-	void *ptr = (char *)(vector->buffer) + (index * vector->element_size);
+	void *ptr;
+	assert(vector);
+	
+	ptr = (char *)(vector->buffer) + (index * vector->element_size);
 	
 	return ptr;
 }
