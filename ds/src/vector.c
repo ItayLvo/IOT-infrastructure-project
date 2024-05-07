@@ -86,7 +86,7 @@ int VectorPushBack(vector_t *vector, const void *new_element_data)
 	
 	++(vector->element_count);
 	
-	printf("pushed\n");
+	printf("pushed\n\n");
 	
 	return 0;
 }
@@ -112,25 +112,21 @@ void VectorPopBack(vector_t *vector)
 	
 	--(vector->element_count);
 	
-	printf("popped\n");
+	printf("popped\n\n");
 }
 
 
 void VectorShrink(vector_t *vector)
 {
-	void *ptr = vector->buffer;
-	
-	ptr = realloc(ptr, vector->element_count * vector->element_size);
+	vector->buffer = realloc(vector->buffer, vector->element_count * vector->element_size);
 	vector->capacity = vector->element_count;
 }
 
 
 int VectorReserve(vector_t *vector, size_t n_new_elements)
 {
-	void *ptr = vector->buffer;
-	
-	ptr = realloc(ptr, (vector->element_size * (vector->capacity + n_new_elements)));
-	if (NULL == ptr)
+	vector->buffer = realloc(vector->buffer, (vector->element_size * (vector->capacity + n_new_elements)));
+	if (NULL == vector->buffer)
 	{
 		return 1;
 	}

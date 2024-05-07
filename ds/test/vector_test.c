@@ -22,14 +22,15 @@ int main()
 		
 		int_ptr = VectorAccessVal(vector, i);
 		printf("accessval = %d\n", *int_ptr);
-		
+		/*
 		*int_ptr = 999;
 		*(int *)VectorAccessVal(vector, i) = *int_ptr;
-		
+		*/
 		int_ptr2 = VectorAccessVal(vector, i);
 		printf("accessval = %d\n", *int_ptr2);
 	}
 	printf("\n");
+	
 	printf("shrink:\n");
 	VectorShrink(vector);
 	printf("element count = %ld\n", VectorElementCount(vector));	
@@ -39,8 +40,13 @@ int main()
 	printf("element count = %ld\n", VectorElementCount(vector));	
 	printf("capacity = %ld\n", VectorCapacity(vector));
 	printf("\n");
+	
 	printf("reserve:\n");
 	VectorReserve(vector, 60);
+	printf("element count = %ld\n", VectorElementCount(vector));	
+	printf("capacity = %ld\n", VectorCapacity(vector));
+	printf("\n");
+	VectorPushBack(vector, &x);
 	printf("element count = %ld\n", VectorElementCount(vector));	
 	printf("capacity = %ld\n", VectorCapacity(vector));
 	printf("\n");
