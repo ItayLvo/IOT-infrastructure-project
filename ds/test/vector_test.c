@@ -7,10 +7,9 @@
 int main()
 {
 	vector_t *vector;
-	int x = 5;
+	int x = 5, y = 0;
 	int i = 0;
-	int *int_ptr = NULL;
-	int *int_ptr2 = NULL;
+	int *int_ptr = &x, *int_ptr2 = &y;
 	vector = VectorCreate(2,  sizeof(int));
 	
 	for (i = 0; i < 10; ++i)
@@ -22,15 +21,13 @@ int main()
 		
 		int_ptr = VectorAccessVal(vector, i);
 		printf("accessval = %d\n", *int_ptr);
-		/*
-		*int_ptr = 999;
-		*(int *)VectorAccessVal(vector, i) = *int_ptr;
-		*/
-		int_ptr2 = VectorAccessVal(vector, i);
-		printf("accessval = %d\n", *int_ptr2);
 	}
-	printf("\n");
+	printf("\n\n");
 	
+	*int_ptr2 = 999;
+	*(int *)VectorAccessVal(vector, VectorElementCount(vector) - 1) = *int_ptr2;
+	printf("accessval = %d\n", *(int *)VectorAccessVal(vector, VectorElementCount(vector) - 1));
+		
 	printf("shrink:\n");
 	VectorShrink(vector);
 	printf("element count = %ld\n", VectorElementCount(vector));	
