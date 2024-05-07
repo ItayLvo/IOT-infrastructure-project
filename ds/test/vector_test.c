@@ -3,35 +3,37 @@
 
 #include "../include/vector.h"
 
-/* printf("%ld\n", ) */
 int main()
 {
 	vector_t *vector;
 	int x = 5, y = 0;
 	int i = 0;
-	int *int_ptr = &x, *int_ptr2 = &y;
+	int *int_ptr2 = &y;
 	vector = VectorCreate(2,  sizeof(int));
+	
+	printf("element count = %ld\n", VectorElementCount(vector));	
+	printf("capacity = %ld\n", VectorCapacity(vector));
 	
 	for (i = 0; i < 10; ++i)
 	{
+		VectorPushBack(vector, &x);
 		printf("element count = %ld\n", VectorElementCount(vector));	
 		printf("capacity = %ld\n", VectorCapacity(vector));
-		
-		VectorPushBack(vector, &x);
-		
-		int_ptr = VectorAccessVal(vector, i);
-		printf("accessval = %d\n", *int_ptr);
 	}
 	printf("\n\n");
 	
+	printf("AccessVal test:\n");
+	printf("accessval = %d\n\n", *(int *)VectorAccessVal(vector, VectorElementCount(vector) - 1));
+	
+	printf("AccessVal test: setting vector[element_count] to 999\n");
 	*int_ptr2 = 999;
 	*(int *)VectorAccessVal(vector, VectorElementCount(vector) - 1) = *int_ptr2;
-	printf("accessval = %d\n", *(int *)VectorAccessVal(vector, VectorElementCount(vector) - 1));
+	printf("accessval = %d\n\n", *(int *)VectorAccessVal(vector, VectorElementCount(vector) - 1));
 		
-	printf("shrink:\n");
+	printf("shrink test:\n");
 	VectorShrink(vector);
 	printf("element count = %ld\n", VectorElementCount(vector));	
-	printf("capacity = %ld\n", VectorCapacity(vector));
+	printf("capacity = %ld\n\n", VectorCapacity(vector));
 	
 	VectorPushBack(vector, &x);
 	printf("element count = %ld\n", VectorElementCount(vector));	
