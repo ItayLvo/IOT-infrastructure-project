@@ -22,8 +22,9 @@ struct linked_list
 	node_t *tail;
 };
 
-static int CountHelper(void *dummy1, void *dummy2);
-static int PrintListHelper(void *data, void *dummy);
+static int CountHelper(void *data);
+static int PrintListHelper(void *data);
+
 
 static size_t count_nodes = 0;
 
@@ -125,19 +126,19 @@ iterator_t SLListGetEnd(linked_list_t* list)
 
 
 
-void SLListForEach(iterator_t start, iterator_t end, action_func_t IteratorHandler, void *compare_value)
+void SLListForEach(iterator_t start, iterator_t end, action_func_t IteratorHandler)
 {
 	node_t *runner = start;
 	
 	while (runner != end)
 	{
-		IteratorHandler(runner->data, compare_value);
+		IteratorHandler(runner->data);
 		runner = runner->next;
 	}
-	IteratorHandler(runner->data, compare_value);
+	IteratorHandler(runner->data);
 }
 
-static int CountHelper(void *dummy1, void *dummy2)
+static int CountHelper(void *data)
 {
 	++count_nodes;
 	
@@ -160,42 +161,59 @@ size_t SLListCount(const linked_list_t *list)
 {
 	count_nodes = 0;
 	
-	SLListForEach(list->head, list->tail, CountHelper, NULL);
+	SLListForEach(list->head, list->tail, CountHelper);
 	
 	return (count_nodes - 1);
 }
 
 
 
-iterator_t SLListNext(iterator_t iter)	/*edge case - tail?*/
+iterator_t SLListNext(iterator_t iter)
 {
 	return iter->next;
 }
 
-/*
-iterator_t SLListFind(iterator_t iter_start, iterator_t iter_end, const void* data, const comp_func_t func)
+
+iterator_t SLListFind(iterator_t start, iterator_t end,
+			const void* data, const comp_func_t IteratorComapreFunc)
 {
+	iterator_t runner = start;
 	
+	while (runner != end)
+	{
+		if (IteratorComapreFunc(runner->data, data))
+		{
+			return runner;
+		}
+		runner = runner->next;
+	}
+	
+	return NULL;
 }
-*/
+
+
 
 void SLListRemove(linked_list_t *list, iterator_t iterator)
 {
 	iterator_t node_to_remove = iterator->next;
 	
-	iterator->data = (iterator->next)->data;
-	iterator->next = (iterator->next)->next;
-	
 	if (node_to_remove == list->tail)
 	{
 		list->tail = iterator;
+		iterator->data = NULL;
 	}
+	else
+	{
+		iterator->data = (iterator->next)->data;
+	}
+	iterator->next = (iterator->next)->next;
+	
 	
 	free(node_to_remove);
 }
 
 
-int SLListIsEmpty(const linked_list_t *list)	/*needs testing*/
+int SLListIsEmpty(const linked_list_t *list)
 {
 	if (SLListCount(list) == 0)
 	{
@@ -212,10 +230,10 @@ int SLListIsEmpty(const linked_list_t *list)	/*needs testing*/
 void SLLPrintList(linked_list_t *list)
 {
 	printf("List: \n");
-	SLListForEach(list->head, list->tail, PrintListHelper, NULL);
+	SLListForEach(list->head, list->tail, PrintListHelper);
 }
 
-static int PrintListHelper(void *data, void *dummy)
+static int PrintListHelper(void *data)
 {
 	if (data != NULL)
 	{

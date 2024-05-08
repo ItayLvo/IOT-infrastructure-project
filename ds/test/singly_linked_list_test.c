@@ -3,6 +3,9 @@
 
 #include "../include/singly_linked_list.h"
 
+
+int CompareInt(void *item, const void *data_to_compare);
+
 int main()
 {
 	linked_list_t *list = SLListCreate();
@@ -41,7 +44,31 @@ int main()
 	printf("list size = %ld\n",SLListCount(list));
 	SLLPrintList(list);
 	
+	
+	iterator = SLListFind(SLListGetBegin(list), SLListGetEnd(list), &x3, CompareInt);
+	printf("getdata(iterator): %d\n", *(int *)SLListGetData(iterator));
+	iterator = SLListGetBegin(list);
+	printf("is the list empty? %d\n", SLListIsEmpty(list));
+	SLListRemove(list, iterator);
+	SLLPrintList(list);
+	SLListRemove(list, iterator);
+	SLLPrintList(list);
+	printf("is the list empty? %d\n", SLListIsEmpty(list));
+	printf("list size = %ld\n",SLListCount(list));
+	SLLPrintList(list);
+	SLListRemove(list, iterator);
+	SLLPrintList(list);
+	printf("is the list empty? %d\n", SLListIsEmpty(list));
+	printf("list size = %ld\n",SLListCount(list));
+	
 	SLListDestroy(list);
 	return 0;
+}
+
+
+
+int CompareInt(void *item, const void *data_to_compare)
+{
+ 	return (*(int *)item == *(int *)data_to_compare);
 }
 

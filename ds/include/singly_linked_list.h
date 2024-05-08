@@ -8,8 +8,8 @@
 typedef struct linked_list linked_list_t;
 typedef struct node *iterator_t;
 
-typedef int (*action_func_t)(void *, void *);
-typedef int (*comp_func_t)(void *, void *);
+typedef int (*action_func_t)(void *);
+typedef int (*comp_func_t)(void *, const void *);
 
 /*
 Description: 
@@ -128,7 +128,7 @@ Return Value:
 Time Complexity: O()
 Space: O()
 */
-void SLListForEach(iterator_t iter_start, iterator_t iter_end, action_func_t IteratorHandler, void *compare_value);
+void SLListForEach(iterator_t iter_start, iterator_t iter_end, action_func_t IteratorHandler);
 
 /*
 Description: 
