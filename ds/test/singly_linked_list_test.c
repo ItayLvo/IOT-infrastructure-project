@@ -6,63 +6,73 @@
 
 int CompareInt(void *item, const void *data_to_compare);
 
+int TestListFunctions(linked_list_t *list);
+
+
 int main()
 {
 	linked_list_t *list = SLListCreate();
-	iterator_t iterator = SLListGetBegin(list);
-	int x1 = 5, x2 = 4, x3 = 3, x4 = 2;
 	
+	TestListFunctions(list);
+
+	SLListDestroy(list);
+	
+	return 0;
+}
+
+
+int TestListFunctions(linked_list_t *list)
+{
+	iterator_t iterator = NULL;
+	int return_status = 0;
+	int x1 = 1, x2 = 2, x3 = 3, x4 = 4, x5 = 5;
+	
+	printf("pushing 1,2,3,4,5\n\n");
+	iterator = SLListGetBegin(list);
 	iterator = SLListInsert(list, &x1, iterator);
 	iterator = SLListInsert(list, &x2, iterator);
-	
 	iterator = SLListInsert(list, &x3, iterator);
-	SLListInsert(list, &x4, iterator);
+	iterator = SLListInsert(list, &x4, iterator);
+	iterator = SLListInsert(list, &x5, iterator);
 	
-	printf("GetData(GetBegin)): %d\n", *(int *)SLListGetData(SLListGetBegin(list)));
-	
-	printf("SLListGetData(iterator): %d\n", *(int *)SLListGetData(iterator));
-	printf("SLListNext\n");
-	iterator = SLListNext(iterator);
-	printf("getdata(iterator): %d\n", *(int *)SLListGetData(iterator));
-	iterator = SLListNext(iterator);
-	printf("%d\n", *(int *)SLListGetData(iterator));
-	iterator = SLListNext(iterator);
-	printf("%d\n", *(int *)SLListGetData(iterator));
-	
-	
-	SLListSetData(iterator, &x3);
-	
-	
-	printf("list size = %ld\n",SLListCount(list));
+	if (iterator == SLListGetEnd(list))
+	{
+		return_status += 1;
+	}
 	SLLPrintList(list);
-	printf("iterator: %d\n", *(int *)SLListGetData(iterator));
+	printf("\n\n");
 	
-	
-	SLListRemove(list, iterator);
-	
-	
-	printf("list size = %ld\n",SLListCount(list));
-	SLLPrintList(list);
-	
-	
+	printf("finding node where data = 3\n");
 	iterator = SLListFind(SLListGetBegin(list), SLListGetEnd(list), &x3, CompareInt);
-	printf("getdata(iterator): %d\n", *(int *)SLListGetData(iterator));
-	iterator = SLListGetBegin(list);
-	printf("is the list empty? %d\n", SLListIsEmpty(list));
+	if (NULL == iterator)
+	{
+		return_status += 1;
+	}
+	
+	printf("found node where data = %d\n", *(int *)SLListGetData(iterator));
+	
+	printf("removing the node: \n");
 	SLListRemove(list, iterator);
 	SLLPrintList(list);
-	SLListRemove(list, iterator);
-	SLLPrintList(list);
-	printf("is the list empty? %d\n", SLListIsEmpty(list));
-	printf("list size = %ld\n",SLListCount(list));
-	SLLPrintList(list);
-	SLListRemove(list, iterator);
-	SLLPrintList(list);
-	printf("is the list empty? %d\n", SLListIsEmpty(list));
+	printf("\n");
+	
 	printf("list size = %ld\n",SLListCount(list));
 	
-	SLListDestroy(list);
-	return 0;
+	printf("is the list empty (0 for no)? : %d\n", SLListIsEmpty(list));
+	
+	printf("removing node\n");
+	SLListRemove(list, SLListGetBegin(list));
+	printf("removing node\n");
+	SLListRemove(list, SLListGetBegin(list));
+	printf("removing node\n");
+	SLListRemove(list, SLListGetBegin(list));
+	printf("removing node\n");
+	SLListRemove(list, SLListGetBegin(list));
+	
+	printf("list size = %ld\n",SLListCount(list));
+	printf("is the list empty (0 for no)? : %d\n", SLListIsEmpty(list));
+	
+	return return_status;
 }
 
 

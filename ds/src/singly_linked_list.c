@@ -229,7 +229,7 @@ int SLListIsEmpty(const linked_list_t *list)
 
 void SLLPrintList(linked_list_t *list)
 {
-	printf("List: \n");
+	printf("Printing list: \n");
 	SLListForEach(list->head, list->tail, PrintListHelper);
 }
 
@@ -237,10 +237,10 @@ static int PrintListHelper(void *data)
 {
 	if (data != NULL)
 	{
-		printf("[%d] ", *(int *)data);
-		printf("\n");
+		printf("[%d] -> ", *(int *)data);
+		
 	}
-	
+
 	return 0;
 }
 
