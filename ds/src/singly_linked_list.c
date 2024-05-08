@@ -24,13 +24,15 @@ struct linked_list
 linked_list_t *SLListCreate(void)
 {
 	linked_list_t *list = (linked_list_t *)malloc(sizeof(linked_list_t));
+	node_t *dummy_node = NULL;
+	
 	if (NULL == list)
 	{
 		return NULL;
 	}
 	
-	node_t *dummy_node = malloc(sizeof(node_t));
-	if (NULL == dummy_node_ptr)
+	dummy_node = malloc(sizeof(node_t));
+	if (NULL == dummy_node)
 	{
 		free(list);
 		return NULL;
@@ -49,9 +51,6 @@ iterator_t SLListInsert(linked_list_t *list, void *data, iterator_t iterator)
 {
 	node_t *new_node = malloc(sizeof(node_t));
 	node_t *tmp_node = malloc(sizeof(node_t));
-	
-	if (list->tail == iterator)
-	
 	
 	new_node->data = data;
 	
@@ -85,6 +84,7 @@ void SLListDestroy(linked_list_t *list)
 		runner = tmp_next_node;
 	}
 	
+	free(list->tail);
 	free(list);
 }
 
@@ -111,14 +111,20 @@ void SLListForEach(iterator_t start, iterator_t end, action_func_t func)
 {
 	node_t *runner = start;
 	
-	while (node != end)
+	while (runner != end)
 	{
 		func(runner->data);
-		node = node->next;
+		runner = runner->next;
 	}
 	func(runner->data);
 }
 
+void *SLListGetData(const iterator_t iterator)
+{
+	return iterator->data;
+}
 
-
-
+void SLListSetData(iterator_t iterator, void* data)
+{
+	iterator->data = data;
+}
