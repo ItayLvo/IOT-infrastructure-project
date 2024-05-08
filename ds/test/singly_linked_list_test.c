@@ -13,13 +13,33 @@ int main()
 	iterator = SLListInsert(list, &x2, iterator);
 	
 	iterator = SLListInsert(list, &x3, iterator);
-	iterator = SLListInsert(list, &x4, iterator);
+	SLListInsert(list, &x4, iterator);
+	
+	printf("GetData(GetBegin)): %d\n", *(int *)SLListGetData(SLListGetBegin(list)));
+	
+	printf("SLListGetData(iterator): %d\n", *(int *)SLListGetData(iterator));
+	printf("SLListNext\n");
+	iterator = SLListNext(iterator);
+	printf("getdata(iterator): %d\n", *(int *)SLListGetData(iterator));
+	iterator = SLListNext(iterator);
+	printf("%d\n", *(int *)SLListGetData(iterator));
+	iterator = SLListNext(iterator);
+	printf("%d\n", *(int *)SLListGetData(iterator));
 	
 	
-	printf("%d\n", *(int *)SLListGetData(SLListGetBegin(list)));
+	SLListSetData(iterator, &x3);
 	
 	
+	printf("list size = %ld\n",SLListCount(list));
+	SLLPrintList(list);
+	printf("iterator: %d\n", *(int *)SLListGetData(iterator));
 	
+	
+	SLListRemove(list, iterator);
+	
+	
+	printf("list size = %ld\n",SLListCount(list));
+	SLLPrintList(list);
 	
 	SLListDestroy(list);
 	return 0;

@@ -8,8 +8,8 @@
 typedef struct linked_list linked_list_t;
 typedef struct node *iterator_t;
 
-typedef int (*action_func_t)(void *);
-typedef int (*comp_func_t)(void*, void*);
+typedef int (*action_func_t)(void *, void *);
+typedef int (*comp_func_t)(void *, void *);
 
 /*
 Description: 
@@ -47,7 +47,7 @@ Return Value:
 Time Complexity: O(1)
 Space: O()
 */
-void SLListRemove(iterator_t iterator);
+void SLListRemove(linked_list_t *list, iterator_t iterator);
 
 /*
 Description: 
@@ -128,7 +128,7 @@ Return Value:
 Time Complexity: O()
 Space: O()
 */
-void SLListForEach(iterator_t iter_start, iterator_t iter_end, action_func_t func);
+void SLListForEach(iterator_t iter_start, iterator_t iter_end, action_func_t IteratorHandler, void *compare_value);
 
 /*
 Description: 
@@ -138,6 +138,8 @@ Time Complexity: O()
 Space: O()
 */
 int SLListIsEqual(iterator_t it1, iterator_t it2);
+
+void SLLPrintList(linked_list_t *list);
 
 #endif /* __LINKED_LIST_H__ */
 
