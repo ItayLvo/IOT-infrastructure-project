@@ -1,3 +1,5 @@
+/**/
+
 #ifndef __LINKED_LIST_H__
 #define __LINKED_LIST_H__
 
@@ -6,7 +8,7 @@
 typedef struct linked_list linked_list_t;
 typedef struct node *iterator_t;
 
-typedef int (*action_func_t)(void*);
+typedef int (*action_func_t)(void *);
 typedef int (*comp_func_t)(void*, void*);
 
 /*
@@ -36,7 +38,7 @@ Time Complexity: O(1)
 Space: O(n)
 Notes: this functionality allows convenient linking of several nodes
 */
-iterator_t SLListInsert(linked_list_t *list, void *data);
+iterator_t SLListInsert(linked_list_t *list ,void *data, iterator_t it);
 
 /*
 Description: 
@@ -81,7 +83,7 @@ Return Value:
 Time Complexity: O(n)
 Space: O(1)
 */
-iterator_t SLListFind(iterator_t iter_start, iterator_t iter_end, const void* data, const comp_func func);
+iterator_t SLListFind(iterator_t iter_start, iterator_t iter_end, const void* data, const comp_func_t func);
 
 /*
 Description: 
@@ -126,7 +128,7 @@ Return Value:
 Time Complexity: O()
 Space: O()
 */
-void SLListForEach(iterator_t iter_start, iterator_t iter_end, action_func func);
+void SLListForEach(iterator_t iter_start, iterator_t iter_end, action_func_t func);
 
 /*
 Description: 
@@ -138,3 +140,4 @@ Space: O()
 int SLListIsEqual(iterator_t it1, iterator_t it2);
 
 #endif /* __LINKED_LIST_H__ */
+
