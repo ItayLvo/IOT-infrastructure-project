@@ -7,6 +7,8 @@
 static char *ReverseStringHelper(char *str);
 static int ReverseDigits(int num);
 
+#define ASCII_CHR_TO_DEC 87
+
 int Atoi(const char *str, int base)
 {
 	int result = 0;
@@ -20,16 +22,16 @@ int Atoi(const char *str, int base)
 		--digit_counter;
 	}
 	
-	while (*runner != '\0')
+	while ('\0' != *runner)
 	{
 		if (10 >= base && (*runner < '0' || *runner > '9'))
 		{
 			return 0;
 		}
 		
-		if (*runner <= 'z' && *runner >= 'a')
+		if (*runner >= 'a' && *runner <= 'z')
 		{
-			result += ((int)*runner - 87) * pow(base, digit_counter - 1);
+			result += ((int)*runner - ASCII_CHR_TO_DEC) * pow(base, digit_counter - 1);
 		}
 		else
 		{
@@ -76,7 +78,7 @@ char *Itoa(int num, char* buffer, int base)
 	while (num > 0)
 	{
 		remainder = num % base;
-		if (remainder <= 9)
+		if (9 >= remainder)
 		{
 			tmp_ch = (char)(remainder + '0');
 		}
