@@ -1,6 +1,7 @@
 #include <stdio.h>	/* printf */
 #include <stdlib.h>	/* atoi, itoa */
 #include <assert.h>	/* assert */
+#include <string.h>	/* strcspn */
 #include "ws11.h"
 
 void TestAtoi(char *str);
@@ -8,10 +9,13 @@ void TestItoa();
 
 int main()
 {
-	char str[100];
-	puts("enter a string that represents a number: \n");
-	scanf("%s", str);
-	TestAtoi(str);
+	char buffer[100];
+	
+	fputs("enter a string that represents a number: \n", stdout);
+	fgets(buffer, sizeof(buffer), stdin);
+	buffer[strcspn(buffer, "\n")] = '\0';
+
+	TestAtoi(buffer);
 	
 	
 	printf("----\nAtoi test cases: \n");

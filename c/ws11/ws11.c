@@ -12,11 +12,11 @@ static int ReverseDigits(int num);
 int Atoi(const char *str, int base)
 {
 	int result = 0;
-	char negative_flag = *str;
+	char negative_flag_buffer = *str;
 	const char *runner = str;
 	int digit_counter = strlen(str);
 	
-	if (negative_flag == '-')
+	if ('-' == negative_flag_buffer)
 	{
 		++runner;
 		--digit_counter;
@@ -42,9 +42,7 @@ int Atoi(const char *str, int base)
 		--digit_counter;
 	}
 	
-	/* result = ReverseDigits(result); */
-	
-	if (negative_flag == '-')
+	if ('-' == negative_flag_buffer)
 	{
 		result = result * -1;
 	}
@@ -60,7 +58,7 @@ char *Itoa(int num, char* buffer, int base)
 	char tmp_ch = '\0';
 	int negative_flag_buffer = 0;
 	
-	if (num < 0)
+	if (0 > num)
 	{
 		if (10 == base)
 		{
@@ -75,7 +73,7 @@ char *Itoa(int num, char* buffer, int base)
 		}
 	}
 	
-	while (num > 0)
+	while (0 > num)
 	{
 		remainder = num % base;
 		if (9 >= remainder)
@@ -94,7 +92,7 @@ char *Itoa(int num, char* buffer, int base)
 	
 	buffer = ReverseStringHelper(buffer + negative_flag_buffer);
 	
-	if (negative_flag_buffer == 1)
+	if (1 == negative_flag_buffer)
 	{
 		--buffer;
 	}
@@ -126,7 +124,7 @@ static char *ReverseStringHelper(char *str)
 static int ReverseDigits(int num) 
 { 
 	int rev_num = 0; 
-	while (num > 0)
+	while (0 < num)
 	{ 
 		rev_num = rev_num * 10 + num % 10; 
 		num = num / 10; 
