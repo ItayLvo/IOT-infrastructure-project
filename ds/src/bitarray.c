@@ -28,9 +28,8 @@ bit_array_t SetAll(bit_array_t bit_arr)
 
 bit_array_t ResetAll(bit_array_t bit_arr)
 {
-	bit_arr = 0;
+	return (bit_array_t)0;
 	
-	return bit_arr;
 }
 
 bit_array_t SetOn(bit_array_t bit_arr, size_t index)
