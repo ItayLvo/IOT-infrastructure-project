@@ -49,18 +49,19 @@ bit_array_t SetOff(bit_array_t bit_arr, size_t index)
 	return bit_arr;
 }
 
-
 bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bit_value)
 {
+	size_t bit_value_64_bit_cast = (size_t)bit_value;
 	size_t mask = 1 << index;
 	size_t reversed_bit_mask = ~mask;
 	assert (index >= 0 && index <= SIZE_T_BITS);
 
 	bit_arr = bit_arr & reversed_bit_mask;
-	bit_arr = bit_arr | (bit_value << index);	/*test bit 50*/
+	bit_arr = bit_arr | (bit_value_64_bit_cast << index);
 
 	return bit_arr;
 }
+
 
 int GetVal(bit_array_t bit_arr, size_t index)
 {

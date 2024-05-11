@@ -38,7 +38,8 @@ int TestSetAll()
 	{
 		return 1;
 	}
-	printf("bitarr = 0, before SetAll():\n");
+	printf("bitarr = 0, SetBit(63, ON): \n");
+	bitarr = SetBit(bitarr, 63, 1);
 	buffer = ToString(bitarr, buffer);
 	printf("%s\n", buffer);
 	free(buffer);
@@ -133,7 +134,7 @@ int TestSetOffAndOn()
 		return 1;
 	}
 	
-	bitarr = SetOff(bitarr, 0);
+	bitarr = SetBit(bitarr, 0, 1);
 	bitarr = SetOff(bitarr, 2);
 	bitarr = SetOff(bitarr, 4);
 	bitarr = SetOff(bitarr, 6);
