@@ -141,5 +141,8 @@ int SLListIsEqual(iterator_t it1, iterator_t it2);
 
 void SLLPrintList(linked_list_t *list);
 
+
+int SLListSwapNodes(iterator_t node1, iterator_t node2);
+
 #endif /* __LINKED_LIST_H__ */
 

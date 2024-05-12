@@ -27,6 +27,27 @@ static int PrintListHelper(void *data);
 
 static size_t count_nodes = 0;
 
+
+int SLListSwapNodes(iterator_t node1, iterator_t node2)
+{
+	iterator_t tmp_iterator = (iterator_t )malloc(sizeof(node_t));
+	if (NULL == tmp_iterator)
+	{
+		return 1;
+	}
+	tmp_iterator->data = node1->data;
+	tmp_iterator->next = node1->next;
+	
+	node1->next = node2->next;
+	node1->data = node2->data;
+	
+	node2->data = tmp_iterator->data;
+	node2->next = tmp_iterator->next;
+	
+	return 0;
+}
+
+
 linked_list_t *SLListCreate(void)
 {
 	linked_list_t *list = (linked_list_t *)malloc(sizeof(linked_list_t));
