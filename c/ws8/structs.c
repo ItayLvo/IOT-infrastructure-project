@@ -1,9 +1,10 @@
-#define _DEFAULT_SOURCE	/*to allow stdup*/
 #include <stdio.h> /*printf*/
 #include <stdlib.h> /*malloc, realloc*/
 #include <string.h> /*strcpy, strlen, memcpy*/
+
 #include "structs.h"
 
+#define _DEFAULT_SOURCE	/*to allow stdup*/
 
 
 static int NumberOfDigits (int n);
@@ -25,6 +26,7 @@ void AddString(int n, void *value)
 	int original_len = strlen((char *)value);
 	int n_number_of_digits = NumberOfDigits(n);
 	char *new_value = (char *)malloc(sizeof(char) * (original_len + n_number_of_digits + 1));
+	
 	if (new_value == NULL)
 	{
 		printf("failed malloc in AddString\n");

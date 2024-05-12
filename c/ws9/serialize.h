@@ -32,25 +32,13 @@ typedef struct student_t
 } student_t;
 
 
-void CreateStudent(student_t *student, char *f_name, char *l_name, float art_grade, float history_grade, float math_grade, float physics_grade, float sports_grade);
+
+
+void FreeStudent(student_t *student);
 
 void MarshalStudent(student_t *student, char *file_name);
 
 void ReadStudent(student_t *student, char *file_name);
-
-void PrintStudent(student_t *student);
-
-FILE *WriteString(char *str, FILE *file_ptr);
-
-FILE *WriteGrade(grade_t grade, FILE *file_ptr);
-
-FILE *WriteFloat(float *grade, FILE *file_ptr);
-
-FILE *ReadStrings(student_t *student, FILE *file_ptr);
-
-FILE *ReadGrades(student_t *student, FILE *file_ptr);
-
-void FreeStudent(student_t *student);
 
 #endif /* __SERIALIZE_H__ */
 
