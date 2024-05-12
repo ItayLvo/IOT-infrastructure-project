@@ -21,12 +21,34 @@ struct linked_list
 	node_t *tail;
 };
 
+struct queue
+{
+    struct linked_list *list; 
+};
+
+
 static int CountHelper(void *data);
 static int PrintListHelper(void *data);
 
 
 static size_t count_nodes = 0;
 
+
+queue_t *QueueCreate(void)
+{
+	queue_t *queue = (queue_t)malloc(sizeof(queue_t));
+	linked_list_t *list = SLListCreate();
+	if (NULL == queue || NULL == list)
+	{
+		return NULL;
+	}
+	
+	queue->list = list;
+	
+	return queue;
+}
+
+/*
 linked_list_t *SLListCreate(void)
 {
 	linked_list_t *list = (linked_list_t *)malloc(sizeof(linked_list_t));
@@ -51,8 +73,26 @@ linked_list_t *SLListCreate(void)
 	
 	return list;
 }
+*/
+
+void QueueDestroy(queue_t *queue)
+{
+	SLListDestroy(queue->list);
+	free(queue);
+}
 
 
+int QueueEnqueue(queue_t *queue, void *data)
+{
+	if (SLListInsert(queue->list, data, SLListGetEnd(queue->list)) == SLListGetEnd(queue->list))
+	{
+		return 0;
+	}
+	
+	return 1;
+}
+
+/*
 iterator_t SLListInsert(linked_list_t *list, void *data, iterator_t iterator)
 {
 	node_t *new_node;
@@ -88,24 +128,31 @@ iterator_t SLListInsert(linked_list_t *list, void *data, iterator_t iterator)
 	free(tmp_node);
 	return iterator;
 }
+*/
 
-
-void SLListDestroy(linked_list_t *list)
+void QueueDequeue(queue_t *queue)
 {
-	node_t *runner = list->head;
-	node_t *tmp_next_node = NULL;
 	
-	while (runner != list->tail)
-	{
-		tmp_next_node = runner->next;
-		free(runner);
-		runner = tmp_next_node;
-	}
-	
-	free(list->tail);
-	free(list);
 }
 
+void SLListRemove(linked_list_t *list, iterator_t iterator)
+{
+	iterator_t node_to_remove = iterator->next;
+	
+	if (node_to_remove == list->tail)
+	{
+		list->tail = iterator;
+		iterator->data = NULL;
+	}
+	else
+	{
+		iterator->data = (iterator->next)->data;
+	}
+	iterator->next = (iterator->next)->next;
+	
+	
+	free(node_to_remove);
+}
 
 int SLListIsEqual(iterator_t node1, iterator_t node2)
 {
@@ -192,24 +239,6 @@ iterator_t SLListFind(iterator_t start, iterator_t end,
 
 
 
-void SLListRemove(linked_list_t *list, iterator_t iterator)
-{
-	iterator_t node_to_remove = iterator->next;
-	
-	if (node_to_remove == list->tail)
-	{
-		list->tail = iterator;
-		iterator->data = NULL;
-	}
-	else
-	{
-		iterator->data = (iterator->next)->data;
-	}
-	iterator->next = (iterator->next)->next;
-	
-	
-	free(node_to_remove);
-}
 
 
 int SLListIsEmpty(const linked_list_t *list)
