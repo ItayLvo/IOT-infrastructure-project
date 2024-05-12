@@ -3,6 +3,7 @@
 #include <assert.h>	/* assert */
 
 #include "../include/singly_linked_list.h"
+#include "../include/queue.h"
 
 struct queue
 {
@@ -11,7 +12,7 @@ struct queue
 
 queue_t *QueueCreate(void)
 {
-	queue_t *queue = (queue_t)malloc(sizeof(queue_t));
+	queue_t *queue = (queue_t *)malloc(sizeof(queue_t));
 	linked_list_t *list = SLListCreate();
 	if (NULL == queue || NULL == list)
 	{
@@ -51,7 +52,7 @@ void *QueuePeek(const queue_t *queue)
 
 void QueueDequeue(queue_t *queue)
 {
-	SLListRemove(SLListGetBegin(queue->list);
+	SLListRemove(queue->list, SLListGetBegin(queue->list));
 }
 
 
@@ -68,14 +69,14 @@ int QueueIsEmpty(queue_t *queue)
 }
 
 
-queue *QueueAppend(queue_t *queue1, queue_t *queue2)
+queue_t *QueueAppend(queue_t *queue1, queue_t *queue2)
 {
 	int function_status = 0;
-	function_status = SLListSwapNodes(SLListGetEnd(queue1->list), SLListGetBegin(queue2->list));
+	function_status = SLListAppendLists(queue1->list, queue2->list);
 	if (0 != function_status)
 	{
 		return NULL;
 	}
 	
-	SLListGetEnd(queue2->list) = SLListGetBegin(queue2->list);
+	return queue1;
 }

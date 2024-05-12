@@ -67,7 +67,7 @@ Return Value: queue_t *(returning ptr to appended queues starting from queue 1)
 Time Complexity - O(1) 
 Space: O(1)
 */
-queue *QueueAppend(queue_t *queue1, queue_t *queue2);
+queue_t *QueueAppend(queue_t *queue1, queue_t *queue2);
 
 
 #endif /* end __QUEUE_H__ */

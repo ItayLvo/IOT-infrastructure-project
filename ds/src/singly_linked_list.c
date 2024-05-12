@@ -28,22 +28,25 @@ static int PrintListHelper(void *data);
 static size_t count_nodes = 0;
 
 
-int SLListSwapNodes(iterator_t node1, iterator_t node2)
+int SLListAppendLists(linked_list_t *list1, linked_list_t *list2)
 {
 	iterator_t tmp_iterator = (iterator_t )malloc(sizeof(node_t));
 	if (NULL == tmp_iterator)
 	{
 		return 1;
 	}
-	tmp_iterator->data = node1->data;
-	tmp_iterator->next = node1->next;
+	tmp_iterator->data = list1->tail->data;
+	tmp_iterator->next = list1->tail->next;
 	
-	node1->next = node2->next;
-	node1->data = node2->data;
+	list1->tail->next = list2->head->next;
+	list1->tail->data = list2->head->data;
 	
-	node2->data = tmp_iterator->data;
-	node2->next = tmp_iterator->next;
+	list2->head->data = tmp_iterator->data;
+	list2->head->next = tmp_iterator->next;
 	
+	list2->tail = list2->head;
+	
+	free(tmp_iterator);
 	return 0;
 }
 
