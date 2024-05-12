@@ -38,12 +38,13 @@ int SLListAppendLists(linked_list_t *list1, linked_list_t *list2)
 	tmp_iterator->data = list1->tail->data;
 	tmp_iterator->next = list1->tail->next;
 	
-	list1->tail->next = list2->head->next;
 	list1->tail->data = list2->head->data;
+	list1->tail->next = list2->head->next;
 	
 	list2->head->data = tmp_iterator->data;
 	list2->head->next = tmp_iterator->next;
 	
+	list1->tail = list2->tail;
 	list2->tail = list2->head;
 	
 	free(tmp_iterator);
