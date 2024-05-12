@@ -214,14 +214,13 @@ void SLListRemove(linked_list_t *list, iterator_t iterator)
 
 int SLListIsEmpty(const linked_list_t *list)
 {
-	if (SLListCount(list) == 0)
+	if (list->head == list->tail)
 	{
 		return 1;
 	}
-	else
-	{
-		return 0;
-	}
+	
+	return 0;
+	
 }
 
 

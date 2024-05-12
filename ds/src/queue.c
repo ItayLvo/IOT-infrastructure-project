@@ -84,12 +84,19 @@ void QueueDestroy(queue_t *queue)
 
 int QueueEnqueue(queue_t *queue, void *data)
 {
-	if (SLListInsert(queue->list, data, SLListGetEnd(queue->list)) == SLListGetEnd(queue->list))
+	if (SLListInsert(queue->list, data, SLListGetEnd(queue->list)) ==
+			SLListGetEnd(queue->list))
 	{
 		return 0;
 	}
 	
 	return 1;
+}
+
+
+void *QueuePeek(const queue_t *queue)
+{
+	return (SLListGetData(SLListGetBegin(queue->list)));
 }
 
 /*
@@ -132,9 +139,10 @@ iterator_t SLListInsert(linked_list_t *list, void *data, iterator_t iterator)
 
 void QueueDequeue(queue_t *queue)
 {
-	
+	SLListRemove(SLListGetBegin(queue->list);
 }
 
+/*
 void SLListRemove(linked_list_t *list, iterator_t iterator)
 {
 	iterator_t node_to_remove = iterator->next;
@@ -153,22 +161,30 @@ void SLListRemove(linked_list_t *list, iterator_t iterator)
 	
 	free(node_to_remove);
 }
+*/
 
-int SLListIsEqual(iterator_t node1, iterator_t node2)
+size_t QueueSize(queue_t *queue)
 {
-	return (node1->data == node2->data);
-}
-
-iterator_t SLListGetBegin(linked_list_t* list)
-{
-	return list->head;
+	return SLListCount(queue->list);
 }
 
 
-iterator_t SLListGetEnd(linked_list_t* list)
+int QueueIsEmpty(queue_t *queue)
 {
-	return list->tail;
+	return SLListIsEmpty(queue->list);
 }
+
+
+queue *QueueAppend(queue_t *queue1, queue_t *queue2)
+{
+	size_t index = 0;
+	
+	while (i < QueueSize(queue1))
+	{
+		
+	}
+}
+
 
 
 
@@ -191,33 +207,6 @@ static int CountHelper(void *data)
 	return 0;
 }
 
-void *SLListGetData(const iterator_t iterator)
-{
-	return iterator->data;
-}
-
-
-void SLListSetData(iterator_t iterator, void* data)
-{
-	iterator->data = data;
-}
-
-
-size_t SLListCount(const linked_list_t *list)
-{
-	count_nodes = 0;
-	
-	SLListForEach(list->head, list->tail, CountHelper);
-	
-	return (count_nodes - 1);
-}
-
-
-
-iterator_t SLListNext(iterator_t iter)
-{
-	return iter->next;
-}
 
 
 iterator_t SLListFind(iterator_t start, iterator_t end,
@@ -239,19 +228,6 @@ iterator_t SLListFind(iterator_t start, iterator_t end,
 
 
 
-
-
-int SLListIsEmpty(const linked_list_t *list)
-{
-	if (SLListCount(list) == 0)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}
 
 
 
