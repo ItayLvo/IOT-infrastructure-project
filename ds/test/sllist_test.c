@@ -1,7 +1,7 @@
 #include <stdio.h>	/* printf */
 #include <stdlib.h>	/* malloc */
 
-#include "../include/singly_linked_list.h"
+#include "../include/sllist.h"
 
 
 int CompareInt(void *item, const void *data_to_compare);

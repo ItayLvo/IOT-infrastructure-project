@@ -4,7 +4,7 @@
 #include <stdio.h>	/* printf */
 #include <assert.h>	/* assert */
 
-#include "../include/vector.h"
+#include "../include/dvector.h"
 
 #define SHRINK_FACTOR 2
 #define GROWTH_FACTOR 2

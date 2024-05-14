@@ -4,7 +4,7 @@
 #include <stdio.h>	/* printf */
 #include <assert.h>	/* assert */
 
-#include "../include/singly_linked_list.h"
+#include "../include/sllist.h"
 
 /* we can add 1 func to singly linked list if needed */
 
