@@ -5,7 +5,7 @@
 #include <sys/types.h> /*ssize_t*/
 
 typedef struct cbuffer cbuffer_t;
-
+void PrintBuffer(cbuffer_t *cbuffer);
 /* defined in cbuffer.c : 
 
 struct cbuffer

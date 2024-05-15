@@ -102,4 +102,13 @@ int CBufferIsEmpty(const cbuffer_t *cbuffer)
 
 
 
-
+void PrintBuffer(cbuffer_t *cbuffer)
+{
+	size_t i = 0;
+	
+	for (i = 0; i < cbuffer->capacity; ++i)
+	{
+		printf("%c ", *(cbuffer->buffer + i));
+	}
+	printf("\n");
+}
