@@ -110,7 +110,7 @@ node_t *FindIntersection(node_t *head_1, node_t *head_2)
 		while (diff > 0)
 		{
 			head_1 = head_1->next;
-			diff--;
+			--diff;
 		}
 	}
 	else if (size2 > size1)
@@ -119,7 +119,7 @@ node_t *FindIntersection(node_t *head_1, node_t *head_2)
 		while (diff > 0)
 		{
 			head_2 = head_2->next;
-			diff--;
+			--diff;
 		}
 	}
 	
@@ -156,7 +156,7 @@ int SizeOfList(node_t *node)
 	int size = 0;
 	while (node != NULL)
 	{
-		size++;
+		++size;
 		node = node->next;
 	}
 	return size;

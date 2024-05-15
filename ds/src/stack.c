@@ -19,8 +19,6 @@ stack_t *StackCreate(size_t capacity, size_t type_size)
 {
 	stack_t *stack = (stack_t *)malloc(sizeof(stack_t));
 	
-	printf("%ld\n", sizeof(stack_t));
-	
 	if (NULL == stack)
 	{
 		return NULL;
