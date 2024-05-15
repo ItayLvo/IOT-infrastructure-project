@@ -15,6 +15,7 @@ struct cbuffer
   size_t size;              
   char buffer[1];           
 } cbuffer_t ;   
+*/
 
 /*
 Description: Create the circular buffer
@@ -54,7 +55,7 @@ Return Value: On success, the number of bytes read is returned. On error, -1 is 
 Time Complexity - O(n) (of size_t count and not buffer size)
 Space: O(1)
 */
-ssize_t CBufferRead(const cbuffer_t *cbuffer, void *dest, size_t count);
+ssize_t CBufferRead(cbuffer_t *cbuffer, void *dest, size_t count);
 
 /*
 Description: writing from the source_buffer to cbuffer count bytes

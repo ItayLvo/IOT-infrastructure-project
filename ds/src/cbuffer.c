@@ -12,12 +12,12 @@ struct cbuffer
   size_t current_size;              
   size_t read_index;              
   char buffer[1];           
-} cbuffer_t ;   
+};   
 
 
 cbuffer_t *CBufferCreate(size_t buffer_size)
 {
-	cbuffer_t *cbuffer = (cbuffer_t *)malloc(sizeof(cbuffer_t + buffer_size - 1));
+	cbuffer_t *cbuffer = (cbuffer_t *)malloc(sizeof(cbuffer_t) + buffer_size - 1);
 	
 	if (NULL == cbuffer)
 	{
@@ -32,14 +32,9 @@ cbuffer_t *CBufferCreate(size_t buffer_size)
 }
 
 
-void CBufferDestroy(cbuffer_t *cbuffer);
+void CBufferDestroy(cbuffer_t *cbuffer)
 {
 	free(cbuffer);
-}
-
-
-	assert(stack);
-	return (stack->current_size == 0);
 }
 
 
@@ -55,19 +50,20 @@ size_t CBufferBufsiz(const cbuffer_t *cbuffer)
 }
 
 
-ssize_t CBufferRead(const cbuffer_t *cbuffer, void *dest, size_t count)
+ssize_t CBufferRead(cbuffer_t *cbuffer, void *dest, size_t count)
 {
 	ssize_t count_read_to_return = 0;
 	size_t tmp_read_index = 0;
+	char *dest_to_char = (char *)dest;
 	
 	while ((cbuffer->current_size > 0) && count > 0)
 	{
 		tmp_read_index = cbuffer->read_index % cbuffer->capacity;
-		*(char *)dest = *((cbuffer->buffer) + tmp_read_index);
+		*dest_to_char = *((cbuffer->buffer) + tmp_read_index);
 		++(cbuffer->read_index);
 		--(cbuffer->current_size);
 		++count_read_to_return;
-		++(char *)dest;
+		++dest_to_char;
 		--count;
 	}
 	
@@ -79,18 +75,23 @@ ssize_t CBufferRead(const cbuffer_t *cbuffer, void *dest, size_t count)
 ssize_t CBufferWrite(cbuffer_t *cbuffer, const void *src, size_t count)
 {
 	size_t write_index = 0;
+	char *src_to_char = (char *)src;
+	ssize_t count_write_to_return = 0;
 	
 	while (((cbuffer->current_size) < (cbuffer->capacity)) &&
-					count > 0 && NULL != src)
+					count > 0 && NULL != src_to_char)
 	{
 		write_index = ((cbuffer->current_size) +
 				(cbuffer->read_index)) % cbuffer->capacity;
 	
-		*(cbuffer->buffer + write_index) = *(char *)src;
+		*(cbuffer->buffer + write_index) = *src_to_char;
 		++(cbuffer->current_size);
-		++(char *)src;
+		++src_to_char;
 		--count;
+		++count_write_to_return;
 	}
+	
+	return count_write_to_return;
 }
 
 

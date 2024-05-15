@@ -1,84 +1,51 @@
-#include <stdio.h>	/* printf */
+#include <stdio.h>	/* printf, size_t */
 #include <stdlib.h>	/* malloc */
 
 #include "../include/cbuffer.h"
 
-
-int CompareInt(void *item, const void *data_to_compare);
-
-int TestListFunctions(linked_list_t *list);
-
-
 int main()
 {
-	linked_list_t *list = SLListCreate();
+	cbuffer_t *cbuffer = CBufferCreate(10);
+	char *src = calloc(10, 1);
+	int i = 0;
+	char *buffer = calloc(10, 1);
+	ssize_t count_written = 0;
+	ssize_t count_read = 0;
 	
-	TestListFunctions(list);
-
-	SLListDestroy(list);
+	
+	for (i = 0; i < 10; ++i)
+	{
+		src[i] = i + '0';
+	}
+	
+	
+	printf("CBufferBufsiz = %ld\n", CBufferBufsiz(cbuffer));
+	printf("CBufferIsEmpty = %d\n", CBufferIsEmpty(cbuffer));
+	count_written = CBufferWrite(cbuffer, src, 15);
+	printf("after tring to write 15 bytes, count_written = %ld\n", count_written);
+	printf("CBufferAvailableSpace = %ld\n", CBufferAvailableSpace(cbuffer));
+	printf("CBufferIsEmpty = %d\n\n", CBufferIsEmpty(cbuffer));
+	
+	count_read = CBufferRead(cbuffer, buffer, 2);
+	printf("after trying to read 2 bytes, count_read = %ld\n", count_read);
+	
+	count_written = CBufferWrite(cbuffer, src, 15);
+	printf("after tring to write 15 bytes again, count_written = %ld\n", count_written);
+	
+	count_read = CBufferRead(cbuffer, buffer, 5);
+	printf("after trying to read 5 bytes, count_read = %ld\n", count_read);
+	
+	for (i = 0; i < 10; ++i)
+	{
+		printf("%c ", buffer[i]);
+	}
+	printf("\n");
+	
+	free(src);
+	free(buffer);
+	CBufferDestroy(cbuffer);
 	
 	return 0;
 }
 
-
-int TestListFunctions(linked_list_t *list)
-{
-	iterator_t iterator = NULL;
-	int return_status = 0;
-	int x1 = 1, x2 = 2, x3 = 3, x4 = 4, x5 = 5;
-	
-	printf("pushing 1,2,3,4,5\n\n");
-	iterator = SLListGetBegin(list);
-	iterator = SLListInsert(list, &x1, iterator);
-	iterator = SLListInsert(list, &x2, iterator);
-	iterator = SLListInsert(list, &x3, iterator);
-	iterator = SLListInsert(list, &x4, iterator);
-	iterator = SLListInsert(list, &x5, iterator);
-	
-	if (iterator == SLListGetEnd(list))
-	{
-		return_status += 1;
-	}
-	SLLPrintList(list);
-	printf("\n\n");
-	
-	printf("finding node where data = 3\n");
-	iterator = SLListFind(SLListGetBegin(list), SLListGetEnd(list), &x3, CompareInt);
-	if (NULL == iterator)
-	{
-		return_status += 1;
-	}
-	
-	printf("found node where data = %d\n", *(int *)SLListGetData(iterator));
-	
-	printf("removing the node: \n");
-	SLListRemove(list, iterator);
-	SLLPrintList(list);
-	printf("\n");
-	
-	printf("list size = %ld\n",SLListCount(list));
-	
-	printf("is the list empty (0 for no)? : %d\n", SLListIsEmpty(list));
-	
-	printf("removing node\n");
-	SLListRemove(list, SLListGetBegin(list));
-	printf("removing node\n");
-	SLListRemove(list, SLListGetBegin(list));
-	printf("removing node\n");
-	SLListRemove(list, SLListGetBegin(list));
-	printf("removing node\n");
-	SLListRemove(list, SLListGetBegin(list));
-	
-	printf("list size = %ld\n",SLListCount(list));
-	printf("is the list empty (0 for no)? : %d\n", SLListIsEmpty(list));
-	
-	return return_status;
-}
-
-
-
-int CompareInt(void *item, const void *data_to_compare)
-{
- 	return (*(int *)item == *(int *)data_to_compare);
-}
 
