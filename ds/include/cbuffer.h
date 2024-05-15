@@ -6,16 +6,7 @@
 
 typedef struct cbuffer cbuffer_t;
 void PrintBuffer(cbuffer_t *cbuffer);
-/* defined in cbuffer.c : 
 
-struct cbuffer
-{
-  size_t head;              
-  size_t tail;              
-  size_t size;              
-  char buffer[1];           
-} cbuffer_t ;   
-*/
 
 /*
 Description: Create the circular buffer

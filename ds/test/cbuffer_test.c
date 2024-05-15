@@ -56,6 +56,7 @@ int main()
 	
 	free(src);
 	free(buffer);
+	free(tmp);
 	CBufferDestroy(cbuffer);
 	
 	return 0;
