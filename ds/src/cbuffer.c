@@ -54,7 +54,9 @@ ssize_t CBufferRead(cbuffer_t *cbuffer, void *dest, size_t count)
 {
 	ssize_t count_read_to_return = 0;
 	size_t tmp_read_index = 0;
-	char *dest_to_char = (char *)dest;
+	char *dest_to_char = NULL;
+	assert(dest);
+	dest_to_char = (char *)dest;
 	
 	while ((cbuffer->current_size > 0) && count > 0)
 	{
@@ -75,8 +77,10 @@ ssize_t CBufferRead(cbuffer_t *cbuffer, void *dest, size_t count)
 ssize_t CBufferWrite(cbuffer_t *cbuffer, const void *src, size_t count)
 {
 	size_t write_index = 0;
-	char *src_to_char = (char *)src;
+	char *src_to_char = NULL;
 	ssize_t count_write_to_return = 0;
+	assert(src);
+	src_to_char = (char *)src;
 	
 	while (((cbuffer->current_size) < (cbuffer->capacity)) &&
 					count > 0 && NULL != src_to_char)
