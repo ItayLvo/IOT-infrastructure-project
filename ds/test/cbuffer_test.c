@@ -7,63 +7,13 @@
 
 int CBufferTestIsEmpty(void);
 int CBufferTestCreateDestroyBufsiz(void);
-int CBufferTestReadWrite(void);
+int CBufferTestReadWriteAvaliableSpace(void);
 
 int main()
 {
-	cbuffer_t *cbuffer = CBufferCreate(10);
-	char *src = calloc(10, 1);
-	int i = 0;
-	char *buffer = calloc(10, 1);
-	char *tmp = calloc(10, 1);
-	ssize_t count_written = 0;
-	ssize_t count_read = 0;
-	
-	
-	for (i = 0; i < 10; ++i)
-	{
-		src[i] = i + '0';
-	}
-	
-	/*
-	printf("CBufferBufsiz = %ld\n", CBufferBufsiz(cbuffer));
-	printf("CBufferIsEmpty = %d\n", CBufferIsEmpty(cbuffer));
-	count_written = CBufferWrite(cbuffer, src, 5);
-	printf("after tring to write 5 bytes, count_written = %ld\n", count_written);
-	printf("CBufferAvailableSpace = %ld\n", CBufferAvailableSpace(cbuffer));
-	printf("CBufferIsEmpty = %d\n\n", CBufferIsEmpty(cbuffer));
-	
-	count_read = CBufferRead(cbuffer, tmp, 2);
-	printf("after trying to read 2 bytes, count_read = %ld\n", count_read);
-	
-	count_written = CBufferWrite(cbuffer, src, 15);
-	printf("after tring to write 15 bytes again, count_written = %ld\n", count_written);
-	
-	count_read = CBufferRead(cbuffer, tmp+2, 5);
-	printf("after trying to read 5 bytes, count_read = %ld\n", count_read);
-	
-	for (i = 0; i < 10; ++i)
-	{
-		printf("%c ", tmp[i]);
-	}
-	printf("\n");
-	*/
-	
-	
-	CBufferWrite(cbuffer, src, 10);
-	CBufferRead(cbuffer, tmp, 3);
-	CBufferWrite(cbuffer, src+5, 10);
-	PrintBuffer(cbuffer);
-	for (i = 0; i < 3; ++i)
-	{
-		printf("%c ", tmp[i]);
-	}
-	
-	
-	free(src);
-	free(buffer);
-	free(tmp);
-	CBufferDestroy(cbuffer);
+	CBufferTestIsEmpty();
+	CBufferTestCreateDestroyBufsiz();
+	CBufferTestReadWriteAvaliableSpace();
 	
 	return 0;
 }
@@ -97,7 +47,7 @@ int CBufferTestCreateDestroyBufsiz(void)
 int CBufferTestIsEmpty(void)
 {
 	cbuffer_t *cbuffer = CBufferCreate(BUFFER_SIZE);
-	int is_empty_true = 0, is_empty_false = 1;
+	int is_empty_true = 1, is_empty_false = 0;
 	char *src = malloc(2);
 	src[0] = 0;
 	src[1] = 1;
@@ -105,7 +55,7 @@ int CBufferTestIsEmpty(void)
 	if (is_empty_true != CBufferIsEmpty(cbuffer))
 	{
 		printf("CBufferIsEmpty failed\n");
-		printf("Expected CBufferIsEmpty = %d,received value=  %d\n",
+		printf("Expected CBufferIsEmpty = %d,received value= %d\n",
 				 is_empty_true, CBufferIsEmpty(cbuffer));
 		return 1;
 	}
@@ -114,7 +64,7 @@ int CBufferTestIsEmpty(void)
 	if (is_empty_false != CBufferIsEmpty(cbuffer))
 	{
 		printf("CBufferIsEmpty failed\n");
-		printf("Expected CBufferIsEmpty = %d,received value=  %d\n",
+		printf("Expected CBufferIsEmpty = %d,received value= %d\n",
 				 is_empty_false, CBufferIsEmpty(cbuffer));
 		return 1;
 	}
@@ -130,7 +80,6 @@ int CBufferTestReadWriteAvaliableSpace(void)
 	cbuffer_t *cbuffer = CBufferCreate(BUFFER_SIZE);
 	char *src = calloc(10, 1);
 	char *tmp_buffer = calloc(10, 1);
-	char *tmp = calloc(10, 1);
 	ssize_t count_written = 0;
 	ssize_t count_read = 0;
 	int i = 0;
@@ -146,7 +95,7 @@ int CBufferTestReadWriteAvaliableSpace(void)
 	{
 		printf("CBufferWrite failed\n");
 		printf("Expected CBufferWrite = %ld,received value=  %ld\n",
-				 BUFFER_SIZE / 2, CBufferIsEmpty(cbuffer));
+				 BUFFER_SIZE / 2, count_written);
 		return 1;
 	}
 	
@@ -159,22 +108,17 @@ int CBufferTestReadWriteAvaliableSpace(void)
 		return 1;
 	}
 	
-	count_read = CBufferRead(cbuffer, tmp, BUFFER_SIZE / 2);
+	count_read = CBufferRead(cbuffer, tmp_buffer, BUFFER_SIZE / 2);
 	if (count_read != BUFFER_SIZE / 2)
 	{
-		printf("CBufferWrite failed\n");
-		printf("Expected CBufferWrite = %ld,received value=  %ld\n",
-				 BUFFER_SIZE / 2, CBufferIsEmpty(cbuffer));
+		printf("CBufferRead failed\n");
+		printf("Expected CBufferRead = %ld,received value=  %ld\n",
+				 BUFFER_SIZE / 2, count_read);
 		return 1;
 	}
-	printf("after trying to read 2 bytes, count_read = %ld\n", count_read);
 	
-	count_written = CBufferWrite(cbuffer, src, 15);
-	printf("after tring to write 15 bytes again, count_written = %ld\n", count_written);
-	
-	count_read = CBufferRead(cbuffer, tmp+2, 5);
-	printf("after trying to read 5 bytes, count_read = %ld\n", count_read);
-	
-	
+	free(src);
+	free(tmp_buffer);
+	CBufferDestroy(cbuffer);
 	return 0;
 }
