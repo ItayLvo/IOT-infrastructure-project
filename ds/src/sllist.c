@@ -1,3 +1,9 @@
+/*
+date: 16/05
+reviewer: vova
+status: done after fixing CR comments
+*/
+
 #include <string.h>	/* memcpy */
 #include <stdlib.h>	/* malloc */
 #include <stdio.h>	/* printf, size_t */
@@ -18,18 +24,30 @@ struct linked_list
 	node_t *tail;
 };
 
-static int CountHelper(void *data, void *dummy);
-static int PrintListHelper(void *data, void *dummy);
-void SLLPrintList(linked_list_t list, void *dummy);
-
 iterator_t CreateIterator(iterator_t iterator);
 void FreeIterator(iterator_t iterator);
 int IsNullIterator(iterator_t iterator);
-void *IteratorGetData(iterator_t iterator);
-iterator_t IteratorGetNext(iterator_t iterator);
 
-/* static because i want to limit the visibility of this var to this file */
-static size_t count_nodes = 0;
+static int CountHelper(void *node_data, void *counter);
+
+static void *IteratorGetData(iterator_t iterator)
+{
+	return iterator->data;
+}
+static iterator_t IteratorGetNext(iterator_t iterator)
+{
+	return iterator->next;
+}
+
+static void IteratorSetData(iterator_t node, void *data)
+{
+	node->data = data;
+}
+
+static void IteratorSetNext(iterator_t node, iterator_t next_node)
+{
+	node->next = next_node;
+}
 
 
 linked_list_t *SLListCreate(void)
@@ -43,13 +61,13 @@ linked_list_t *SLListCreate(void)
 	}
 	
 	dummy_node = CreateIterator(dummy_node);
-	if (NULL == IsNullIterator(dummy_node))
+	if (IsNullIterator(dummy_node))
 	{
 		free(list);
 		return NULL;
 	}
-	dummy_node->data = list;
-	dummy_node->next = NULL;
+	IteratorSetData(dummy_node, list);
+	IteratorSetNext(dummy_node, NULL);
 	
 	list->head = dummy_node;
 	list->tail = dummy_node;
@@ -63,6 +81,9 @@ iterator_t SLListInsert(linked_list_t *list, void *data, iterator_t iterator)
 	node_t *new_node = NULL;
 	node_t *tmp_node = NULL;
 	
+	assert(list);
+	assert(!IsNullIterator(iterator));
+	
 	new_node = CreateIterator(new_node);
 	if(IsNullIterator(new_node))
 	{
@@ -75,17 +96,17 @@ iterator_t SLListInsert(linked_list_t *list, void *data, iterator_t iterator)
 		return list->tail;
 	}
 	
-	new_node->data = data;
+	IteratorSetData(new_node, data);
 	
-	tmp_node->data = new_node->data;
-	new_node->data = iterator->data;
+	IteratorSetData(tmp_node, IteratorGetData(new_node));
+	IteratorSetData(new_node, IteratorGetData(iterator));
 	
-	new_node->next = iterator->next;
-	iterator->data = tmp_node->data;
+	IteratorSetNext(new_node, IteratorGetNext(iterator));
+	IteratorSetData(iterator, IteratorGetData(tmp_node));
 	
-	iterator->next = new_node;
+	IteratorSetNext(iterator, new_node);
 	
-	if (list->tail == iterator)
+	if (SLListIsEqual(list->tail, iterator))
 	{
 		list->tail = new_node;
 	}
@@ -97,57 +118,84 @@ iterator_t SLListInsert(linked_list_t *list, void *data, iterator_t iterator)
 
 void SLListDestroy(linked_list_t *list)
 {
-	node_t *runner = list->head;
-	node_t *tmp_next_node = NULL;
+	iterator_t runner = NULL;
+	iterator_t tmp_next_node = NULL;
+	assert(list);
+	runner = SLListGetBegin(list);
 	
-	while (runner != list->tail)
+	while (!SLListIsEqual(runner, list->tail))
 	{
-		tmp_next_node = runner->next;
-		free(runner);
+		tmp_next_node = IteratorGetNext(runner);
+		FreeIterator(runner);
 		runner = tmp_next_node;
 	}
 	
-	free(list->tail);
+	FreeIterator(list->tail);
 	free(list);
 }
 
 
 int SLListIsEqual(iterator_t node1, iterator_t node2)
 {
-	return (node1->data == node2->data);
+	assert(node1);
+	assert(node2);
+	
+	return (node1 == node2);
 }
 
 iterator_t SLListGetBegin(linked_list_t* list)
 {
+	assert(list);
+	
 	return list->head;
 }
 
 
 iterator_t SLListGetEnd(linked_list_t* list)
 {
+	assert(list);
+	
 	return list->tail;
 }
 
 
 
-int SLListForEach(iterator_t start, iterator_t end, action_func_t IteratorHandler, void *data)
+int SLListForEach(iterator_t start, iterator_t end, action_func_t func, void *data)
 {
-	node_t *runner = start;
+	iterator_t runner = NULL;
+	int function_exit_status = 0;
 	
-	while (runner != end)
+	assert(start);
+	assert(end);
+	
+	runner = start;
+	
+	while (!SLListIsEqual(runner, end))
 	{
-		IteratorHandler(runner->data, NULL);
-		runner = runner->next;
+		function_exit_status += func(SLListGetData(runner), data);
+		runner = SLListNext(runner);
 	}
-	IteratorHandler(runner->data, NULL);
+	
+	return function_exit_status;
 }
 
-static int CountHelper(void *data, void *dummy)
+
+size_t SLListCount(const linked_list_t *list)
 {
-	++count_nodes;
+	size_t count_nodes = 0;
 	
+	SLListForEach(list->head, list->tail, CountHelper, &count_nodes);
+	
+	return (count_nodes);
+}
+
+static int CountHelper(void *node_data, void *counter)
+{
+	++*(size_t *)counter;
+
 	return 0;
 }
+
 
 void *SLListGetData(const iterator_t iterator)
 {
@@ -161,17 +209,6 @@ void SLListSetData(iterator_t iterator, void* data)
 }
 
 
-size_t SLListCount(const linked_list_t *list)
-{
-	count_nodes = 0;
-	
-	SLListForEach(list->head, list->tail, CountHelper, NULL);
-	
-	return (count_nodes - 1);
-}
-
-
-
 iterator_t SLListNext(iterator_t iter)
 {
 	return iter->next;
@@ -179,27 +216,32 @@ iterator_t SLListNext(iterator_t iter)
 
 
 iterator_t SLListFind(iterator_t start, iterator_t end,
-			void* data, const comp_func_t IteratorComapreFunc)
+			void* data, const comp_func_t iterator_comapre_func)
 {
 	iterator_t runner = start;
+	assert(!IsNullIterator(start));
+	assert(!IsNullIterator(end));
 	
-	while (runner != end)
+	while (!SLListIsEqual(runner, end))
 	{
-		if (IteratorComapreFunc(runner->data, data))
+		if (iterator_comapre_func(SLListGetData(runner), data))
 		{
 			return runner;
 		}
-		runner = runner->next;
+		runner = SLListNext(runner);
 	}
 	
-	return NULL;
+	return end;
 }
 
 
 
 void SLListRemove(iterator_t iterator)
 {
-	iterator_t node_to_remove = iterator->next;
+	iterator_t node_to_remove = NULL;
+	assert(!IsNullIterator(iterator));
+	
+	node_to_remove = iterator->next;
 		
 	iterator->data = iterator->next->data;
 	iterator->next = iterator->next->next;
@@ -215,13 +257,7 @@ void SLListRemove(iterator_t iterator)
 
 int SLListIsEmpty(const linked_list_t *list)
 {
-	if (list->head == list->tail)
-	{
-		return 1;
-	}
-	
-	return 0;
-	
+	return (list->head == list->tail);
 }
 
 
@@ -250,24 +286,6 @@ int SLListAppendLists(linked_list_t *list1, linked_list_t *list2)
 }
 
 
-
-void SLLPrintList(linked_list_t *list, void *dummy)
-{
-	printf("Printing list: \n");
-	SLListForEach(list->head, list->tail, PrintListHelper, NULL);
-}
-
-static int PrintListHelper(void *data, void *dummy)
-{
-	if (data != NULL)
-	{
-		printf("[%d] -> ", *(int *)data);
-		
-	}
-
-	return 0;
-}
-
 int IsNullIterator(iterator_t iterator)
 {
 	return (NULL == iterator);
@@ -285,3 +303,6 @@ void FreeIterator(iterator_t iterator)
 {
 	free(iterator);
 }
+
+
+

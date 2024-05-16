@@ -4,10 +4,12 @@
 #include "../include/sllist.h"
 
 
-int CompareInt(void *item, void *data_to_compare);
 
-int TestListFunctions(linked_list_t *list);
+static int TestListFunctions(linked_list_t *list);
 
+static int PrintListHelper(void *data, void *dummy);
+static void SLLPrintList(linked_list_t *list);
+static int CompareInt(void *item, void *data_to_compare);
 
 int main()
 {
@@ -80,5 +82,23 @@ int TestListFunctions(linked_list_t *list)
 int CompareInt(void *item, void *data_to_compare)
 {
  	return (*(int *)item == *(int *)data_to_compare);
+}
+
+
+static void SLLPrintList(linked_list_t *list)
+{
+	printf("Printing list: \n");
+	SLListForEach(SLListGetBegin(list), SLListGetEnd(list), PrintListHelper, NULL);
+}
+
+static int PrintListHelper(void *data, void *dummy)
+{
+	if (data != NULL)
+	{
+		printf("[%d] -> ", *(int *)data);
+		
+	}
+
+	return 0;
 }
 
