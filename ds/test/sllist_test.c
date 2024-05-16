@@ -4,7 +4,7 @@
 #include "../include/sllist.h"
 
 
-int CompareInt(void *item, const void *data_to_compare);
+int CompareInt(void *item, void *data_to_compare);
 
 int TestListFunctions(linked_list_t *list);
 
@@ -52,7 +52,7 @@ int TestListFunctions(linked_list_t *list)
 	printf("found node where data = %d\n", *(int *)SLListGetData(iterator));
 	
 	printf("removing the node: \n");
-	SLListRemove(list, iterator);
+	SLListRemove(iterator);
 	SLLPrintList(list);
 	printf("\n");
 	
@@ -61,13 +61,13 @@ int TestListFunctions(linked_list_t *list)
 	printf("is the list empty (0 for no)? : %d\n", SLListIsEmpty(list));
 	
 	printf("removing node\n");
-	SLListRemove(list, SLListGetBegin(list));
+	SLListRemove(SLListGetBegin(list));
 	printf("removing node\n");
-	SLListRemove(list, SLListGetBegin(list));
+	SLListRemove(SLListGetBegin(list));
 	printf("removing node\n");
-	SLListRemove(list, SLListGetBegin(list));
+	SLListRemove(SLListGetBegin(list));
 	printf("removing node\n");
-	SLListRemove(list, SLListGetBegin(list));
+	SLListRemove(SLListGetBegin(list));
 	
 	printf("list size = %ld\n",SLListCount(list));
 	printf("is the list empty (0 for no)? : %d\n", SLListIsEmpty(list));
@@ -77,7 +77,7 @@ int TestListFunctions(linked_list_t *list)
 
 
 
-int CompareInt(void *item, const void *data_to_compare)
+int CompareInt(void *item, void *data_to_compare)
 {
  	return (*(int *)item == *(int *)data_to_compare);
 }
