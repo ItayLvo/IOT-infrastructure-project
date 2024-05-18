@@ -3,6 +3,7 @@
 !*.c
 !*.h
 !.gitignore
+!*.sh
 
 !*.git
 !*.git/*
