@@ -5,9 +5,9 @@
 
 /*
 static int TestListFunctions(linked_list_t *list);
-
-static int CompareInt(void *item, void *data_to_compare);
 */
+
+static int MatchInt(const void *item, const void *data_to_compare);
 static void DLLPrintList(dll_t *list);
 static int PrintListHelper(void *data, void *dummy);
 
@@ -37,16 +37,37 @@ int main()
 	printf("head->next = %d\n", *(int *)DLListGetData(DLListNext(DLListBegin(list))));
 	printf("tail->prev = %d\n", *(int *)DLListGetData(DLListPrev(DLListEnd(list))));
 	
-	
+	printf("iterator = %d\n", *(int *)DLListGetData(iterator));
 	DLListRemove(list, iterator);
 	printf("data after remove() = %d\n", *(int *)DLListGetData(iterator));
 
 	DLListPopFront(list);
 	printf("head after popfront = %d\n", *(int *)DLListGetData(DLListBegin(list)));
 	
+	DLLPrintList(list);
+	
 	DLListSetData(iterator, &x4);
 	printf("data after setdata(4) = %d\n", *(int *)DLListGetData(iterator));
 
+	DLLPrintList(list);
+
+	DLListPushBack(list, &x1);
+	DLListPushBack(list, &x2);
+	
+	DLLPrintList(list);
+	
+	DLListPopBack(list);
+	DLLPrintList(list);
+	
+	DLListPopFront(list);
+	DLLPrintList(list);
+	
+	DLListPushBack(list, &x2);
+	DLListPushBack(list, &x3);
+	
+	iterator = DLListFind(DLListBegin(list), DLListEnd(list), &x2, MatchInt);
+	printf("searched for 2 -> %d\n", *(int *)DLListGetData(iterator));
+	
 	DLListDestroy(list);
 	return 0;
 }
@@ -71,6 +92,11 @@ static int PrintListHelper(void *data, void *dummy)
 	}
 
 	return 0;
+}
+
+int MatchInt(const void *item, const void *data_to_compare)
+{
+ 	return (*(int *)item == *(int *)data_to_compare);
 }
 
 /*
@@ -130,10 +156,7 @@ int TestListFunctions(linked_list_t *list)
 
 
 
-int CompareInt(void *item, void *data_to_compare)
-{
- 	return (*(int *)item == *(int *)data_to_compare);
-}
+
 
 
 
