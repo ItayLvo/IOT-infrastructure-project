@@ -201,7 +201,7 @@ dll_iterator_t DLListSplice(dll_iterator_t start_iterator ,dll_iterator_t end_it
 /*
 Description: insert the data in matching elements inside the range to list.
 Params: list used to copy matching elements, iter_start iter_end - the range, data for the matching function, match_func_t matching function
-Return Value: boolean 1 for  0 for not
+Return Value: number of elements found. -1 if failed.
 Time Complexity: O(n)
 Space: O(1)
 */

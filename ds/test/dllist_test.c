@@ -14,9 +14,10 @@ static int PrintListHelper(void *data, void *dummy);
 int main()
 {
 	dll_t *list = DLListCreate();
-	
+	dll_t *list2 = DLListCreate();
 	dll_iterator_t iterator = NULL;
 	int x1 = 1, x2 = 2, x3 = 3, x4 = 4;
+	int count_multi = 0;
 	
 	printf("is the list empty (1 for yes, 0 for no)? : %d\n\n", DLListIsEmpty(list));
 	printf("list size = %ld\n\n",DLListCount(list));
@@ -65,8 +66,15 @@ int main()
 	DLListPushBack(list, &x2);
 	DLListPushBack(list, &x3);
 	
+	DLLPrintList(list);
 	iterator = DLListFind(DLListBegin(list), DLListEnd(list), &x2, MatchInt);
 	printf("searched for 2 -> %d\n", *(int *)DLListGetData(iterator));
+	
+	
+	DLListPushBack(list, &x2);
+	count_multi = DLListMultiFind(list2 ,DLListBegin(list), DLListEnd(list), &x2, MatchInt);
+	printf("found %d times\n", count_multi);
+	DLLPrintList(list2);
 	
 	DLListDestroy(list);
 	return 0;

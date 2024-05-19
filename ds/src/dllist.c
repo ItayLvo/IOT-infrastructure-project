@@ -335,6 +335,30 @@ dll_iterator_t DLListFind(dll_iterator_t start, dll_iterator_t end, void *data, 
 }
 
 
+int DLListMultiFind(dll_t *dest_list ,dll_iterator_t start, dll_iterator_t end, void* data, dll_match_func_t func)
+{
+	size_t count_found = 0;
+	dll_iterator_t runner = start;
+	assert(!IsNullIterator(start));
+	assert(!IsNullIterator(end));
+	
+	while (!DLListIsEqualIter(runner, end))
+	{
+		if (func(DLListGetData(runner), data))
+		{
+			++count_found;
+			if (DLListPushBack(dest_list, data)) /* if pushback failed */
+			{
+				return -1;
+			}
+		}
+		runner = DLListNext(runner);
+	}
+	
+	return count_found;
+}
+
+
 int DLListIsEmpty(const dll_t* list)
 {
 	return (list->head == list->tail);
