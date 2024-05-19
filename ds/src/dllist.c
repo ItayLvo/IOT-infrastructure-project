@@ -99,6 +99,25 @@ dll_t *DLListCreate(void)
 	return list;
 }
 
+
+void DLListDestroy(dll_t *list)
+{
+	dll_iterator_t runner = NULL;
+	dll_iterator_t tmp_next_node = NULL;
+	assert(list);
+	runner = DLListBegin(list);
+	
+	while (!DLListIsEqualIter(runner, list->tail))
+	{
+		tmp_next_node = IteratorGetNext(runner);
+		FreeIterator(runner);
+		runner = tmp_next_node;
+	}
+	
+	FreeIterator(list->tail);
+	free(list);
+}
+
 /* SLL implementation of insert (for reference):
 iterator_t SLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 {
@@ -140,6 +159,7 @@ iterator_t SLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 }
 */
 
+
 dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 {
 	node_t *new_node = NULL;
@@ -175,22 +195,74 @@ dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 }
 
 
-void DLListDestroy(dll_t *list)
+int DLListPushFront(dll_t *list, void *data)
 {
-	dll_iterator_t runner = NULL;
-	dll_iterator_t tmp_next_node = NULL;
-	assert(list);
-	runner = DLListBegin(list);
-	
-	while (!DLListIsEqualIter(runner, list->tail))
+	if (DLListInsert(list, list->head, data) == list->tail)
 	{
-		tmp_next_node = IteratorGetNext(runner);
-		FreeIterator(runner);
-		runner = tmp_next_node;
+		return 1;
 	}
 	
-	FreeIterator(list->tail);
-	free(list);
+	return 0;
+}
+
+
+int DLListPushBack(dll_t *list, void *data)
+{
+	if (DLListInsert(list, list->tail, data) == list->tail)
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+
+
+void *DLListRemove(dll_t* list, dll_iterator_t iterator)	/* does it need list argument? */
+{
+	dll_iterator_t node_to_remove = NULL;
+	void *data = NULL;
+	assert(!IsNullIterator(iterator));
+	
+	node_to_remove = IteratorGetNext(iterator);
+		
+	IteratorSetData(iterator, IteratorGetData(IteratorGetNext(iterator)));
+	IteratorSetNext(iterator, IteratorGetNext(IteratorGetNext(iterator)));
+	
+	if(IsNullIterator(IteratorGetNext(iterator)))
+	{
+		((dll_t *)(IteratorGetData(iterator)))->tail = iterator;
+	}
+	else
+	{
+		IteratorSetPrev(IteratorGetNext(iterator), iterator);
+	}
+	
+	data = node_to_remove;
+	free(node_to_remove);
+	
+	return data;
+}
+
+
+void *DLListPopFront(dll_t *list)
+{
+	if (DLListIsEmpty(list))
+	{
+		return NULL;
+	}
+	
+	return(DLListRemove(list, list->head));
+}
+
+
+void *DLListPopBack(dll_t *list)
+{
+	if (DLListIsEmpty(list))
+	{
+		return NULL;
+	}
+	
+	return(DLListRemove(list, IteratorGetPrev(list->tail)));
 }
 
 
@@ -218,7 +290,7 @@ dll_iterator_t DLListEnd(const dll_t* list)
 }
 
 
-dll_iterator_t DLListForeach(dll_iterator_t iter_start, dll_iterator_t iter_end, void* data, dll_action_func_t func)	/*אם נכשל, מחזיר איפה עצרתי. אם הצלחתי, מחזיר את אנד */
+dll_iterator_t DLListForeach(dll_iterator_t iter_start, dll_iterator_t iter_end, void* data, dll_action_func_t func)
 {
 	dll_iterator_t runner = NULL;
 	int function_exit_status = 0;
@@ -296,33 +368,6 @@ dll_iterator_t DLListFind(dll_iterator_t start, dll_iterator_t end, void *data, 
 	}
 	
 	return end;
-}
-
-
-void *DLListRemove(dll_t* list, dll_iterator_t iterator)	/*update prev fix // does it need list argument? */
-{
-	dll_iterator_t node_to_remove = NULL;
-	void *data = NULL;
-	assert(!IsNullIterator(iterator));
-	
-	node_to_remove = IteratorGetNext(iterator);
-		
-	IteratorSetData(iterator, IteratorGetData(IteratorGetNext(iterator)));
-	IteratorSetNext(iterator, IteratorGetNext(IteratorGetNext(iterator)));
-	
-	if(IsNullIterator(IteratorGetNext(iterator)))
-	{
-		((dll_t *)(IteratorGetData(iterator)))->tail = iterator;
-	}
-	else
-	{
-		IteratorSetPrev(IteratorGetNext(iterator), iterator);
-	}
-	
-	data = node_to_remove;
-	free(node_to_remove);
-	
-	return data;
 }
 
 

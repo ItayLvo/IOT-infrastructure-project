@@ -16,17 +16,25 @@ int main()
 	dll_t *list = DLListCreate();
 	
 	dll_iterator_t iterator = NULL;
-	int x1 = 1, x2 = 2, x3;
+	int x1 = 1, x2 = 2, x3 = 3, x4 = 4;
 	
 	printf("is the list empty (0 for no)? : %d\n", DLListIsEmpty(list));
-	printf("pushing 1,2,3,4,5\n\n");
+	printf("pushing 1,2,3\n\n");
 	iterator = DLListBegin(list);
 	iterator = DLListInsert(list, iterator, &x1);
 	iterator = DLListInsert(list, iterator, &x2);
 	iterator = DLListInsert(list, iterator, &x3);
-	DLLPrintList(list);
 	
+	printf("data = %d\n", *(int *)DLListGetData(iterator));
+	DLListSetData(iterator, &x4);
+	printf("data after setdata(4) = %d\n", *(int *)DLListGetData(iterator));
+	DLListRemove(list, iterator);
+	printf("data after remove() = %d\n", *(int *)DLListGetData(iterator));
+	
+	/*
+	DLLPrintList(list);
 	printf("list size = %ld\n",DLListCount(list));
+	*/
 	printf("is the list empty (0 for no)? : %d\n", DLListIsEmpty(list));
 
 	DLListDestroy(list);
@@ -34,14 +42,18 @@ int main()
 }
 
 
+
+
 static void DLLPrintList(dll_t *list)
 {
 	printf("Printing list: \n");
 	DLListForeach(DLListBegin(list), DLListEnd(list), NULL, PrintListHelper);
+	printf("\n");
 }
 
 static int PrintListHelper(void *data, void *dummy)
 {
+	(void)dummy;
 	if (data != NULL)
 	{
 		printf("[%d] -> ", *(int *)data);
