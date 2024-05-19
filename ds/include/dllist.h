@@ -11,33 +11,6 @@ typedef int (*dll_action_func_t)(void*,void*);
 typedef int (*dll_match_func_t)(const void*, const void*);
 
 /*
-Description: transfers an element (iterator) from one list container to another list container at a certain position. removes the element from the source list.
-Params: destination iterator, source iterator (dll_iterator_t).
-Return Value: destination iterator (dll_iterator_t).
-Time Complexity: O(1)
-Space: O(1)
-*/
-dll_iterator_t DLListSplice(dll_t *src_list ,dll_iterator_t dest_iterator, dll_t src_list ,dll_iterator_t src_iterator);
-
-/*
-Description: copy the reffrence to data in matching elements inside the range to list.
-Params: list used to copy matching elements, iter_start iter_end - the range, data for the matching function, match_func_t matching function
-Return Value: iter_end for not matching result, DLLBegin of list for matching elements 
-Time Complexity: O(n)
-Space: O(1)
-*/
-dll_iterator_t DLListMultiFind(dll_t *list ,dll_iterator_t iter_start, dll_iterator_t iter_end, void* data,dll_match_func_t func);
-
-/*
-Description: return the overall size in Bytes of the list.
-Params: list
-Return Value: size_t of the size in Bytes 
-Time Complexity: O(n)
-Space: O(1)
-*/
-size_t DLListSize(const dll_t *list);
-
-/*
 Description: creates new doubly linked list
 Params: (void) ,
 Return Value: pointer to new instance of doubly linked list
@@ -70,12 +43,12 @@ dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data);
 /*
 Description: Remove element in specfic iterator
 Params: (iterator) which element to remove,
-Return Value: void 
+Return Value: void pointer to the data in the iterator that was removed. 
 Time Complexity: O(1)
 Space: O(1)
 can be invalid
 */
-void DLListRemove(dll_t* list, dll_iterator_t iterator);
+void *DLListRemove(dll_t* list, dll_iterator_t iterator);
 
 /*
 Description: Return the count of all the elements in the list
@@ -84,7 +57,7 @@ Return Value: size_t represent the number of elements in the list
 Time Complexity: O(n)
 Space: O(1)
 */
-size_t DLListCount(const dll_t *linked_list);
+size_t  DLListCount(const dll_t *linked_list);
 
 /*
 Description: Set the data for specfic element in the list
@@ -113,7 +86,7 @@ Return Value: On success the desired element iterator On failure iter_end
 Time Complexity: O(n)
 Space: O(1)
 */
-dll_iterator_t DLListFind(dll_iterator_t iter_start, dll_iterator_t iter_end, void* data,dll_match_func_t func);
+dll_iterator_t DLListFind(dll_iterator_t iter_start, dll_iterator_t iter_end, void *data, dll_match_func_t func);
 
 /*
 Description: Get the iterator for the next element in the list. 
@@ -169,8 +142,7 @@ Return Value: return the iteration where func return non 0. Return iter_end if f
 Time Complexity: O(n)
 Space: O(1)
 */
-dll_iterator_t DLListForeach(dll_iterator_t iter_start, dll_iterator_t iter_end, void* data,dll_action_func_t func);
-
+dll_iterator_t DLListForeach(dll_iterator_t iter_start, dll_iterator_t iter_end, void *data, dll_action_func_t func);
 
 /*
 Description: Checks if two iterators point to the same element
@@ -184,43 +156,56 @@ int DLListIsEqualIter(dll_iterator_t it1, dll_iterator_t it2);
 /*
 Description: Remove the first iterator.
 Params: dll_t *list
-Return Value: void
+Return Value: void * to data popped 
 Time Complexity: O(1)
 Space: O(1)
 */
-void DLListPopBegin(dll_t *list);
+void *DLListPopFront(dll_t *list);
 
 /*
 Description: Remove the last iterator.
 Params: dll_t *list
-Return Value: void 
+Return Value: void * to data popped 
 Time Complexity: O(1)
 Space: O(1)
 */
-void DLListPopEnd(dll_t *list);
+void *DLListPopBack(dll_t *list);
 
 /*
 Description: add element to the begin of the list.
 Params: dll_t *list
-Return Value: void 
+Return Value:return iteratur to the element  or failure(if failure returns list end)
 Time Complexity: O(1)
 Space: O(1)
 */
-
-int DLListPushBegin(dll_t *list, void *data);
+int DLListPushFront(dll_t *list, void *data);
 
 /*
 Description: add element to the end of the list.
 Params: dll_t *list
-Return Value: int ,return success or failure
+Return Value:`return iteratur to the element  or failure(if failure returns list end)
 Time Complexity: O(1)
 Space: O(1)
 */
+int DLListPushBack(dll_t *list, void *data);
 
-int DLListPushEnd(dll_t *list, void *data);
+/*
+Description: transfers an element (iterator) from one list container to another list container at a certain position. removes the element from the source list.
+Params: destination iterator, source iterator (dll_iterator_t).
+Return Value: destination iterator (dll_iterator_t).
+Time Complexity: O(1)
+Space: O(1)
+*/
+dll_iterator_t DLListSplice(dll_iterator_t start_iterator ,dll_iterator_t end_iterator, dll_iterator_t dest_iterator);
 
-
-
+/*
+Description: insert the data in matching elements inside the range to list.
+Params: list used to copy matching elements, iter_start iter_end - the range, data for the matching function, match_func_t matching function
+Return Value: boolean 1 for  0 for not
+Time Complexity: O(n)
+Space: O(1)
+*/
+int DLListMultiFind(dll_t *dest_list ,dll_iterator_t iter_start, dll_iterator_t iter_end, void* data, dll_match_func_t func);
 
 
 #endif /* __LINKED_LIST_H__ */

@@ -9,8 +9,9 @@ status:
 #include <stdio.h>	/* printf, size_t */
 #include <assert.h>	/* assert */
 
-#include "../include/sllist.h"
 #include "../include/dllist.h"
+
+#define UNUSED(x) (void)(x)
 
 typedef struct node
 {
@@ -26,43 +27,54 @@ struct dll
 	node_t *tail;
 };
 
-iterator_t CreateIterator(iterator_t iterator);
-void FreeIterator(iterator_t iterator);
-int IsNullIterator(iterator_t iterator);
 
 static int CountHelper(void *node_data, void *counter);
 
-static void *IteratorGetData(iterator_t iterator)
+static void *IteratorGetData(dll_iterator_t iterator)
 {
 	return iterator->data;
 }
-static iterator_t IteratorGetNext(iterator_t iterator)
+static dll_iterator_t IteratorGetNext(dll_iterator_t iterator)
 {
 	return iterator->next;
 }
-static iterator_t IteratorGetPrev(iterator_t iterator)
+static dll_iterator_t IteratorGetPrev(dll_iterator_t iterator)
 {
 	return iterator->prev;
 }
-static void IteratorSetData(iterator_t node, void *data)
+static void IteratorSetData(dll_iterator_t node, void *data)
 {
 	node->data = data;
 }
-
-static void IteratorSetNext(iterator_t node, iterator_t next_node)
+static void IteratorSetNext(dll_iterator_t node, dll_iterator_t next_node)
 {
 	node->next = next_node;
 }
-
-static void IteratorSetPrev(iterator_t node, iterator_t prev_node)
+static void IteratorSetPrev(dll_iterator_t node, dll_iterator_t prev_node)
 {
 	node->prev = prev_node;
 }
+static dll_iterator_t CreateIterator(dll_iterator_t iterator)
+{
+	iterator = (dll_iterator_t)malloc(sizeof(node_t));
+	return iterator;
+}
+static void FreeIterator(dll_iterator_t iterator)
+{
+	free(iterator);
+}
+static int IsNullIterator(dll_iterator_t iterator)
+{
+	return (NULL == iterator);
+}
+
+
+
 
 
 dll_t *DLListCreate(void)
 {
-	linked_list_t *list = (linked_list_t *)malloc(sizeof(linked_list_t));
+	dll_t *list = (dll_t *)malloc(sizeof(dll_t));
 	node_t *dummy_node = NULL;
 	
 	if (NULL == list)
@@ -79,7 +91,7 @@ dll_t *DLListCreate(void)
 	
 	IteratorSetData(dummy_node, list);
 	IteratorSetNext(dummy_node, NULL);
-	IteratorSetPrev(dummy_node, NULL);
+	IteratorSetPrev(dummy_node, NULL);	/*not sure about this...*/
 		
 	list->head = dummy_node;
 	list->tail = dummy_node;
@@ -87,8 +99,8 @@ dll_t *DLListCreate(void)
 	return list;
 }
 
-/*
-dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
+/* SLL implementation of insert (for reference):
+iterator_t SLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 {
 	node_t *new_node = NULL;
 	node_t *tmp_node = NULL;
@@ -131,7 +143,7 @@ dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 {
 	node_t *new_node = NULL;
-	node_t *tmp_node = NULL;
+	void *tmp_data_holder = NULL;
 	
 	assert(list);
 	assert(!IsNullIterator(iterator));
@@ -142,27 +154,35 @@ dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 		return list->tail;
 	}
 	
+	IteratorSetNext(new_node, IteratorGetNext(iterator));
+	IteratorSetNext(iterator, new_node);
+	IteratorSetPrev(new_node, iterator);
 	
-	IteratorSetPrev(new_node, IteratorGetPrev(iterator));
-	IteratorSetNext(new_node, iterator);
-	IteratorSetPrev(iterator, new_node);
-	
-	void *tmp_data = IteratorGetData(iterator);
-	IteratorSetData(new_node, tmp_data);
+	tmp_data_holder = IteratorGetData(iterator);
 	IteratorSetData(iterator, data);
+	IteratorSetData(new_node, tmp_data_holder);
+	
+	if (DLListIsEqualIter(list->tail, iterator))
+	{
+		list->tail = new_node;
+	}
+	else
+	{
+		IteratorSetPrev(IteratorGetNext(new_node), new_node);
+	}
 	
 	return iterator;
 }
 
 
-void SLListDestroy(linked_list_t *list)
+void DLListDestroy(dll_t *list)
 {
-	iterator_t runner = NULL;
-	iterator_t tmp_next_node = NULL;
+	dll_iterator_t runner = NULL;
+	dll_iterator_t tmp_next_node = NULL;
 	assert(list);
-	runner = SLListGetBegin(list);
+	runner = DLListBegin(list);
 	
-	while (!SLListIsEqual(runner, list->tail))
+	while (!DLListIsEqualIter(runner, list->tail))
 	{
 		tmp_next_node = IteratorGetNext(runner);
 		FreeIterator(runner);
@@ -174,15 +194,15 @@ void SLListDestroy(linked_list_t *list)
 }
 
 
-int SLListIsEqual(iterator_t node1, iterator_t node2)
+int DLListIsEqualIter(dll_iterator_t it1, dll_iterator_t it2)
 {
-	assert(node1);
-	assert(node2);
+	assert(it1);
+	assert(it2);
 	
-	return (node1 == node2);
+	return (it1 == it2);
 }
 
-iterator_t SLListGetBegin(linked_list_t* list)
+dll_iterator_t DLListBegin(const dll_t* list)
 {
 	assert(list);
 	
@@ -190,7 +210,7 @@ iterator_t SLListGetBegin(linked_list_t* list)
 }
 
 
-iterator_t SLListGetEnd(linked_list_t* list)
+dll_iterator_t DLListEnd(const dll_t* list)
 {
 	assert(list);
 	
@@ -198,150 +218,119 @@ iterator_t SLListGetEnd(linked_list_t* list)
 }
 
 
-
-int SLListForEach(iterator_t start, iterator_t end, action_func_t func, void *data)
+dll_iterator_t DLListForeach(dll_iterator_t iter_start, dll_iterator_t iter_end, void* data, dll_action_func_t func)	/*אם נכשל, מחזיר איפה עצרתי. אם הצלחתי, מחזיר את אנד */
 {
-	iterator_t runner = NULL;
+	dll_iterator_t runner = NULL;
 	int function_exit_status = 0;
 	
-	assert(start);
-	assert(end);
+	assert(iter_start);
+	assert(iter_end);
 	
-	runner = start;
+	runner = iter_start;
 	
-	while (!SLListIsEqual(runner, end))
+	while (!DLListIsEqualIter(runner, iter_end))
 	{
-		function_exit_status += func(SLListGetData(runner), data);
-		runner = SLListNext(runner);
+		function_exit_status = func(DLListGetData(runner), data);
+		if (!function_exit_status)
+		{
+			return runner;
+		}
+		
+		runner = DLListNext(runner);
 	}
 	
-	return function_exit_status;
+	return iter_end;
 }
 
 
-size_t SLListCount(const linked_list_t *list)
+size_t DLListCount(const dll_t *list)
 {
 	size_t count_nodes = 0;
 	
-	SLListForEach(list->head, list->tail, CountHelper, &count_nodes);
+	DLListForeach(list->head, list->tail, &count_nodes, CountHelper);
 	
 	return (count_nodes);
 }
 
 static int CountHelper(void *node_data, void *counter)
 {
+	UNUSED(node_data);
 	++*(size_t *)counter;
 
 	return 0;
 }
 
 
-void *SLListGetData(const iterator_t iterator)
+void *DLListGetData(dll_iterator_t iterator)
 {
-	return iterator->data;
+	return IteratorGetData(iterator);
 }
 
 
-void SLListSetData(iterator_t iterator, void* data)
+void DLListSetData(dll_iterator_t iterator, void* data)
 {
-	iterator->data = data;
+	IteratorSetData(iterator, data);
 }
 
 
-iterator_t SLListNext(iterator_t iter)
+dll_iterator_t DLListNext(dll_iterator_t iter)
 {
-	return iter->next;
+	return IteratorGetNext(iter);
 }
 
 
-iterator_t SLListFind(iterator_t start, iterator_t end,
-			void* data, const comp_func_t iterator_comapre_func)
+dll_iterator_t DLListFind(dll_iterator_t start, dll_iterator_t end, void *data, dll_match_func_t func)	/*להשתמש בפור איץ'? */
 {
-	iterator_t runner = start;
+	dll_iterator_t runner = start;
+	
 	assert(!IsNullIterator(start));
 	assert(!IsNullIterator(end));
 	
-	while (!SLListIsEqual(runner, end))
+	while (!DLListIsEqualIter(runner, end))
 	{
-		if (iterator_comapre_func(SLListGetData(runner), data))
+		if (func(DLListGetData(runner), data))
 		{
 			return runner;
 		}
-		runner = SLListNext(runner);
+		runner = DLListNext(runner);
 	}
 	
 	return end;
 }
 
 
-
-void SLListRemove(iterator_t iterator)
+void *DLListRemove(dll_t* list, dll_iterator_t iterator)	/*update prev fix // does it need list argument? */
 {
-	iterator_t node_to_remove = NULL;
+	dll_iterator_t node_to_remove = NULL;
+	void *data = NULL;
 	assert(!IsNullIterator(iterator));
 	
-	node_to_remove = iterator->next;
+	node_to_remove = IteratorGetNext(iterator);
 		
-	iterator->data = iterator->next->data;
-	iterator->next = iterator->next->next;
+	IteratorSetData(iterator, IteratorGetData(IteratorGetNext(iterator)));
+	IteratorSetNext(iterator, IteratorGetNext(IteratorGetNext(iterator)));
 	
-	if (NULL == iterator->next)
+	if(IsNullIterator(IteratorGetNext(iterator)))
 	{
-		((linked_list_t *)(iterator->data))->tail = iterator;
+		((dll_t *)(IteratorGetData(iterator)))->tail = iterator;
+	}
+	else
+	{
+		IteratorSetPrev(IteratorGetNext(iterator), iterator);
 	}
 	
+	data = node_to_remove;
 	free(node_to_remove);
+	
+	return data;
 }
 
 
-int SLListIsEmpty(const linked_list_t *list)
+int DLListIsEmpty(const dll_t* list)
 {
 	return (list->head == list->tail);
 }
 
-
-int SLListAppendLists(linked_list_t *list1, linked_list_t *list2)
-{
-	iterator_t tmp_iterator = CreateIterator(tmp_iterator);
-	if (IsNullIterator(tmp_iterator))
-	{
-		return 1;
-	}
-	
-	tmp_iterator->data = list1->tail->data;
-	tmp_iterator->next = list1->tail->next;
-	
-	list1->tail->data = list2->head->data;
-	list1->tail->next = list2->head->next;
-	
-	list2->head->data = tmp_iterator->data;
-	list2->head->next = tmp_iterator->next;
-	
-	list1->tail = list2->tail;
-	list2->tail = list2->head;
-	
-	FreeIterator(tmp_iterator);
-	return 0;
-}
-
-
-int IsNullIterator(iterator_t iterator)
-{
-	return (NULL == iterator);
-}
-
-
-iterator_t CreateIterator(iterator_t iterator)
-{
-	iterator = (iterator_t)malloc(sizeof(node_t));
-	return iterator;
-}
-
-
-void FreeIterator(iterator_t iterator)
-{
-	free(iterator);
-}
 
 
 

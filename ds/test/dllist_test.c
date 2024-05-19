@@ -1,28 +1,57 @@
 #include <stdio.h>	/* printf */
 #include <stdlib.h>	/* malloc */
 
-#include "../include/sllist.h"
 #include "../include/dllist.h"
 
-
+/*
 static int TestListFunctions(linked_list_t *list);
 
-static int PrintListHelper(void *data, void *dummy);
-static void SLLPrintList(linked_list_t *list);
 static int CompareInt(void *item, void *data_to_compare);
+*/
+static void DLLPrintList(dll_t *list);
+static int PrintListHelper(void *data, void *dummy);
 
 int main()
 {
-	linked_list_t *list = SLListCreate();
+	dll_t *list = DLListCreate();
 	
-	TestListFunctions(list);
+	dll_iterator_t iterator = NULL;
+	int x1 = 1, x2 = 2, x3;
+	
+	printf("is the list empty (0 for no)? : %d\n", DLListIsEmpty(list));
+	printf("pushing 1,2,3,4,5\n\n");
+	iterator = DLListBegin(list);
+	iterator = DLListInsert(list, iterator, &x1);
+	iterator = DLListInsert(list, iterator, &x2);
+	iterator = DLListInsert(list, iterator, &x3);
+	DLLPrintList(list);
+	
+	printf("list size = %ld\n",DLListCount(list));
+	printf("is the list empty (0 for no)? : %d\n", DLListIsEmpty(list));
 
-	SLListDestroy(list);
-	
+	DLListDestroy(list);
 	return 0;
 }
 
 
+static void DLLPrintList(dll_t *list)
+{
+	printf("Printing list: \n");
+	DLListForeach(DLListBegin(list), DLListEnd(list), NULL, PrintListHelper);
+}
+
+static int PrintListHelper(void *data, void *dummy)
+{
+	if (data != NULL)
+	{
+		printf("[%d] -> ", *(int *)data);
+		
+	}
+
+	return 0;
+}
+
+/*
 int TestListFunctions(linked_list_t *list)
 {
 	iterator_t iterator = NULL;
@@ -85,20 +114,6 @@ int CompareInt(void *item, void *data_to_compare)
 }
 
 
-static void SLLPrintList(linked_list_t *list)
-{
-	printf("Printing list: \n");
-	SLListForEach(SLListGetBegin(list), SLListGetEnd(list), PrintListHelper, NULL);
-}
 
-static int PrintListHelper(void *data, void *dummy)
-{
-	if (data != NULL)
-	{
-		printf("[%d] -> ", *(int *)data);
-		
-	}
 
-	return 0;
-}
-
+*/
