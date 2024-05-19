@@ -118,47 +118,6 @@ void DLListDestroy(dll_t *list)
 	free(list);
 }
 
-/* SLL implementation of insert (for reference):
-iterator_t SLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
-{
-	node_t *new_node = NULL;
-	node_t *tmp_node = NULL;
-	
-	assert(list);
-	assert(!IsNullIterator(iterator));
-	
-	new_node = CreateIterator(new_node);
-	if(IsNullIterator(new_node))
-	{
-		return list->tail;
-	}
-	
-	tmp_node = CreateIterator(tmp_node);
-	if(IsNullIterator(tmp_node))
-	{
-		return list->tail;
-	}
-	
-	IteratorSetData(new_node, data);
-	
-	IteratorSetData(tmp_node, IteratorGetData(new_node));
-	IteratorSetData(new_node, IteratorGetData(iterator));
-	
-	IteratorSetNext(new_node, IteratorGetNext(iterator));
-	IteratorSetData(iterator, IteratorGetData(tmp_node));
-	
-	IteratorSetNext(iterator, new_node);
-	
-	if (SLListIsEqual(list->tail, iterator))
-	{
-		list->tail = new_node;
-	}
-	
-	FreeIterator(tmp_node);
-	return iterator;
-}
-*/
-
 
 dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 {
@@ -303,7 +262,7 @@ dll_iterator_t DLListForeach(dll_iterator_t iter_start, dll_iterator_t iter_end,
 	while (!DLListIsEqualIter(runner, iter_end))
 	{
 		function_exit_status = func(DLListGetData(runner), data);
-		if (!function_exit_status)
+		if (0 != function_exit_status)
 		{
 			return runner;
 		}
@@ -348,6 +307,11 @@ void DLListSetData(dll_iterator_t iterator, void* data)
 dll_iterator_t DLListNext(dll_iterator_t iter)
 {
 	return IteratorGetNext(iter);
+}
+
+dll_iterator_t DLListPrev(dll_iterator_t iter)
+{
+	return IteratorGetPrev(iter);
 }
 
 

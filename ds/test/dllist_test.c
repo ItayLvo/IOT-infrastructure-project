@@ -18,24 +18,34 @@ int main()
 	dll_iterator_t iterator = NULL;
 	int x1 = 1, x2 = 2, x3 = 3, x4 = 4;
 	
-	printf("is the list empty (0 for no)? : %d\n", DLListIsEmpty(list));
-	printf("pushing 1,2,3\n\n");
-	iterator = DLListBegin(list);
-	iterator = DLListInsert(list, iterator, &x1);
-	iterator = DLListInsert(list, iterator, &x2);
-	iterator = DLListInsert(list, iterator, &x3);
+	printf("is the list empty (1 for yes, 0 for no)? : %d\n\n", DLListIsEmpty(list));
+	printf("list size = %ld\n\n",DLListCount(list));
+	printf("pushing 1->2->3\n\n");
 	
-	printf("data = %d\n", *(int *)DLListGetData(iterator));
-	DLListSetData(iterator, &x4);
-	printf("data after setdata(4) = %d\n", *(int *)DLListGetData(iterator));
+	iterator = DLListBegin(list);
+	iterator = DLListInsert(list, iterator, &x3);
+	iterator = DLListInsert(list, iterator, &x2);
+	iterator = DLListInsert(list, iterator, &x1);
+	
+	DLLPrintList(list);
+	
+	printf("list size = %ld\n",DLListCount(list));
+	
+	printf("is the list empty (0 for no)? : %d\n\n", DLListIsEmpty(list));
+
+	printf("head = %d\n", *(int *)DLListGetData(DLListBegin(list)));
+	printf("head->next = %d\n", *(int *)DLListGetData(DLListNext(DLListBegin(list))));
+	printf("tail->prev = %d\n", *(int *)DLListGetData(DLListPrev(DLListEnd(list))));
+	
+	
 	DLListRemove(list, iterator);
 	printf("data after remove() = %d\n", *(int *)DLListGetData(iterator));
+
+	DLListPopFront(list);
+	printf("head after popfront = %d\n", *(int *)DLListGetData(DLListBegin(list)));
 	
-	/*
-	DLLPrintList(list);
-	printf("list size = %ld\n",DLListCount(list));
-	*/
-	printf("is the list empty (0 for no)? : %d\n", DLListIsEmpty(list));
+	DLListSetData(iterator, &x4);
+	printf("data after setdata(4) = %d\n", *(int *)DLListGetData(iterator));
 
 	DLListDestroy(list);
 	return 0;
