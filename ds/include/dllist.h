@@ -7,12 +7,23 @@
 typedef struct dll dll_t;
 typedef struct node *dll_iterator_t;
 
-typedef int (*dll_action_func_t)(void*,void*);
-typedef int (*dll_match_func_t)(const void*, const void*);
+/*
+Description: typedef to pointer function that preform action on the list elmenet data 
+Params: (void *, void *) the first param data from the list element, the second param data sended by the user
+Return Value: int represent status. 0 for success , non 0 for failure
+*/
+typedef int (*dll_action_func_t)(void *,void *);
+
+/*
+Description: typedef to pointer function that find the mactching data
+Params: (void *, void *) two elements to check matching
+Return Value: (does it match?) int that represent the status of the matching, 0 for match.
+*/
+typedef int (*dll_match_func_t)(const void *, const void *);
 
 /*
 Description: creates new doubly linked list
-Params: (void) ,
+Params: (void)
 Return Value: pointer to new instance of doubly linked list
 Time Complexity: O(1)
 Space: O(1)
@@ -29,26 +40,27 @@ Space: O(1)
 void DLListDestroy(dll_t *list);
 
 /*
-Description: Creates a new node and adds it to the DLList
+Description: Creates a new node and adds it to the DLList.
+allows consecutive linking of several nodes.
 Params: (list_t *) list, (dll_iterator_t) where to insert the new element,
 (void *) data to add to list
 Return Value: (dll_iterator_t) iterator pointing at last inserted node
-Errors: new node failed, return the iterator to the end of the list  
+Errors: new node failed, return the iterator to the end of the list.
 Time Complexity: O(1)
 Space: O(1)
-Notes: this functionality allows convenient linking of several nodes
+
 */
 dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data);
 
 /*
-Description: Remove element in specfic iterator
-Params: (iterator) which element to remove,
-Return Value: void pointer to the data in the iterator that was removed. 
+Description: Removes the element that is references by the iterator
+Params: (iterator) which element to remove
+Return Value: the iterator after the removed iterator. 
 Time Complexity: O(1)
 Space: O(1)
 can be invalid
 */
-void *DLListRemove(dll_t* list, dll_iterator_t iterator);
+dll_iterator_t DLListRemove(dll_iterator_t iterator);
 
 /*
 Description: Return the count of all the elements in the list
@@ -109,7 +121,7 @@ dll_iterator_t DLListPrev(dll_iterator_t iter);
 /*
 Description: indication if list is empty 
 Params: (list) ,
-Return Value: boolean 1 for empty 0 for not
+Return Value: (int) 1 for "true" (list is empty), 0 for "false".
 Time Complexity: O(1)
 Space: O(1)
 */
@@ -138,7 +150,7 @@ Description: Apply action_func_t func for each elemnet from starting iterator to
 the end iterator
 Params: (dll_iterator_t iter_start  iter_end) ,action_func_t the function
 to preform on each element
-Return Value: return the iteration where func return non 0. Return iter_end if func didnt returned non 0
+Return Value: return end if the function succeeded. if failed, return iterator where failed.
 Time Complexity: O(n)
 Space: O(1)
 */
@@ -174,23 +186,23 @@ void *DLListPopBack(dll_t *list);
 /*
 Description: add element to the begin of the list.
 Params: dll_t *list
-Return Value:return iteratur to the element  or failure(if failure returns list end)
+Return Value:return iteratur to the element (if failure returns list end)
 Time Complexity: O(1)
 Space: O(1)
 */
-int DLListPushFront(dll_t *list, void *data);
+dll_iterator_t DLListPushFront(dll_t *list, void *data);
 
 /*
 Description: add element to the end of the list.
 Params: dll_t *list
-Return Value:`return iteratur to the element  or failure(if failure returns list end)
+Return Value:`return iteratur to the element (if failure returns list end)
 Time Complexity: O(1)
 Space: O(1)
 */
-int DLListPushBack(dll_t *list, void *data);
+dll_iterator_t DLListPushBack(dll_t *list, void *data);
 
 /*
-Description: transfers elements (iterators) in a range (from, to, non inclusive) a list container to another list container at a certain position. removes the element from the source list.
+Description: transfers a segment of elements (iterators) in a range (from->to (non inclusive)) a list container to another list container before a certain position. removes the element from the source list.Params: destination iterator, source iterator (dll_iterator_t).
 Params: destination iterator, source iterator (dll_iterator_t).
 Return Value: destination iterator (dll_iterator_t).
 Time Complexity: O(1)

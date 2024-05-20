@@ -166,32 +166,21 @@ dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 }
 
 
-int DLListPushFront(dll_t *list, void *data)
+dll_iterator_t DLListPushFront(dll_t *list, void *data)
 {
-	if (DLListInsert(list, DLListBegin(list), data) == list->tail)
-	{
-		return 1;
-	}
-	
-	return 0;
+	return(DLListInsert(list, DLListBegin(list), data));
 }
 
 
-int DLListPushBack(dll_t *list, void *data)
+dll_iterator_t DLListPushBack(dll_t *list, void *data)
 {
-	if (DLListInsert(list, list->tail, data) == list->tail)
-	{
-		return 1;
-	}
-	
-	return 0;
+	return(DLListInsert(list, list->tail, data));
 }
 
 
-void *DLListRemove(dll_t* list, dll_iterator_t iterator)	/* doesn't need list as argument */
+dll_iterator_t DLListRemove(dll_iterator_t iterator)
 {
 	dll_iterator_t node_to_remove = NULL;
-	void *data = NULL;
 	assert(!IsNullIterator(iterator));
 	
 	node_to_remove = IteratorGetNext(iterator);
@@ -208,10 +197,9 @@ void *DLListRemove(dll_t* list, dll_iterator_t iterator)	/* doesn't need list as
 		IteratorSetPrev(IteratorGetNext(iterator), iterator);
 	}
 	
-	data = node_to_remove;
 	free(node_to_remove);
 	
-	return data;
+	return iterator;
 }
 
 
@@ -222,7 +210,7 @@ void *DLListPopFront(dll_t *list)
 		return NULL;
 	}
 	
-	return(DLListRemove(list, DLListBegin(list)));
+	return(DLListRemove(DLListBegin(list)));
 }
 
 
@@ -233,7 +221,7 @@ void *DLListPopBack(dll_t *list)
 		return NULL;
 	}
 	
-	return(DLListRemove(list, IteratorGetPrev(list->tail)));
+	return(DLListRemove(IteratorGetPrev(list->tail)));
 }
 
 
@@ -384,7 +372,7 @@ int DLListMultiFind(dll_t *dest_list ,dll_iterator_t start, dll_iterator_t end, 
 		if (func(DLListGetData(runner), data))
 		{
 			++count_found;
-			if (DLListPushBack(dest_list, data)) /* if pushback failed */
+			if (DLListPushBack(dest_list, data) == DLListEnd(dest_list)) /* if pushback failed */
 			{
 				return -1;
 			}
