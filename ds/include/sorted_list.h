@@ -1,11 +1,12 @@
-#ifndef __DLINKED_LIST_H__
-#define __DLINKED_LIST_H__
+#ifndef __SORTED_LIST_H__
+#define __SORTED_LIST_H__
 
 #include <stddef.h> /* size_t */
 
+#include "../include/sorted_list.h"
 
-typedef struct dll dll_t;
-typedef struct node *dll_iterator_t;
+
+typedef struct sorted_list sorted_list_t;
 
 /*
 Description: typedef to pointer function that preform action on the list elmenet data 
@@ -17,7 +18,7 @@ typedef int (*dll_action_func_t)(void *,void *);
 /*
 Description: typedef to pointer function that find the mactching data
 Params: (void *, void *) two elements to check matching
-Return Value: (int) 0 if not matching, non-0 if matching.
+Return Value: (does it match?) int that represent the status of the matching, 0 for match.
 */
 typedef int (*dll_match_func_t)(const void *, const void *);
 
@@ -220,4 +221,4 @@ Space: O(1)
 int DLListMultiFind(dll_t *dest_list ,dll_iterator_t iter_start, dll_iterator_t iter_end, void* data, dll_match_func_t func);
 
 
-#endif /* __LINKED_LIST_H__ */
+#endif /* __SORTED_LIST_H__ */

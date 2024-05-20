@@ -13,18 +13,10 @@ status:
 
 #define UNUSED(x) (void)(x)
 
-typedef struct node
-{
-	void *data;
-	struct node *next;
-	struct node *prev;
-} node_t;
 
-
-struct dll
+struct sorted_list
 {
-	node_t *head;
-	node_t *tail;
+	dll_t *list;
 };
 
 
