@@ -210,7 +210,7 @@ void *DLListPopFront(dll_t *list)
 		return NULL;
 	}
 	
-	return(DLListRemove(DLListBegin(list)));
+	return(IteratorGetData(DLListRemove(DLListBegin(list))));
 }
 
 
@@ -221,7 +221,7 @@ void *DLListPopBack(dll_t *list)
 		return NULL;
 	}
 	
-	return(DLListRemove(IteratorGetPrev(list->tail)));
+	return(IteratorGetData(DLListRemove(IteratorGetPrev(list->tail))));
 }
 
 
