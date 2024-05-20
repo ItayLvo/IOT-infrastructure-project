@@ -190,7 +190,7 @@ Space: O(1)
 int DLListPushBack(dll_t *list, void *data);
 
 /*
-Description: transfers an element (iterator) from one list container to another list container at a certain position. removes the element from the source list.
+Description: transfers elements (iterators) in a range (from, to, non inclusive) a list container to another list container at a certain position. removes the element from the source list.
 Params: destination iterator, source iterator (dll_iterator_t).
 Return Value: destination iterator (dll_iterator_t).
 Time Complexity: O(1)

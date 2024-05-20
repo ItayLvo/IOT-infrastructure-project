@@ -225,6 +225,23 @@ void *DLListPopBack(dll_t *list)
 }
 
 
+dll_iterator_t DLListSplice(dll_iterator_t start_iterator ,dll_iterator_t end_iterator, dll_iterator_t dest_iterator)
+{
+	IteratorSetNext(IteratorGetPrev(start_iterator), end_iterator);		/*connecting node before start_iterator to end_iterator*/
+	dll_iterator_t iterator_before_start = IteratorGetPrev(start_iterator);	/*saving iterator before start as tmp because about to connect start to dest*/
+	
+	IteratorSetNext(IteratorGetPrev(iterator), start_iterator);		/*connecting node before dest to start_iter*/
+	IteratorSetPrev(start_iterator, IteratorGetPrev(iterator));	
+	
+	IteratorSetNext(IteratorGetPrev(end_iterator), dest_iterator);		/*connecting node before end_iter with dest*/
+	IteratorSetPrev(dest_iterator, IteratorGetPrev(end_iterator));
+	
+	IteratorSetPrev(end_iterator, iterator_before_start);			/*connecting "dangling" end to iterator before start_iterator*/
+	
+	
+}
+
+
 int DLListIsEqualIter(dll_iterator_t it1, dll_iterator_t it2)
 {
 	assert(it1);
