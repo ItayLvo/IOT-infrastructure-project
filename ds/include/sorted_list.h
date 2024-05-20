@@ -86,7 +86,7 @@ Return Value: size_t represent the number of elements in the list
 Time Complexity: O(n)
 Space: O(1)
 */
-size_t SListCount(const slist_iterator_t *list);
+size_t SListCount(const slist_t *list);
 
 /*
 Description: Get the data from specifc element 
@@ -103,7 +103,7 @@ Return Value: void * to data popped
 Time Complexity: O(1)
 Space: O(1)
 */
-void *SListPopFront(slist_iterator_t *list);
+void *SListPopFront(slist_t *list);
 
 /*
 Description: Remove the last iterator.
@@ -112,7 +112,7 @@ Return Value: void * to data popped
 Time Complexity: O(1)
 Space: O(1)
 */
-void *SListPopBack(slist_iterator_t *list);
+void *SListPopBack(slist_t *list);
 /*
 Description: Find iterator to desired element from starting iterator to end iterator 
 Params: list pointer, start iterator, end iterators , void *data - for comparison)

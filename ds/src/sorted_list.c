@@ -10,9 +10,7 @@ status:
 #include <assert.h>	/* assert */
 
 #include "../include/dllist.h"
-
-#define UNUSED(x) (void)(x)
-
+#include "../include/sorted_list.h"
 
 struct sorted_list
 {
@@ -20,16 +18,8 @@ struct sorted_list
 	slist_compare_func_t func;
 };
 
-struct iterator
-{
-    dll_iter_t *iterator; 
-#ifdef _DEBUG
-    sorted_list *sorted_list;
-#endif /* _DEBUG */
-};
 
-static int CountHelper(void *node_data, void *counter);
-
+/*
 static void *IteratorGetData(dll_iterator_t iterator)
 {
 	return iterator->data;
@@ -67,18 +57,18 @@ static int IsNullIterator(dll_iterator_t iterator)
 {
 	return (NULL == iterator);
 }
-
+*/
 
 
 slist_t *SListCreate(slist_compare_func_t cmp_func)
 {
 	slist_t *s_list = (slist_t *)malloc(sizeof(slist_t));
-	if (NULL == list)
+	if (NULL == s_list)
 	{
 		return NULL;
 	}
 	
-	s_list->d_list = DLListCreate(s_list->d_list);
+	s_list->d_list = DLListCreate();
 	s_list->func = cmp_func;
 	
 	return s_list;
@@ -96,104 +86,69 @@ void SListDestroy(slist_t *list)
 
 slist_iterator_t SListInsert(slist_t *list,  void *data)
 {
+	/***/
+	slist_iterator_t tmp;
 	
-}
-
-
-dll_iterator_t DLListPushFront(dll_t *list, void *data)
-{
-	return(DLListInsert(list, DLListBegin(list), data));
-}
-
-
-dll_iterator_t DLListPushBack(dll_t *list, void *data)
-{
-	return(DLListInsert(list, list->tail, data));
+	/***/
+	return tmp;
 }
 
 
 slist_iterator_t SListRemove(slist_iterator_t iter)
 {
-	iter.iterator = DLListRemove(iter.iterator);
+	iter.iter = DLListRemove(iter.iter);
 	
 	return iter;
 }
 
 
-void *DLListPopFront(dll_t *list)
-{
-	if (DLListIsEmpty(list))
-	{
-		return NULL;
-	}
-	
-	return(DLListRemove(DLListBegin(list)));
+void *SListPopFront(slist_t *list)
+{	
+	return (DLListPopFront(list->d_list));
 }
 
 
-void *DLListPopBack(dll_t *list)
+void *SListPopBack(slist_t *list)
 {
-	if (DLListIsEmpty(list))
-	{
-		return NULL;
-	}
-	
-	return(DLListRemove(IteratorGetPrev(list->tail)));
+	return (DLListPopBack(list->d_list));
 }
 
 
-dll_iterator_t DLListSplice(dll_iterator_t start_iterator,
-				dll_iterator_t end_iterator,
-				dll_iterator_t dest_iterator)
+int SListIsEqualIter(slist_iterator_t it1, slist_iterator_t it2)
 {
-	dll_iterator_t iterator_before_start = IteratorGetPrev(start_iterator);
-	dll_iterator_t iterator_before_end = IteratorGetPrev(end_iterator);
-	dll_iterator_t iterator_before_dest = IteratorGetPrev(dest_iterator);
-	
-	/*connecting node before dest to start_iter*/
-	IteratorSetNext(iterator_before_dest, start_iterator);
-	IteratorSetPrev(start_iterator, iterator_before_dest);
-	
-	/*connecting node before end_iter with dest*/
-	IteratorSetNext(iterator_before_end, dest_iterator);
-	IteratorSetPrev(dest_iterator, iterator_before_end);
-	
-	/*connecting node before start_iterator to end_iterator*/
-	/*connecting "dangling" end to iterator before start_iterator*/
-	IteratorSetNext(iterator_before_start, end_iterator);
-	IteratorSetPrev(end_iterator, iterator_before_start);
-	
-	return dest_iterator;
-}
-
-
-int DLListIsEqualIter(dll_iterator_t it1, dll_iterator_t it2)
-{
+	/*
+	can't use assert on structs
 	assert(it1);
 	assert(it2);
+	*/
 	
-	return (it1 == it2);
+	return (DLListIsEqualIter(it1.iter, it2.iter));
 }
 
-dll_iterator_t DLListBegin(const dll_t* list)
+slist_iterator_t SListBegin(const slist_t* list)
 {
+	slist_iterator_t iter;
 	assert(list);
 	
-	return IteratorGetNext(list->head);
+	/*slist_iterator_t iter = DLListBegin(list->d_list);*/
+	return iter;
 }
 
 
-dll_iterator_t DLListEnd(const dll_t* list)
+slist_iterator_t SListEnd(const slist_t* list)
 {
+	slist_iterator_t iter;
 	assert(list);
 	
-	return list->tail;
+	/*slist_iterator_t iter = DLListEnd(list->d_list);*/
+	return iter;
 }
 
 
-dll_iterator_t DLListForeach(dll_iterator_t iter_start, dll_iterator_t iter_end, void* data, dll_action_func_t func)
+slist_iterator_t SDLListForeach(slist_iterator_t start_iterator, slist_iterator_t end_iterator, void* data, slist_action_func_t func)
 {
-	dll_iterator_t runner = NULL;
+	/*
+	slist_iterator_t runner = NULL;
 	int function_exit_status = 0;
 	
 	assert(iter_start);
@@ -211,99 +166,65 @@ dll_iterator_t DLListForeach(dll_iterator_t iter_start, dll_iterator_t iter_end,
 		
 		runner = DLListNext(runner);
 	}
+	*/
+	return end_iterator;
+}
+
+
+size_t SListCount(const slist_t *list)
+{
+	return (DLListCount(list->d_list));
+}
+
+
+void *SListGetData(slist_iterator_t iter)
+{
+	return DLListGetData(iter.iter);
+}
+
+
+slist_iterator_t SListNext(slist_iterator_t iter)
+{
+	iter.iter = DLListNext(iter.iter);
+	return iter;
+}
+
+slist_iterator_t SListPrev(slist_iterator_t iter)
+{
+	iter.iter = DLListPrev(iter.iter);
+	return iter;
+}
+
+
+slist_iterator_t SListFind(slist_iterator_t *list, slist_iterator_t start_iter,
+                           slist_iterator_t end_iter, void* data)
+{
+	/*...*/
 	
-	return iter_end;
-}
-
-
-size_t DLListCount(const dll_t *list)
-{
-	size_t count_nodes = 0;
+	slist_iterator_t iter;
 	
-	DLListForeach(DLListBegin(list), list->tail, &count_nodes, CountHelper);
 	
-	return (count_nodes);
-}
-
-static int CountHelper(void *node_data, void *counter)
-{
-	UNUSED(node_data);
-	++*(size_t *)counter;
-
-	return 0;
+	/*...*/
+	return iter;
 }
 
 
-void *DLListGetData(dll_iterator_t iterator)
+slist_iterator_t SListFindIf(slist_iterator_t start_iter, slist_iterator_t end_iter, void* data, slist_match_func_t func)
 {
-	return IteratorGetData(iterator);
-}
-
-
-void DLListSetData(dll_iterator_t iterator, void* data)
-{
-	IteratorSetData(iterator, data);
-}
-
-
-dll_iterator_t DLListNext(dll_iterator_t iter)
-{
-	return IteratorGetNext(iter);
-}
-
-dll_iterator_t DLListPrev(dll_iterator_t iter)
-{
-	return IteratorGetPrev(iter);
-}
-
-
-dll_iterator_t DLListFind(dll_iterator_t start, dll_iterator_t end, void *data, dll_match_func_t func)
-{
-	dll_iterator_t runner = start;
+	/*...*/
 	
-	assert(!IsNullIterator(start));
-	assert(!IsNullIterator(end));
 	
-	while (!DLListIsEqualIter(runner, end))
-	{
-		if (func(DLListGetData(runner), data))
-		{
-			return runner;
-		}
-		runner = DLListNext(runner);
-	}
+	slist_iterator_t iter;
 	
-	return end;
+	
+	/*...*/
+	return iter;
 }
 
 
-int DLListMultiFind(dll_t *dest_list ,dll_iterator_t start, dll_iterator_t end, void* data, dll_match_func_t func)
+int SListIsEmpty(const slist_t *list)
 {
-	size_t count_found = 0;
-	dll_iterator_t runner = start;
-	assert(!IsNullIterator(start));
-	assert(!IsNullIterator(end));
-	
-	while (!DLListIsEqualIter(runner, end))
-	{
-		if (func(DLListGetData(runner), data))
-		{
-			++count_found;
-			if (DLListPushBack(dest_list, data) == DLListEnd(dest_list)) /* if pushback failed */
-			{
-				return -1;
-			}
-		}
-		runner = DLListNext(runner);
-	}
-	
-	return count_found;
-}
-
-
-int DLListIsEmpty(const dll_t* list)
-{
-	return (DLListBegin(list) == list->tail);
+	return DLListIsEmpty(list->d_list);
 }
 
 
