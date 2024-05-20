@@ -70,31 +70,42 @@ static int IsNullIterator(dll_iterator_t iterator)
 
 
 
-
-
 dll_t *DLListCreate(void)
 {
 	dll_t *list = (dll_t *)malloc(sizeof(dll_t));
-	node_t *dummy_node = NULL;
-	
+	node_t *tail_dummy = NULL;
+	node_t *head_dummy = NULL;
 	if (NULL == list)
 	{
 		return NULL;
 	}
 	
-	dummy_node = CreateIterator(dummy_node);
-	if (IsNullIterator(dummy_node))
+	tail_dummy = CreateIterator(tail_dummy);
+	if (IsNullIterator(tail_dummy))
 	{
 		free(list);
 		return NULL;
 	}
 	
-	IteratorSetData(dummy_node, list);
-	IteratorSetNext(dummy_node, NULL);
-	IteratorSetPrev(dummy_node, NULL);	/*not sure about this...*/
+	head_dummy = CreateIterator(head_dummy);
+	if (IsNullIterator(head_dummy))
+	{
+		free(tail_dummy);
+		free(list);
+		return NULL;
+	}
+	
+	
+	IteratorSetData(tail_dummy, list);
+	IteratorSetNext(tail_dummy, NULL);
+	IteratorSetPrev(tail_dummy, head_dummy);
+	
+	IteratorSetData(head_dummy, list);
+	IteratorSetNext(head_dummy, tail_dummy);
+	IteratorSetPrev(head_dummy, NULL);
 		
-	list->head = dummy_node;
-	list->tail = dummy_node;
+	list->head = head_dummy;
+	list->tail = tail_dummy;
 	
 	return list;
 }
@@ -114,6 +125,7 @@ void DLListDestroy(dll_t *list)
 		runner = tmp_next_node;
 	}
 	
+	FreeIterator(list->head);
 	FreeIterator(list->tail);
 	free(list);
 }
@@ -156,7 +168,7 @@ dll_iterator_t DLListInsert(dll_t *list, dll_iterator_t iterator, void *data)
 
 int DLListPushFront(dll_t *list, void *data)
 {
-	if (DLListInsert(list, list->head, data) == list->tail)
+	if (DLListInsert(list, DLListBegin(list), data) == list->tail)
 	{
 		return 1;
 	}
@@ -176,7 +188,7 @@ int DLListPushBack(dll_t *list, void *data)
 }
 
 
-void *DLListRemove(dll_t* list, dll_iterator_t iterator)	/* does it need list argument? */
+void *DLListRemove(dll_t* list, dll_iterator_t iterator)	/* doesn't need list as argument */
 {
 	dll_iterator_t node_to_remove = NULL;
 	void *data = NULL;
@@ -210,7 +222,7 @@ void *DLListPopFront(dll_t *list)
 		return NULL;
 	}
 	
-	return(DLListRemove(list, list->head));
+	return(DLListRemove(list, DLListBegin(list)));
 }
 
 
@@ -225,20 +237,28 @@ void *DLListPopBack(dll_t *list)
 }
 
 
-dll_iterator_t DLListSplice(dll_iterator_t start_iterator ,dll_iterator_t end_iterator, dll_iterator_t dest_iterator)
+dll_iterator_t DLListSplice(dll_iterator_t start_iterator,
+				dll_iterator_t end_iterator,
+				dll_iterator_t dest_iterator)
 {
-	IteratorSetNext(IteratorGetPrev(start_iterator), end_iterator);		/*connecting node before start_iterator to end_iterator*/
-	dll_iterator_t iterator_before_start = IteratorGetPrev(start_iterator);	/*saving iterator before start as tmp because about to connect start to dest*/
+	dll_iterator_t iterator_before_start = IteratorGetPrev(start_iterator);
+	dll_iterator_t iterator_before_end = IteratorGetPrev(end_iterator);
+	dll_iterator_t iterator_before_dest = IteratorGetPrev(dest_iterator);
 	
-	IteratorSetNext(IteratorGetPrev(iterator), start_iterator);		/*connecting node before dest to start_iter*/
-	IteratorSetPrev(start_iterator, IteratorGetPrev(iterator));	
+	/*connecting node before dest to start_iter*/
+	IteratorSetNext(iterator_before_dest, start_iterator);
+	IteratorSetPrev(start_iterator, iterator_before_dest);
 	
-	IteratorSetNext(IteratorGetPrev(end_iterator), dest_iterator);		/*connecting node before end_iter with dest*/
-	IteratorSetPrev(dest_iterator, IteratorGetPrev(end_iterator));
+	/*connecting node before end_iter with dest*/
+	IteratorSetNext(iterator_before_end, dest_iterator);
+	IteratorSetPrev(dest_iterator, iterator_before_end);
 	
-	IteratorSetPrev(end_iterator, iterator_before_start);			/*connecting "dangling" end to iterator before start_iterator*/
+	/*connecting node before start_iterator to end_iterator*/
+	/*connecting "dangling" end to iterator before start_iterator*/
+	IteratorSetNext(iterator_before_start, end_iterator);
+	IteratorSetPrev(end_iterator, iterator_before_start);
 	
-	
+	return dest_iterator;
 }
 
 
@@ -254,7 +274,7 @@ dll_iterator_t DLListBegin(const dll_t* list)
 {
 	assert(list);
 	
-	return list->head;
+	return IteratorGetNext(list->head);
 }
 
 
@@ -295,7 +315,7 @@ size_t DLListCount(const dll_t *list)
 {
 	size_t count_nodes = 0;
 	
-	DLListForeach(list->head, list->tail, &count_nodes, CountHelper);
+	DLListForeach(DLListBegin(list), list->tail, &count_nodes, CountHelper);
 	
 	return (count_nodes);
 }
@@ -378,7 +398,7 @@ int DLListMultiFind(dll_t *dest_list ,dll_iterator_t start, dll_iterator_t end, 
 
 int DLListIsEmpty(const dll_t* list)
 {
-	return (list->head == list->tail);
+	return (DLListBegin(list) == list->tail);
 }
 
 

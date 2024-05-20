@@ -76,7 +76,22 @@ int main()
 	printf("found %d times\n", count_multi);
 	DLLPrintList(list2);
 	
+	printf("\n\n\n");
+	DLLPrintList(list);
+	DLLPrintList(list2);
+	printf("\n\n");
+	
+	iterator = DLListSplice(DLListBegin(list),
+				DLListEnd(list), 
+				DLListBegin(list2));
+	
+	
+	DLLPrintList(list);
+	DLLPrintList(list2);
+	
+	
 	DLListDestroy(list);
+	DLListDestroy(list2);
 	return 0;
 }
 
