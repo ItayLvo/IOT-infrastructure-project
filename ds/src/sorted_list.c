@@ -232,12 +232,45 @@ int SListIsEmpty(const slist_t *list)
 	return DLListIsEmpty(list->d_list);
 }
 
-/*
-for gdb
-print *(int *)list->d_list->head->next
-print *(int *)list->d_list->head->next->next
-print *(int *)list->d_list->head->next->next->next->data
-print *(int *)start_iter.iter->data
-print *(int *)end_iter.iter->prev->data
-print *(int *)item - *(int *)data_to_compare
-*/
+
+slist_t* SDLListMerge(slist_t *dest_list, slist_t *src_list)
+{
+	slist_t dest_runner = SListBegin(dest_list);
+	slist_t src_runner_segment_start = SListBegin(src_list);
+	slist_t src_runner_segment_end = SListBegin(src_list);
+	
+	while (!SListEqual(dest_runner, SListEnd(dest_list)) &&
+		!!SListEqual(src_runner_segment_start, SListEnd(src_list)))
+	{
+		/* find the first element in src_list (between src_runner_segment_start and end of src list) that is larger than dest_runner, and assign it to src_runner_end */
+		src_runner_segment_end = SListFind(src_list, src_runner_segment_start, SListEnd(src_list), SListGetData(dest_runner));
+		slist_t tmp_next_iterator = SListNext(src_runner_segment_end);
+		
+		dest_runner = SListNext(dest_runner);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

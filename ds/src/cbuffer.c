@@ -4,7 +4,7 @@
 #include <stdio.h>	/* printf */
 #include <assert.h>	/* assert */
 
-#include "../include/cbuffer.h"
+#include "../include/cbuffer.h" /*  */
 
 struct cbuffer
 {
@@ -17,7 +17,7 @@ struct cbuffer
 
 cbuffer_t *CBufferCreate(size_t buffer_size)
 {
-	cbuffer_t *cbuffer = (cbuffer_t *)malloc(sizeof(cbuffer_t) + buffer_size - 1);
+	cbuffer_t *cbuffer = (cbuffer_t *)malloc(sizeof(cbuffer_t) + buffer_size - 8);
 	
 	if (NULL == cbuffer)
 	{
@@ -34,18 +34,21 @@ cbuffer_t *CBufferCreate(size_t buffer_size)
 
 void CBufferDestroy(cbuffer_t *cbuffer)
 {
+	assert (NULL != cbuffer);
 	free(cbuffer);
 }
 
 
 size_t CBufferAvailableSpace(const cbuffer_t *cbuffer)
 {
+	assert (NULL != cbuffer);
 	return ((cbuffer->capacity) - (cbuffer->current_size));
 }
 
 
 size_t CBufferBufsiz(const cbuffer_t *cbuffer)
 {
+	assert (NULL != cbuffer);
 	return cbuffer->capacity;
 }
 
@@ -58,7 +61,10 @@ ssize_t CBufferRead(cbuffer_t *cbuffer, void *dest, size_t count)
 	assert(dest);
 	dest_to_char = (char *)dest;
 	
-	while ((cbuffer->current_size > 0) && count > 0)
+	/* assert for expected buffer underflow */
+	assert(count < (cbuffer->current_size));
+	
+	while (count > 0)
 	{
 		tmp_read_index = cbuffer->read_index % cbuffer->capacity;
 		*dest_to_char = *((cbuffer->buffer) + tmp_read_index);
@@ -82,8 +88,10 @@ ssize_t CBufferWrite(cbuffer_t *cbuffer, const void *src, size_t count)
 	assert(src);
 	src_to_char = (char *)src;
 	
-	while (((cbuffer->current_size) < (cbuffer->capacity)) &&
-					count > 0 && NULL != src_to_char)
+	/* assert for expected buffer overflow */
+	assert(count < (cbuffer->capacity - cbuffer->current_size));
+	
+	while (count > 0)
 	{
 		write_index = ((cbuffer->current_size) +
 				(cbuffer->read_index)) % cbuffer->capacity;

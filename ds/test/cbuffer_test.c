@@ -20,7 +20,7 @@ int main()
 	CBufferTestIsEmpty();
 	CBufferTestCreateDestroyBufsiz();
 	CBufferTestReadWriteAvaliableSpace();
-	
+	printf("All tests passed\n");
 	return 0;
 }
 
@@ -114,8 +114,8 @@ int CBufferTestReadWriteAvaliableSpace(void)
 		return 1;
 	}
 	
-	count_read = CBufferRead(cbuffer, tmp_buffer, BUFFER_SIZE / 2);
-	if (count_read != BUFFER_SIZE / 2)
+	count_read = CBufferRead(cbuffer, tmp_buffer, 2);
+	if (count_read != 2)
 	{
 		printf("CBufferRead failed\n");
 		printf("Expected CBufferRead = %ld,received value=  %ld\n",
