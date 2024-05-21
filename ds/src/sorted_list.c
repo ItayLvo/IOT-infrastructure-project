@@ -78,12 +78,6 @@ void *SListPopBack(slist_t *list)
 
 int SListIsEqualIter(slist_iterator_t it1, slist_iterator_t it2)
 {
-	/*
-	can't use assert on structs
-	assert(it1);
-	assert(it2);
-	*/
-	
 	return (DLListIsEqualIter(it1.iter, it2.iter));
 }
 
