@@ -1,5 +1,4 @@
 #include <stdio.h>	/* printf */
-#include <stdlib.h>	/* malloc */
 
 #include "../include/dllist.h"
 #include "../include/sorted_list.h"

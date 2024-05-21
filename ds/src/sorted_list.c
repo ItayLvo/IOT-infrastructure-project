@@ -4,9 +4,8 @@ reviewer:
 status: 
 */
 
-#include <string.h>	/* memcpy */
 #include <stdlib.h>	/* malloc */
-#include <stdio.h>	/* printf, size_t */
+#include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
 
 #include "../include/dllist.h"
