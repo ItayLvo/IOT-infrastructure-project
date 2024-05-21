@@ -8,10 +8,10 @@ typedef struct sorted_list slist_t;
 
 struct iterator
 {
-    dll_iterator_t iter;
-#ifdef _DEBUG
-    sorted_list *sorted_list;
-#endif /* _DEBUG */
+	dll_iterator_t iter;
+	#ifndef NDEBUG
+	slist_t *sorted_list;
+	#endif /* NDEBUG */
 };
 
 typedef struct iterator slist_iterator_t;
@@ -27,9 +27,9 @@ typedef int (*slist_action_func_t)(void*,void*);
 Description: typedef to pointer function that compare the two argument
 Params: (void *, void *) two elements to compare
 Return Value: int that represent the status of the matching:
-    negetive if first argument is larger,
+    positive if first argument is larger,
     zero if they equal
-    positive if the second argument is larger.
+    negative if the second argument is larger.
 */
 typedef int (*slist_compare_func_t)(const void*, const void*);
 
@@ -120,7 +120,7 @@ Return Value: On success the first desired element iterator. On failure iter_end
 Time Complexity: O(n)
 Space: O(1)
 */
-slist_iterator_t SListFind(slist_iterator_t *list, slist_iterator_t start_iter, 
+slist_iterator_t SListFind(slist_t *list, slist_iterator_t start_iter, 
                            slist_iterator_t end_iter, void* data);
 
 /*

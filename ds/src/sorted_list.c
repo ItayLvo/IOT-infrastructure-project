@@ -15,7 +15,7 @@ status:
 struct sorted_list
 {
 	dll_t *d_list;
-	slist_compare_func_t func;
+	slist_compare_func_t compare_func;
 };
 
 
@@ -69,7 +69,7 @@ slist_t *SListCreate(slist_compare_func_t cmp_func)
 	}
 	
 	s_list->d_list = DLListCreate();
-	s_list->func = cmp_func;
+	s_list->compare_func = cmp_func;
 	
 	return s_list;
 }
@@ -86,11 +86,14 @@ void SListDestroy(slist_t *list)
 
 slist_iterator_t SListInsert(slist_t *list,  void *data)
 {
-	/***/
-	slist_iterator_t tmp;
+	slist_iterator_t new_node = SListFind(list, SListBegin(list), SListEnd(list), data);
+	new_node.iter = DLListInsert(list->d_list, new_node.iter, data);
 	
-	/***/
-	return tmp;
+	#ifndef NDEBUG
+	new_node.sorted_list = list;
+	#endif /* NDEBUG */
+
+	return new_node;
 }
 
 
@@ -127,47 +130,46 @@ int SListIsEqualIter(slist_iterator_t it1, slist_iterator_t it2)
 
 slist_iterator_t SListBegin(const slist_t* list)
 {
-	slist_iterator_t iter;
+	slist_iterator_t iterator;
 	assert(list);
 	
-	/*slist_iterator_t iter = DLListBegin(list->d_list);*/
-	return iter;
+	iterator.iter = DLListBegin(list->d_list);
+	
+	#ifndef NDEBUG
+	iterator.sorted_list = (slist_t*)list;;
+	#endif /* NDEBUG */
+	
+	return iterator;
 }
 
 
 slist_iterator_t SListEnd(const slist_t* list)
 {
-	slist_iterator_t iter;
+	slist_iterator_t iterator;
 	assert(list);
 	
-	/*slist_iterator_t iter = DLListEnd(list->d_list);*/
-	return iter;
+	iterator.iter = DLListEnd(list->d_list);
+	
+	#ifndef NDEBUG
+	iterator.sorted_list = (slist_t*)list;
+	#endif /* NDEBUG */
+	
+	return iterator;
 }
 
 
 slist_iterator_t SDLListForeach(slist_iterator_t start_iterator, slist_iterator_t end_iterator, void* data, slist_action_func_t func)
-{
+{	
 	/*
-	slist_iterator_t runner = NULL;
-	int function_exit_status = 0;
+	can't assert structs
 	
-	assert(iter_start);
-	assert(iter_end);
-	
-	runner = iter_start;
-	
-	while (!DLListIsEqualIter(runner, iter_end))
-	{
-		function_exit_status = func(DLListGetData(runner), data);
-		if (0 != function_exit_status)
-		{
-			return runner;
-		}
-		
-		runner = DLListNext(runner);
-	}
+	assert(start_iterator);
+	assert(end_iterator);
 	*/
-	return end_iterator;
+	
+	start_iterator.iter = DLListForeach(start_iterator.iter, end_iterator.iter, data, func);
+	
+	return start_iterator;
 }
 
 
@@ -196,29 +198,32 @@ slist_iterator_t SListPrev(slist_iterator_t iter)
 }
 
 
-slist_iterator_t SListFind(slist_iterator_t *list, slist_iterator_t start_iter,
+/* uses compare_func to find the first element in the range that is larger than data */
+slist_iterator_t SListFind(slist_t *list, slist_iterator_t start_iter,
                            slist_iterator_t end_iter, void* data)
 {
-	/*...*/
+	slist_compare_func_t compare_func = list->compare_func;
 	
-	slist_iterator_t iter;
+	while (!SListIsEqualIter(start_iter, end_iter))
+	{
+		if (compare_func(SListGetData(start_iter), data) > 0)
+		{
+			return start_iter;
+		}
+		
+		start_iter = SListNext(start_iter);
+	}
 	
-	
-	/*...*/
-	return iter;
+
+	return start_iter;
 }
 
 
-slist_iterator_t SListFindIf(slist_iterator_t start_iter, slist_iterator_t end_iter, void* data, slist_match_func_t func)
+slist_iterator_t SListFindIf(slist_iterator_t start_iter, slist_iterator_t end_iter, void* data, slist_match_func_t match_func)
 {
-	/*...*/
+	start_iter.iter = DLListFind(start_iter.iter, end_iter.iter, data, match_func);
 	
-	
-	slist_iterator_t iter;
-	
-	
-	/*...*/
-	return iter;
+	return start_iter;
 }
 
 
