@@ -41,7 +41,6 @@ Return Value: int that represent the status of the matching, 1 for a match, 0 fo
 typedef int (*slist_match_func_t)(const void*, const void*);
 
 
-dll_t *SListGetDLL(slist_t *list);	/***delete me!!!*/
 
 /*
 Description: creates new sorted linked list

@@ -19,51 +19,6 @@ struct sorted_list
 };
 
 
-/*
-static void *IteratorGetData(dll_iterator_t iterator)
-{
-	return iterator->data;
-}
-static dll_iterator_t IteratorGetNext(dll_iterator_t iterator)
-{
-	return iterator->next;
-}
-static dll_iterator_t IteratorGetPrev(dll_iterator_t iterator)
-{
-	return iterator->prev;
-}
-static void IteratorSetData(dll_iterator_t node, void *data)
-{
-	node->data = data;
-}
-static void IteratorSetNext(dll_iterator_t node, dll_iterator_t next_node)
-{
-	node->next = next_node;
-}
-static void IteratorSetPrev(dll_iterator_t node, dll_iterator_t prev_node)
-{
-	node->prev = prev_node;
-}
-static dll_iterator_t CreateIterator(dll_iterator_t iterator)
-{
-	iterator = (dll_iterator_t)malloc(sizeof(node_t));
-	return iterator;
-}
-static void FreeIterator(dll_iterator_t iterator)
-{
-	free(iterator);
-}
-static int IsNullIterator(dll_iterator_t iterator)
-{
-	return (NULL == iterator);
-}
-*/
-
-dll_t *SListGetDLL(slist_t *list)
-{
-	return list->d_list;	/*delete me!!!*/
-}
-
 
 slist_t *SListCreate(slist_compare_func_t cmp_func)
 {
@@ -165,12 +120,7 @@ slist_iterator_t SListEnd(const slist_t* list)
 
 slist_iterator_t SDLListForeach(slist_iterator_t start_iterator, slist_iterator_t end_iterator, void* data, slist_action_func_t func)
 {	
-	/*
-	can't assert structs
-	
-	assert(start_iterator);
-	assert(end_iterator);
-	*/
+	assert(start_iterator.sorted_list == end_iterator.sorted_list);
 	
 	start_iterator.iter = DLListForeach(start_iterator.iter, end_iterator.iter, data, func);
 	
@@ -208,6 +158,8 @@ slist_iterator_t SListFind(slist_t *list, slist_iterator_t start_iter,
                            slist_iterator_t end_iter, void* data)
 {
 	slist_compare_func_t compare_func = list->compare_func;
+	
+	assert(start_iter.sorted_list == end_iter.sorted_list);
 	
 	while (!SListIsEqualIter(start_iter, end_iter))
 	{
@@ -273,6 +225,9 @@ slist_t* SDLListMerge(slist_t *dest_list, slist_t *src_list)
 }
 
 
-
+dll_t *SListGetDLL(slist_t *list) /* helper function for print */
+{
+	return list->d_list;
+}
 
 
