@@ -89,13 +89,13 @@ int TestMergeSortedLists(void)
 	
 	SListInsert(list1,  &x1);
 	SListInsert(list1,  &x3);
-	SListInsert(list1,  &x9);
 	SListInsert(list1,  &x7);
 	SListInsert(list1,  &x4);
+	SListInsert(list1,  &x9);
 	
 	SListInsert(list2,  &x2);
 	SListInsert(list2,  &x2);
-	SListInsert(list2,  &x4);
+	SListInsert(list2,  &x5);
 	SListInsert(list2,  &x1);
 	SListInsert(list2,  &x6);
 	SListInsert(list2,  &x8);
@@ -103,10 +103,15 @@ int TestMergeSortedLists(void)
 	SListPrintList(SListGetDLL(list1));
 	SListPrintList(SListGetDLL(list2));
 	
+	printf("List1 count = %ld\n", SListCount(list1));
+	printf("List2 count = %ld\n", SListCount(list2));
 	
 	list1 = SDLListMerge(list1, list2);
 	printf("\nafter merge: \n");
 	SListPrintList(SListGetDLL(list1));
+	
+	printf("List1 count = %ld\n", SListCount(list1));
+	printf("List2 count = %ld\n", SListCount(list2));
 	
 	SListDestroy(list1);
 	SListDestroy(list2);

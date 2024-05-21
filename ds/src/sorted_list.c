@@ -252,18 +252,21 @@ slist_t* SDLListMerge(slist_t *dest_list, slist_t *src_list)
 		/* find the first element in src_list (between src_runner_segment_start and end of src list) that is larger than dest_runner, and assign it to src_runner_end */
 		src_runner_segment_end = SListFind(src_list, src_runner_segment_start, SListEnd(src_list), SListGetData(dest_runner));
 		
-		DLListSplice(src_runner_segment_start.iter, src_runner_segment_end.iter, dest_runner.iter);
-
+		/* skip splice of src_runner == dest_runner. nothing to splice at this iteration */
+		if (!SListIsEqualIter(src_runner_segment_start, src_runner_segment_end))
+		{
+			DLListSplice(src_runner_segment_start.iter, src_runner_segment_end.iter, dest_runner.iter);
+		}
 		src_runner_segment_start = src_runner_segment_end;
 		
 		dest_runner = SListNext(dest_runner);
 	}
 	
+	/* if dest_runner reaches end of dest_list and src_list still has remaining elements, splice all remaining src elements to the end of dest_list */
 	if (SListIsEqualIter(dest_runner, SListEnd(dest_list)) &&
 		!SListIsEqualIter(src_runner_segment_start, SListEnd(src_list)))
 	{
-		src_runner_segment_end = SListFind(src_list, src_runner_segment_start, SListEnd(src_list), SListGetData(dest_runner));
-		DLListSplice(src_runner_segment_start.iter, src_runner_segment_end.iter, dest_runner.iter);
+		DLListSplice(src_runner_segment_start.iter, SListEnd(src_list).iter, dest_runner.iter);
 	}
 	
 	return dest_list;
