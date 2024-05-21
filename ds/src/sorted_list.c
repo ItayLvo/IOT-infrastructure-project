@@ -232,6 +232,12 @@ int SListIsEmpty(const slist_t *list)
 	return DLListIsEmpty(list->d_list);
 }
 
-
-
-
+/*
+for gdb
+print *(int *)list->d_list->head->next
+print *(int *)list->d_list->head->next->next
+print *(int *)list->d_list->head->next->next->next->data
+print *(int *)start_iter.iter->data
+print *(int *)end_iter.iter->prev->data
+print *(int *)item - *(int *)data_to_compare
+*/
