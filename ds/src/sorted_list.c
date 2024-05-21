@@ -59,6 +59,11 @@ static int IsNullIterator(dll_iterator_t iterator)
 }
 */
 
+dll_t *SListGetDLL(slist_t *list)
+{
+	return list->d_list;	/*delete me!!!*/
+}
+
 
 slist_t *SListCreate(slist_compare_func_t cmp_func)
 {
@@ -235,40 +240,34 @@ int SListIsEmpty(const slist_t *list)
 
 slist_t* SDLListMerge(slist_t *dest_list, slist_t *src_list)
 {
-	slist_t dest_runner = SListBegin(dest_list);
-	slist_t src_runner_segment_start = SListBegin(src_list);
-	slist_t src_runner_segment_end = SListBegin(src_list);
+	slist_iterator_t src_runner_segment_start = SListBegin(src_list);
+	slist_iterator_t src_runner_segment_end = SListBegin(src_list);
 	
-	while (!SListEqual(dest_runner, SListEnd(dest_list)) &&
-		!!SListEqual(src_runner_segment_start, SListEnd(src_list)))
+	/* assign dest_runner to be the first node of dest_list that is larger than the first node of src_list */
+	slist_iterator_t dest_runner = SListFind(dest_list, SListBegin(dest_list), SListEnd(dest_list), SListGetData(SListBegin(src_list)));
+	
+	while (!SListIsEqualIter(dest_runner, SListEnd(dest_list)) &&
+		!SListIsEqualIter(src_runner_segment_start, SListEnd(src_list)))
 	{
 		/* find the first element in src_list (between src_runner_segment_start and end of src list) that is larger than dest_runner, and assign it to src_runner_end */
 		src_runner_segment_end = SListFind(src_list, src_runner_segment_start, SListEnd(src_list), SListGetData(dest_runner));
-		slist_t tmp_next_iterator = SListNext(src_runner_segment_end);
+		
+		DLListSplice(src_runner_segment_start.iter, src_runner_segment_end.iter, dest_runner.iter);
+
+		src_runner_segment_start = src_runner_segment_end;
 		
 		dest_runner = SListNext(dest_runner);
 	}
+	
+	if (SListIsEqualIter(dest_runner, SListEnd(dest_list)) &&
+		!SListIsEqualIter(src_runner_segment_start, SListEnd(src_list)))
+	{
+		src_runner_segment_end = SListFind(src_list, src_runner_segment_start, SListEnd(src_list), SListGetData(dest_runner));
+		DLListSplice(src_runner_segment_start.iter, src_runner_segment_end.iter, dest_runner.iter);
+	}
+	
+	return dest_list;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

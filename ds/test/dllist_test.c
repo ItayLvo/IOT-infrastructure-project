@@ -11,6 +11,8 @@ static int MatchInt(const void *item, const void *data_to_compare);
 static void DLLPrintList(dll_t *list);
 static int PrintListHelper(void *data, void *dummy);
 
+int TestMergeSortedLists(void);
+
 int main()
 {
 	dll_t *list = DLListCreate();
@@ -95,7 +97,14 @@ int main()
 	return 0;
 }
 
-
+int TestMergeSortedLists(void)
+{
+	dll_t *list1 = DLListCreate();
+	dll_t *list2 = DLListCreate();
+	dll_iterator_t iterator1 = NULL;
+	dll_iterator_t iterator2 = NULL;
+	int x1 = 1, x2 = 2, x3 = 3, x4 = 4, x5 = 5, x6 = 6, x7 = 7;
+}
 
 
 static void DLLPrintList(dll_t *list)
