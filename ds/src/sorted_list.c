@@ -28,6 +28,12 @@ slist_t *SListCreate(slist_compare_func_t cmp_func)
 	}
 	
 	s_list->d_list = DLListCreate();
+	if (NULL == s_list->d_list)
+	{
+		free(s_list);
+		return NULL;
+	}
+	
 	s_list->compare_func = cmp_func;
 	
 	return s_list;
@@ -78,8 +84,18 @@ void *SListPopBack(slist_t *list)
 
 int SListIsEqualIter(slist_iterator_t it1, slist_iterator_t it2)
 {
+	/* this condition fails at Merge function */
+	/*
+	#ifndef NDBUG
+	if (it1.sorted_list == it2.sorted_list)
+	{
+		return 0;
+	}
+	#endif
+	*/
 	return (DLListIsEqualIter(it1.iter, it2.iter));
 }
+
 
 slist_iterator_t SListBegin(const slist_t* list)
 {
