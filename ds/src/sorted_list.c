@@ -213,7 +213,7 @@ slist_t* SDLListMerge(slist_t *dest_list, slist_t *src_list)
 		/* find the first element in src_list (between src_runner_segment_start and end of src list) that is larger than dest_runner, and assign it to src_runner_end */
 		src_runner_segment_end = SListFind(src_list, src_runner_segment_start, SListEnd(src_list), SListGetData(dest_runner));
 		
-		/* skip splice of src_runner == dest_runner. nothing to splice at this iteration */
+		/* skip splice if src_runner == dest_runner. nothing to splice at this iteration */
 		if (!SListIsEqualIter(src_runner_segment_start, src_runner_segment_end))
 		{
 			DLListSplice(src_runner_segment_start.iter, src_runner_segment_end.iter, dest_runner.iter);
@@ -233,8 +233,8 @@ slist_t* SDLListMerge(slist_t *dest_list, slist_t *src_list)
 	return dest_list;
 }
 
-
-dll_t *SListGetDLL(slist_t *list) /* helper function for print */
+ /* helper function for printing list */
+dll_t *SListGetDLL(slist_t *list)
 {
 	return list->d_list;
 }
