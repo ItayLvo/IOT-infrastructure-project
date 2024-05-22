@@ -1,15 +1,15 @@
 /*
-date: 
-reviewer: 
-status: 
+date: 22/05
+reviewer: shahar
+status: done
 */
 
 #include <stdlib.h>	/* malloc */
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
 
-#include "../include/dllist.h"
-#include "../include/sorted_list.h"
+#include "dllist.h"
+#include "sorted_list.h"
 
 struct sorted_list
 {
@@ -64,6 +64,7 @@ slist_iterator_t SListInsert(slist_t *list,  void *data)
 
 slist_iterator_t SListRemove(slist_iterator_t iter)
 {
+	assert(NULL != iter.iter);
 	iter.iter = DLListRemove(iter.iter);
 	
 	return iter;
@@ -72,27 +73,27 @@ slist_iterator_t SListRemove(slist_iterator_t iter)
 
 void *SListPopFront(slist_t *list)
 {	
+	assert(NULL != list);
 	return (DLListPopFront(list->d_list));
 }
 
 
 void *SListPopBack(slist_t *list)
 {
+	assert(NULL != list);
 	return (DLListPopBack(list->d_list));
 }
 
 
 int SListIsEqualIter(slist_iterator_t it1, slist_iterator_t it2)
 {
-	/* this condition fails at Merge function */
-	/*
 	#ifndef NDBUG
-	if (it1.sorted_list == it2.sorted_list)
+	if (it1.sorted_list != it2.sorted_list)
 	{
-		return 0;
+		return 1;
 	}
 	#endif
-	*/
+	
 	return (DLListIsEqualIter(it1.iter, it2.iter));
 }
 
@@ -145,18 +146,21 @@ size_t SListCount(const slist_t *list)
 
 void *SListGetData(slist_iterator_t iter)
 {
+	assert(NULL != iter.iter);
 	return DLListGetData(iter.iter);
 }
 
 
 slist_iterator_t SListNext(slist_iterator_t iter)
 {
+	assert(NULL != iter.iter);
 	iter.iter = DLListNext(iter.iter);
 	return iter;
 }
 
 slist_iterator_t SListPrev(slist_iterator_t iter)
 {
+	assert(NULL != iter.iter);
 	iter.iter = DLListPrev(iter.iter);
 	return iter;
 }
@@ -195,6 +199,7 @@ slist_iterator_t SListFindIf(slist_iterator_t start_iter, slist_iterator_t end_i
 
 int SListIsEmpty(const slist_t *list)
 {
+	assert(NULL != list);
 	return DLListIsEmpty(list->d_list);
 }
 
@@ -233,7 +238,8 @@ slist_t* SDLListMerge(slist_t *dest_list, slist_t *src_list)
 	return dest_list;
 }
 
- /* helper function for printing list */
+
+/* helper function for printing list in test file, not part of API */
 dll_t *SListGetDLL(slist_t *list)
 {
 	return list->d_list;
