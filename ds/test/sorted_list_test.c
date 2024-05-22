@@ -1,7 +1,7 @@
 #include <stdio.h>	/* printf */
 
-#include "../include/dllist.h"
-#include "../include/sorted_list.h"
+#include "dllist.h"
+#include "sorted_list.h"
 
 int MatchInt(const void *item, const void *data_to_compare);
 int CompareInt(const void *item, const void *data_to_compare);
@@ -13,6 +13,7 @@ dll_t *SListGetDLL(slist_t *list);
 int TestMergeSortedLists(void);
 int TestInsertRemoveSortedList(void);
 int TestPopSortedList(void);
+int TestFindIfSortedList(void);
 
 int main()
 {
@@ -20,8 +21,12 @@ int main()
 	
 	success_status += TestInsertRemoveSortedList();
 	success_status += TestPopSortedList();
+	success_status += TestFindIfSortedList();
 	success_status += TestMergeSortedLists();
-
+	
+	printf("\nSummary:\nRan 4 tests. failed in %d tests.\n",
+		success_status);
+		
 	return success_status;
 }
 
@@ -29,6 +34,7 @@ int TestPopSortedList(void)
 {
 	slist_t *list = SListCreate(CompareInt);
 	int x1 = 1, x2 = 2, x3 = 3, x4 = 4;
+	size_t list_size = 0;
 	
 	printf("---Testing Pop: \n");
 	printf("Pushing 2->4->3->1 \n");
@@ -40,13 +46,15 @@ int TestPopSortedList(void)
 	printf("Popping front, popping back: \n");
 	SListPopFront(list);
 	SListPopBack(list);
-	printf("List count = %ld\n", SListCount(list));
+	list_size = SListCount(list);
+	printf("List count = %ld\n", list_size);
 	SListPrintList(list);
 	
-	printf("---------------\n");
+	printf("---------------\n\n");
 	SListDestroy(list);
 	
-	return 0;
+	return (list_size == 2) ? 0 : 1;
+
 }
 
 int TestInsertRemoveSortedList(void)
@@ -56,31 +64,80 @@ int TestInsertRemoveSortedList(void)
 	slist_iterator_t iterator;
 	
 	printf("---Testing Insert, Remove: \n");
-	printf("IsEmpty? %d\n", SListIsEmpty(list));
-	printf("List count = %ld\n\n", SListCount(list));
 	
-	printf("Pushing 3->1->4->2 \n");
+	if (SListIsEmpty(list) != 1)
+	{
+		printf("SListIsEmpty failed. Expected 1, result is %d\n",
+			SListIsEmpty(list));
+		return 1;	/* SListIsEmpty failed */
+	}
+	
+	if (SListCount(list)!= 0)
+	{
+		printf("SListCount failed. Expected 0, result is %ld\n",
+			SListCount(list));
+		return 1;	/* SListCount failed */
+	}
+	
+	
+	printf("Inserting 3->1->4->2 \n");
 	SListInsert(list,  &x3);
-	iterator = SListInsert(list,  &x1);
+	SListInsert(list,  &x1);
 	SListInsert(list,  &x4);
-	SListInsert(list,  &x2);
-	
-	printf("IsEmpty? %d\n\n", SListIsEmpty(list));
-	printf("List count = %ld\n\n", SListCount(list));
-	
+	iterator = SListInsert(list,  &x2);
+	if (SListIsEqualIter(iterator, SListEnd(list)))
+	{
+		return 1;	/* insert failed */
+	}
 	SListPrintList(list);
 	
-	
-	iterator = SListFindIf(SListBegin(list), SListEnd(list), &x2, MatchInt);
+	printf("Removing iterator. \n");
 	SListRemove(iterator);
-	printf("\niterator after remove(iterator): %d\n", *(int *)SListGetData(iterator));
-	printf("List count = %ld\n\n", SListCount(list));
+	SListPrintList(list);
+	if (SListCount(list)!= 3)
+	{
+		printf("SListCount or Remove failed. Expected 3, result is %ld\n",
+			SListCount(list));
+		return 1;	/* SListCount or Remove failed */
+	}
 	
 	SListDestroy(list);
-	printf("---------------\n");
+	printf("---------------\n\n");
 	
 	return 0;
 }
+
+
+int TestFindIfSortedList(void)
+{
+	slist_t *list = SListCreate(CompareInt);
+	int x1 = 1, x2 = 2, x3 = 3, x4 = 4;
+	slist_iterator_t iterator;
+	
+	printf("---Testing Find:\n");
+	
+	printf("Inserting 4->2->1->3 \n");
+	SListInsert(list,  &x4);
+	SListInsert(list,  &x2);
+	SListInsert(list,  &x1);
+	SListInsert(list,  &x3);
+	SListPrintList(list);
+	
+	printf("Finding iterator where data == 2.\n");
+	iterator = SListFindIf(SListBegin(list), SListEnd(list), &x2, MatchInt);
+	if (*(int *)SListGetData(iterator) != 2)
+	{
+		printf("Find or GetData failed. Expected 2, result is %d.\n",
+			*(int *)SListGetData(iterator));
+		return 1;
+	}
+
+	SListDestroy(list);
+	printf("---------------\n\n");
+	
+	return 0;
+}
+
 
 int TestMergeSortedLists(void)
 {
