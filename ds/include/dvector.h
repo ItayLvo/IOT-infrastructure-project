@@ -1,19 +1,10 @@
-/* filename: dynamic_vector.h */
-
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
 #include <stddef.h> /* size_t */
-/*
-in the .c file:
-struct vector
-{
-  size_t capacity;
-  size_t element_size;
-  size_t element_count;
-  void *buffer; 
-};
-*/
+
+#define GROWTH_FACTOR 2
+#define SHRINK_FACTOR 2
 
 typedef struct vector vector_t;
 

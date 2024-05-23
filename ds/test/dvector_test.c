@@ -1,7 +1,7 @@
 #include <stdio.h>	/* printf */
 #include <stdlib.h>	/* malloc */
 
-#include "../include/dvector.h"
+#include "dvector.h"
 
 int main()
 {

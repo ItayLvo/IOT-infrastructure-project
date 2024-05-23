@@ -4,17 +4,16 @@
 #include <stdio.h>	/* printf */
 #include <assert.h>	/* assert */
 
-#include "../include/dvector.h"
+#include "dvector.h"	/* dvector functions */
 
-#define SHRINK_FACTOR 2
-#define GROWTH_FACTOR 2
+/* GROWTH_FACTOR and SHRINK_FACTOR macros defined in header file as 2 */
 
 struct vector
 {
 	size_t capacity;
 	size_t element_size;
 	size_t element_count;
-	void *buffer ;
+	void *buffer;
 };
 
 
@@ -49,7 +48,7 @@ void VectorDestroy(vector_t *vector)
 
 void *VectorAccessVal(vector_t *vector, size_t index)
 {
-	void *ptr;
+	void *ptr = NULL;
 	assert(vector);
 	
 	ptr = (char *)(vector->buffer) + (index * vector->element_size);
@@ -72,11 +71,14 @@ size_t VectorCapacity(const vector_t *vector)
 
 int VectorPushBack(vector_t *vector, const void *new_element_data)
 {
-	void *ptr = NULL;
+	void *ptr_write_location = NULL;
 	
 	if (vector->element_count == vector->capacity)
 	{
-		vector->buffer = realloc(vector->buffer, vector->element_size * vector->capacity * GROWTH_FACTOR);
+		vector->buffer = realloc(vector->buffer,
+				vector->element_size * vector->capacity *
+				GROWTH_FACTOR);
+			
 		if (NULL == vector->buffer)
 		{
 			return 1;
@@ -84,12 +86,13 @@ int VectorPushBack(vector_t *vector, const void *new_element_data)
 		vector->capacity = vector->capacity * GROWTH_FACTOR;
 	}
 	
-	ptr = (char *)(vector->buffer) + (vector->element_count * vector->element_size);
-	ptr = memcpy(ptr, new_element_data, vector->element_size);
+	ptr_write_location = (char *)(vector->buffer) +
+		(vector->element_count * vector->element_size);
+		
+	ptr_write_location = memcpy(ptr_write_location,
+		new_element_data, vector->element_size);
 	
 	++(vector->element_count);
-	
-	printf("pushed\n\n");
 	
 	return 0;
 }
@@ -108,27 +111,31 @@ void VectorPopBack(vector_t *vector)
 	if ((vector->capacity / SHRINK_FACTOR) >= vector->element_count)
 	{
 		vector->buffer = realloc(vector->buffer,
-			vector->element_size * (vector->capacity / SHRINK_FACTOR));
+			vector->element_size *
+			(vector->capacity / SHRINK_FACTOR));
 			
 		vector->capacity = vector->capacity / SHRINK_FACTOR;
 	}
 	
 	--(vector->element_count);
-	
-	printf("popped\n\n");
 }
 
 
 void VectorShrink(vector_t *vector)
 {
-	vector->buffer = realloc(vector->buffer, vector->element_count * vector->element_size);
+	vector->buffer = realloc(vector->buffer,
+		vector->element_count * vector->element_size);
+		
 	vector->capacity = vector->element_count;
 }
 
 
 int VectorReserve(vector_t *vector, size_t n_new_elements)
 {
-	vector->buffer = realloc(vector->buffer, (vector->element_size * (vector->capacity + n_new_elements)));
+	vector->buffer = realloc(vector->buffer,
+		(vector->element_size *
+		(vector->capacity + n_new_elements)));
+		
 	if (NULL == vector->buffer)
 	{
 		return 1;
