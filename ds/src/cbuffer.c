@@ -17,7 +17,7 @@ struct cbuffer
 
 cbuffer_t *CBufferCreate(size_t buffer_size)
 {
-	cbuffer_t *cbuffer = (cbuffer_t *)malloc(sizeof(cbuffer_t) + buffer_size - 8);
+	cbuffer_t *cbuffer = (cbuffer_t *)malloc(offsetof(cbuffer_t, buffer) + buffer_size);
 	
 	if (NULL == cbuffer)
 	{
