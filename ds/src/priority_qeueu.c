@@ -8,17 +8,6 @@ status:
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
 
-
-
-
-
-#include <stdio.h>	/* printf */
-
-
-
-
-
-
 #include "priority_queue.h"
 #include "sorted_list.h"
 
@@ -26,13 +15,13 @@ status:
 struct priorityq
 {
 	slist_t *sorted_list;
-	pqcompare_func_t cmp_func;
+	pq_compare_func_t cmp_func;
 };
 
 
-priorityq_t *PQCreate(pqcompare_func_t cmp_func)
+pq_t *PQCreate(pq_compare_func_t cmp_func)
 {
-	priorityq_t *priority_queue = (priorityq_t *)malloc(sizeof(priorityq_t));
+	pq_t *priority_queue = (pq_t *)malloc(sizeof(pq_t));
 	if (NULL == priority_queue)
 	{
 		return NULL;
@@ -51,7 +40,7 @@ priorityq_t *PQCreate(pqcompare_func_t cmp_func)
 }
 
 
-void PQDestroy(priorityq_t *queue)
+void PQDestroy(pq_t *queue)
 {
 	assert(queue);
 	
@@ -60,7 +49,7 @@ void PQDestroy(priorityq_t *queue)
 }
 
 
-int PQEnqueue(priorityq_t *queue, void *data)
+int PQEnqueue(pq_t *queue, void *data)
 {
 	slist_iterator_t insert_fail_check = SListInsert(queue->sorted_list, data);
 	
@@ -73,7 +62,7 @@ int PQEnqueue(priorityq_t *queue, void *data)
 }
 
 
-void *PQDequeue(priorityq_t *queue)
+void *PQDequeue(pq_t *queue)
 {
 	assert(queue);
 	
@@ -81,13 +70,13 @@ void *PQDequeue(priorityq_t *queue)
 }
 
 
-void *PQPeek(const priorityq_t *queue)
+void *PQPeek(const pq_t *queue)
 {
 	return SListGetData(SListPrev(SListEnd(queue->sorted_list)));
 }
 
 
-int PQIsEmpty(const priorityq_t *queue)
+int PQIsEmpty(const pq_t *queue)
 {
 	assert(queue);
 	
@@ -95,13 +84,13 @@ int PQIsEmpty(const priorityq_t *queue)
 }
 
 
-size_t PQSize(const priorityq_t *queue)
+size_t PQSize(const pq_t *queue)
 {
 	return SListCount(queue->sorted_list);
 }
 
 
-void PQClear(priorityq_t *queue)
+void PQClear(pq_t *queue)
 {
 	assert(queue);
 	
@@ -112,10 +101,20 @@ void PQClear(priorityq_t *queue)
 }
 
 
-void *PQErase(priorityq_t *queue, pqmatch_func_t is_match, void *param)
+void *PQErase(pq_t *queue, pq_match_func_t is_match, void *param)
 {
-	assert(queue);
+	void *data = NULL;
 	
-	return SListGetData(SListRemove(SListFindIf(SListBegin(queue->sorted_list), SListEnd(queue->sorted_list), param, is_match)));
+	slist_iterator_t element_found = SListFindIf(SListBegin(queue->sorted_list), SListEnd(queue->sorted_list), param, is_match);
+	
+	if (SListIsEqualIter(element_found, SListEnd(queue->sorted_list)))
+	{
+		return NULL;
+	}
+
+	data = SListGetData(element_found);
+	SListRemove(element_found);
+	
+	return data;
 }
 
