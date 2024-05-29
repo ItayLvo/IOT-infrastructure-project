@@ -205,23 +205,21 @@ dll_iterator_t DLListRemove(dll_iterator_t iterator)
 
 void *DLListPopFront(dll_t *list)
 {
-	if (DLListIsEmpty(list))
-	{
-		return NULL;
-	}
+	void *data = DLListGetData(DLListBegin(list));
 	
-	return(IteratorGetData(DLListRemove(DLListBegin(list))));
+	DLListRemove(DLListBegin(list));
+	
+	return data;
 }
 
 
 void *DLListPopBack(dll_t *list)
-{
-	if (DLListIsEmpty(list))
-	{
-		return NULL;
-	}
+{	
+	void *data = DLListGetData(DLListPrev(DLListEnd(list)));
 	
-	return(IteratorGetData(DLListRemove(IteratorGetPrev(list->tail))));
+	DLListRemove(IteratorGetPrev(list->tail));
+	
+	return data;
 }
 
 
