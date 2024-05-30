@@ -89,7 +89,7 @@ int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t task_uid)
 
 
 
-
+/*
 int SchedulerRun(scheduler_t *scheduler)
 {
 	task_t *task;
@@ -112,15 +112,16 @@ int SchedulerRun(scheduler_t *scheduler)
 		
 		action_func_status = TaskExecuteActionFunc(task);
 		TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
-		if (action_func_status != -1)
-		{
-			PQEnqueue(scheduler->tasks_priority_queue, task);
-		}
 		
-		else
+		if (action_func_status == -1)
 		{
 			TaskExecuteCleanFunc(task);
 			DestroyTask(task);
+		}
+		
+		else
+		{			
+			PQEnqueue(scheduler->tasks_priority_queue, task);
 		}
 		
 		
@@ -129,6 +130,60 @@ int SchedulerRun(scheduler_t *scheduler)
 	
 	return 0;
 }
+*/
+int SchedulerRun(scheduler_t *scheduler)
+{
+	task_t *task;
+	size_t time_until_task = 0;
+	int action_func_status = 0;
+	size_t current_time = 0;
+	is_scheduler_on = ON;
+	
+	while (is_scheduler_on == ON && !SchedulerIsEmpty(scheduler))
+	{
+		task = PQPeek(scheduler->tasks_priority_queue);
+		
+		current_time = time(NULL);
+		time_until_task = TaskGetTimeToStart(task) - current_time;
+		while (time_until_task > 0)
+		{
+			sleep(1);
+			current_time = time(NULL);
+			time_until_task = TaskGetTimeToStart(task) - current_time;
+		}
+		
+		action_func_status = TaskExecuteActionFunc(task);
+		TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
+		
+		
+		/* if after executing the action function the peek() returns a different task, the task removed itself from the queue */
+		if (!UIDIsEqual(TaskGetUid(task), TaskGetUid(PQPeek(scheduler->tasks_priority_queue))))
+		{
+			TaskExecuteCleanFunc(task);
+			DestroyTask(task);
+		}
+		
+		else
+		{
+			task = PQDequeue(scheduler->tasks_priority_queue);
+			
+			/* action function return status -1 means function removes itself from the queue */
+			if (action_func_status == -1)
+			{
+				TaskExecuteCleanFunc(task);
+				DestroyTask(task);
+			}
+			else
+			{			
+				PQEnqueue(scheduler->tasks_priority_queue, task);
+			}
+		}
+	}
+	
+	
+	return 0;
+}
+
 
 void SchedulerStop(scheduler_t *scheduler)
 {

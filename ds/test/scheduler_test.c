@@ -8,28 +8,27 @@ int PrintAndIncrementCharActionFunc(void *ch);
 int GenericCleanFunc(void);
 int ActionStopSchedulerFunc(void *scheduler);
 
+static scheduler_t *scheduler = NULL;
+
 int main()
 {
-	scheduler_t *scheduler = SchedulerCreate();
-	int x1 = 1;
+	
 	char ch1 = 'a';
 	size_t interval_in_seconds = 1;
+	ilrd_uid_t uid2;
+	ilrd_uid_t uid3;
 	
-	ilrd_uid_t uid3 = SchedulerAddTask(scheduler,
+	scheduler = SchedulerCreate();
+	
+	uid3 = SchedulerAddTask(scheduler,
 				ActionStopSchedulerFunc,
 				GenericCleanFunc,
 				scheduler,
-				interval_in_seconds+20);
+				interval_in_seconds + 20);
 				
-				
-	ilrd_uid_t uid1 = SchedulerAddTask(scheduler,
-				PrintAndIncrementNumActionFunc,
-				GenericCleanFunc,
-				&x1,
-				interval_in_seconds);
 	
 				
-	ilrd_uid_t uid2 = SchedulerAddTask(scheduler,
+	uid2 = SchedulerAddTask(scheduler,
 				PrintAndIncrementCharActionFunc,
 				GenericCleanFunc,
 				&ch1,
@@ -52,21 +51,32 @@ int PrintAndIncrementNumActionFunc(void *num)
 	printf("%d\n", *(int *)num);
 	++*(int *)num;
 	
-	/*
-	if (*(int *)num == 5)
+	
+	if (*(int *)num == 10)
 	{
 		return -1;
 	}
-	*/
+	
 	
 	return 0;
 }
 
 int PrintAndIncrementCharActionFunc(void *ch)
 {
+	static int x1 = 1;
+	size_t interval_in_seconds = 1;
+	
 	printf("%c\n", *(char *)ch);
 	++*(char *)ch;
 	
+	if (*(char *)ch == 'c')
+	{
+		ilrd_uid_t uid1 = SchedulerAddTask(scheduler,
+				PrintAndIncrementNumActionFunc,
+				GenericCleanFunc,
+				&x1,
+				interval_in_seconds);
+	}
 
 	
 	return 0;
