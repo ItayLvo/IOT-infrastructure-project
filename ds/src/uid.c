@@ -1,8 +1,6 @@
 #include <time.h>	/* time_t */
 #include <stddef.h>	/* size_t */
 #include <sys/types.h>	/* pid_t */
-#include <stdlib.h>	/* malloc */
-#include <stdio.h>	/* printf */
 #include <assert.h>	/* assert */
 #include <unistd.h>	/* getpid */
 

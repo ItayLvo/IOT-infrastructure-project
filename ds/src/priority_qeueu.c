@@ -15,7 +15,6 @@ status:
 struct priorityq
 {
 	slist_t *sorted_list;
-	pq_compare_func_t cmp_func;
 };
 
 
@@ -33,8 +32,6 @@ pq_t *PQCreate(pq_compare_func_t cmp_func)
 		free(priority_queue);
 		return NULL;
 	}
-	
-	priority_queue->cmp_func = cmp_func;
 	
 	return priority_queue;
 }
