@@ -30,17 +30,26 @@ typedef struct task ilrd_task_t;
 */
 
 /*---------------------*/
-typedef sturct scheduler scheduler_t;
+typedef struct scheduler scheduler_t;
 
 /*
 *scheduler_action_func_t
 description: typedef to function pointer that executes the task. 
 params: (void * - input data) 
 return Value: 0 for success and stay in scheduler, 
-              1 for success and leave scheduler
-             -1 for failiure.
+		1 for failiure.
+		-1 for success and leave scheduler
 */
 typedef int (*scheduler_action_func_t)(void *);
+
+/*
+*scheduler_clean_func_t
+description: typedef to function pointer that cleans up after task. 
+params: no parmeters.
+return Value: 0 for success and stay in scheduler, 
+              1 for failiure.
+*/
+typedef int (*scheduler_clean_func_t)(void);
 
 /*
 CreateScheduler
@@ -107,7 +116,7 @@ return: the exit status of the handler function
 time complexity: O(1)
 space complexity: O(1)
 */
-int SchedulerStop(scheduler_t *scheduler);
+void SchedulerStop(scheduler_t *scheduler);
 
 /*
 SchedulerSize
@@ -139,4 +148,4 @@ space complexity: O(1)
 */
 void SchedulerClear(scheduler_t *scheduler);
 
-#endif /*__SCHEDULER_H__ */a
+#endif /*__SCHEDULER_H__ */
