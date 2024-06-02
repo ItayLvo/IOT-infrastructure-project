@@ -9,17 +9,13 @@
 #include "priority_queue.h"	/* pq_t functions */
 #include "scheduler.h"		/* scheduler_t functions */
 
-/*
-gd ./ds/src/priority_qeueu.c ./ds/test/priority_queue_test.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include
-*/
-
 struct scheduler
 {
     pq_t *tasks_priority_queue;
 };
 
-int CompareItemPriority(const void *item, const void *data_to_compare);
-int MatchTask(const void *item, const void *data_to_compare);
+static int CompareItemPriority(const void *item, const void *data_to_compare);
+static int MatchTask(const void *item, const void *data_to_compare);
 
 enum on_status_t {OFF, ON};
 static int is_scheduler_on = OFF;
@@ -89,48 +85,6 @@ int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t task_uid)
 
 
 
-/*
-int SchedulerRun(scheduler_t *scheduler)
-{
-	task_t *task;
-	size_t time_until_task = 0;
-	int action_func_status = 0;
-	size_t current_time = 0;
-	is_scheduler_on = ON;
-	
-	while (is_scheduler_on == ON && !SchedulerIsEmpty(scheduler))
-	{
-		task = PQDequeue(scheduler->tasks_priority_queue);
-		current_time = time(NULL);
-		time_until_task = TaskGetTimeToStart(task) - current_time;
-		while (time_until_task > 0)
-		{
-			sleep(1);
-			current_time = time(NULL);
-			time_until_task = TaskGetTimeToStart(task) - current_time;
-		}
-		
-		action_func_status = TaskExecuteActionFunc(task);
-		TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
-		
-		if (action_func_status == -1)
-		{
-			TaskExecuteCleanFunc(task);
-			DestroyTask(task);
-		}
-		
-		else
-		{			
-			PQEnqueue(scheduler->tasks_priority_queue, task);
-		}
-		
-		
-	}
-	
-	
-	return 0;
-}
-*/
 int SchedulerRun(scheduler_t *scheduler)
 {
 	task_t *task;
@@ -212,13 +166,7 @@ int SchedulerIsEmpty(const scheduler_t *scheduler)
 }
 
 
-
-
-
-
-
-/* test that smallest item is top priority */
-int CompareItemPriority(const void *item, const void *data_to_compare)
+static int CompareItemPriority(const void *item, const void *data_to_compare)
 {
 	task_t *task1 = (task_t *)item;
 	task_t *task2 = (task_t *)data_to_compare;
@@ -232,7 +180,7 @@ int CompareItemPriority(const void *item, const void *data_to_compare)
 
 
 
-int MatchTask(const void *item, const void *data_to_compare)
+static int MatchTask(const void *item, const void *data_to_compare)
 {
  	task_t *task = (task_t *)item;
 	ilrd_uid_t uid1 = TaskGetUid(task);
@@ -246,3 +194,47 @@ int MatchTask(const void *item, const void *data_to_compare)
 
 
 
+/* previous run() version: */
+
+/*
+int SchedulerRun(scheduler_t *scheduler)
+{
+	task_t *task;
+	size_t time_until_task = 0;
+	int action_func_status = 0;
+	size_t current_time = 0;
+	is_scheduler_on = ON;
+	
+	while (is_scheduler_on == ON && !SchedulerIsEmpty(scheduler))
+	{
+		task = PQDequeue(scheduler->tasks_priority_queue);
+		current_time = time(NULL);
+		time_until_task = TaskGetTimeToStart(task) - current_time;
+		while (time_until_task > 0)
+		{
+			sleep(1);
+			current_time = time(NULL);
+			time_until_task = TaskGetTimeToStart(task) - current_time;
+		}
+		
+		action_func_status = TaskExecuteActionFunc(task);
+		TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
+		
+		if (action_func_status == -1)
+		{
+			TaskExecuteCleanFunc(task);
+			DestroyTask(task);
+		}
+		
+		else
+		{			
+			PQEnqueue(scheduler->tasks_priority_queue, task);
+		}
+		
+		
+	}
+	
+	
+	return 0;
+}
+*/

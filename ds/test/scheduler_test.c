@@ -10,6 +10,10 @@ int ActionStopSchedulerFunc(void *scheduler);
 
 static scheduler_t *scheduler = NULL;
 
+/*
+gd ./ds/src/priority_qeueu.c ./ds/test/scheduler_test.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include
+*/
+
 int main()
 {
 	
