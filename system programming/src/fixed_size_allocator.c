@@ -8,13 +8,17 @@
 
 struct fixed_size_allocator
 {
+	allocator_block_t *free_list_head;
 	size_t block_size;
 	size_t current_free_blocks;
 	size_t pool_size; 
 	void *free_list;
 };
 
-
+typedef struct 
+{
+    void *next;
+} allocator_block_t;
 
 fixed_size_allocator_t *FSAInitialize(void *memory_pool, size_t block_size, size_t pool_size)
 {
@@ -31,7 +35,7 @@ fixed_size_allocator_t *FSAInitialize(void *memory_pool, size_t block_size, size
 	block = allocator->free_list;
 	for (index = 0; index < allocator->current_free_blocks; ++index)
 	{
-		*((void **)block) = block + block_size;		/******* why? ********/
+		*((void **)block) = block + block_size;		/******* not sure at all... ********/
 		block += block_size;
 	}
 	*((void **)block) = NULL;
