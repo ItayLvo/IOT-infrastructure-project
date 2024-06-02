@@ -107,28 +107,28 @@ int SchedulerRun(scheduler_t *scheduler)
 		}
 		
 		action_func_status = TaskExecuteActionFunc(task);
-		TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
 		
-		
-		/* if after executing the action function the peek() returns a different task, the task removed itself from the queue */
+
+		/* if after executing the action function the peek() returns a different task, that means the task removed itself from the queue */
 		if (!UIDIsEqual(TaskGetUid(task), TaskGetUid(PQPeek(scheduler->tasks_priority_queue))))
 		{
 			TaskExecuteCleanFunc(task);
 			DestroyTask(task);
 		}
-		
 		else
 		{
 			task = PQDequeue(scheduler->tasks_priority_queue);
 			
-			/* action function return status -1 means function removes itself from the queue */
+			/* if action function return status is -1, that means the function opts-out from the queue */
 			if (action_func_status == -1)
 			{
 				TaskExecuteCleanFunc(task);
 				DestroyTask(task);
 			}
+			/* if the function didn't remove itself from the queue and didnt opt-out, update function time for activation and re-enqueue */
 			else
-			{			
+			{	
+				TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
 				PQEnqueue(scheduler->tasks_priority_queue, task);
 			}
 		}
@@ -194,8 +194,8 @@ static int MatchTask(const void *item, const void *data_to_compare)
 
 
 
-/* previous run() version: */
-
+/* legacy run() version */
+/* this implementation doesn't check if a function removed itself from the queue */
 /*
 int SchedulerRun(scheduler_t *scheduler)
 {
