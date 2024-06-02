@@ -1,15 +1,9 @@
-/*
-date: 
-reviewer: 
-status:
-*/
-
 #include <stdlib.h>	/* malloc */
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
 
 #include "priority_queue.h"
-#include "sorted_list.h"
+#include "sorted_list.h" 	/* Sorted List functions (Create, Add, Destroy, Pop, IsEqual, GetData, Remove, GetEnd, GetBegin) */
 
 
 struct priorityq
@@ -50,12 +44,7 @@ int PQEnqueue(pq_t *queue, void *data)
 {
 	slist_iterator_t insert_fail_check = SListInsert(queue->sorted_list, data);
 	
-	if (SListIsEqualIter(insert_fail_check, SListEnd(queue->sorted_list)))
-	{
-		return 1;
-	}
-	
-	return 0;
+	return (SListIsEqualIter(insert_fail_check, SListEnd(queue->sorted_list)));
 }
 
 
@@ -69,6 +58,8 @@ void *PQDequeue(pq_t *queue)
 
 void *PQPeek(const pq_t *queue)
 {
+	assert(queue);
+	
 	return SListGetData(SListPrev(SListEnd(queue->sorted_list)));
 }
 
@@ -83,6 +74,8 @@ int PQIsEmpty(const pq_t *queue)
 
 size_t PQSize(const pq_t *queue)
 {
+	assert(queue);
+	
 	return SListCount(queue->sorted_list);
 }
 
