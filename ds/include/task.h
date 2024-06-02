@@ -3,8 +3,8 @@
 
 #include <stddef.h> 	/* size_t */
 
-#include "uid.h"	/* uid functions */
-#include "scheduler.h"		/* ilrd_scheduler_t functions */
+#include "uid.h"	/* uid typedefs, variables and functions */
+#include "scheduler.h"	/* ilrd_scheduler_t typedefs */
 
 typedef struct task task_t;
 
