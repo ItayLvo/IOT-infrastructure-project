@@ -5,31 +5,7 @@
 
 #include "uid.h" /*ilrd_uid_t*/
 
-/* will be in the scheduler.c file
-sturct scheduler 
-{
-    pqueue_t list;
-};
-*/
 
-
-/* seperate task.c file 
-struct task
-{
-    scheduler_action_func_t scheduler_action_func;
-    scheduler_clean_func_t scheduler_clean_func;
-    void *action_params;
-    time_t time_to_run
-    size_t interval;
-    ilrd_uid_t uid;
-};
-*/
-
-/*in task.h file
-typedef struct task ilrd_task_t; 
-*/
-
-/*---------------------*/
 typedef struct scheduler scheduler_t;
 
 /*

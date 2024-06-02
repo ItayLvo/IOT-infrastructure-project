@@ -14,11 +14,14 @@ struct scheduler
     pq_t *tasks_priority_queue;
 };
 
-static int CompareItemPriority(const void *item, const void *data_to_compare);
+static int CompareTaskPriority(const void *item, const void *data_to_compare);
 static int MatchTask(const void *item, const void *data_to_compare);
 
-enum on_status_t {OFF, ON};
-static int is_scheduler_on = OFF;
+enum scheduler_status_t {SCHEDULER_OFF, SCHEDULER_ON};
+/* static variable for monitoring status of scheduler on/off */
+/* if there is more than 1 instance of scheduler, they are all on/off according to this single static var */ 
+static int is_scheduler_on = SCHEDULER_OFF;
+
 
 scheduler_t *SchedulerCreate(void)
 {
@@ -28,7 +31,7 @@ scheduler_t *SchedulerCreate(void)
 		return NULL;
 	}
 	
-	scheduler->tasks_priority_queue = PQCreate(CompareItemPriority);
+	scheduler->tasks_priority_queue = PQCreate(CompareTaskPriority);
 	
 	return scheduler;
 }
@@ -51,7 +54,6 @@ ilrd_uid_t SchedulerAddTask(scheduler_t *scheduler,
 	int enqueue_status = 0;
 	task_t *task = NULL;
 	ilrd_uid_t uid = UIDGetBad();
-	
 	
 	task = CreateTask(action_func, clean_func,
 				action_param, time_interval);
@@ -76,24 +78,33 @@ ilrd_uid_t SchedulerAddTask(scheduler_t *scheduler,
 int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t task_uid)
 {
 	task_t *erased_task = PQErase(scheduler->tasks_priority_queue, MatchTask, &task_uid);
+	if (NULL == erased_task)
+	{
+		return 1;
+	}
 	
 	TaskExecuteCleanFunc(erased_task);
 	
-	/* if NULL == erase_result, returns 1 --> SchedulerRemovefailed */
-	return (NULL == erased_task);
+	return 0;
 }
 
 
-
+/* a-synchronic stop pseudo-code: */
+/* fopen (which file? if sent by user, need to change API of Run/Create) before outer while loop */	
+/* fread before entering inner while loop */
+/* if stop signal exists in file => stop the scheduler */
+/* fread after each sleep(1) iteration */
+/* if stop signal exists in file => stop the scheduler */
+/* fclose before return statements */
 int SchedulerRun(scheduler_t *scheduler)
 {
-	task_t *task;
+	task_t *task = NULL;
 	size_t time_until_task = 0;
 	int action_func_status = 0;
 	size_t current_time = 0;
-	is_scheduler_on = ON;
+	is_scheduler_on = SCHEDULER_ON;
 	
-	while (is_scheduler_on == ON && !SchedulerIsEmpty(scheduler))
+	while (is_scheduler_on == SCHEDULER_ON && !SchedulerIsEmpty(scheduler))
 	{
 		task = PQPeek(scheduler->tasks_priority_queue);
 		
@@ -134,6 +145,10 @@ int SchedulerRun(scheduler_t *scheduler)
 		}
 	}
 	
+	if (is_scheduler_on == SCHEDULER_OFF)
+	{
+		return 1;
+	}
 	
 	return 0;
 }
@@ -142,7 +157,7 @@ int SchedulerRun(scheduler_t *scheduler)
 void SchedulerStop(scheduler_t *scheduler)
 {
 	(void)(scheduler);
-	is_scheduler_on = OFF;
+	is_scheduler_on = SCHEDULER_OFF;
 }
 
 
@@ -166,7 +181,7 @@ int SchedulerIsEmpty(const scheduler_t *scheduler)
 }
 
 
-static int CompareItemPriority(const void *item, const void *data_to_compare)
+static int CompareTaskPriority(const void *item, const void *data_to_compare)
 {
 	task_t *task1 = (task_t *)item;
 	task_t *task2 = (task_t *)data_to_compare;
