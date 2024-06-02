@@ -1,8 +1,7 @@
 #include <stddef.h>	/* size_t */
 #include <stdlib.h>	/* malloc */
-#include <stdio.h>	/* printf */
 #include <assert.h>	/* assert */
-#include<unistd.h>	/* sleep */
+#include <unistd.h>	/* sleep */
 
 #include "uid.h"		/* uid_t functions */
 #include "task.h"		/* task_t functions */
@@ -18,8 +17,7 @@ static int CompareTaskPriority(const void *item, const void *data_to_compare);
 static int MatchTask(const void *item, const void *data_to_compare);
 
 enum scheduler_status_t {SCHEDULER_OFF, SCHEDULER_ON};
-/* static variable for monitoring status of scheduler on/off */
-/* if there is more than 1 instance of scheduler, they are all on/off according to this single static var */ 
+/* static variable for monitoring status of scheduler on/off, affects all instances of scheduler_t */
 static int is_scheduler_on = SCHEDULER_OFF;
 
 
