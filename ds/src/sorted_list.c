@@ -8,8 +8,8 @@ status: done
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
 
-#include "dllist.h"
-#include "sorted_list.h"
+#include "dllist.h"	/* dll_t functions: Create, Remove, Find, Insert, ... */
+#include "sorted_list.h"	/* slist_t, slist functions */
 
 struct sorted_list
 {
@@ -166,7 +166,7 @@ slist_iterator_t SListPrev(slist_iterator_t iter)
 }
 
 
-/* uses compare_func to find the first element in the range that is larger than data */
+/* uses compare_func to find the first element in the range that is larger than 'data' argument */
 slist_iterator_t SListFind(slist_t *list, slist_iterator_t start_iter,
                            slist_iterator_t end_iter, void* data)
 {
@@ -239,7 +239,7 @@ slist_t* SDLListMerge(slist_t *dest_list, slist_t *src_list)
 }
 
 
-/* helper function for printing list in test file, not part of API */
+/* helper function for printing list in sortrd_list_test.c file, not a part of the API */
 dll_t *SListGetDLL(slist_t *list)
 {
 	return list->d_list;

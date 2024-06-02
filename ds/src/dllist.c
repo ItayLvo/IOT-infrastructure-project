@@ -9,7 +9,7 @@ status:
 #include <stdio.h>	/* printf, size_t */
 #include <assert.h>	/* assert */
 
-#include "../include/dllist.h"
+#include "dllist.h"	/* dll_t, dll_iterator_t, dll functions */
 
 #define UNUSED(x) (void)(x)
 
