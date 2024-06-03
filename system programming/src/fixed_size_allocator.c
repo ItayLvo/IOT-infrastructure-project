@@ -40,7 +40,6 @@ fixed_size_allocator_t *FSAInitialize(void *memory_pool, size_t block_size, size
 	}
 	*(void **)current_block = NULL;
 	
-	
 	return allocator;
 }
 
@@ -56,7 +55,7 @@ void *FSAAlloc(fixed_size_allocator_t *allocator)
 	}
 	
 	allocated_block = allocator->free_list;
-	allocator->free_list = *(void **)allocator->free_list;
+	allocator->free_list = *(void **)(allocator->free_list);
 
 	return allocated_block;
 }
