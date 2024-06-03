@@ -8,17 +8,17 @@
 #include "priority_queue.h"	/* pq_t functions */
 #include "scheduler.h"		/* scheduler_t functions */
 
+enum scheduler_status_t {SCHEDULER_OFF, SCHEDULER_ON};
+enum action_func_status {ACTION_FUNC_SUCCESS, ACTION_FUNC_FAILURE, ACTION_FUNC_REMOVE_ME};
+
 struct scheduler
 {
     pq_t *tasks_priority_queue;
+    enum scheduler_status_t is_scheduler_on;
 };
 
 static int CompareTaskPriority(const void *item, const void *data_to_compare);
 static int MatchTask(const void *item, const void *data_to_compare);
-
-enum scheduler_status_t {SCHEDULER_OFF, SCHEDULER_ON};
-/* static variable for monitoring status of scheduler on/off, affects all instances of scheduler_t */
-static int is_scheduler_on = SCHEDULER_OFF;
 
 
 scheduler_t *SchedulerCreate(void)
@@ -30,6 +30,11 @@ scheduler_t *SchedulerCreate(void)
 	}
 	
 	scheduler->tasks_priority_queue = PQCreate(CompareTaskPriority);
+	if (NULL == scheduler->tasks_priority_queue)
+	{
+		free(scheduler);
+		return NULL;
+	}
 	
 	return scheduler;
 }
@@ -37,6 +42,8 @@ scheduler_t *SchedulerCreate(void)
 
 void SchedulerDestroy(scheduler_t *scheduler)
 {
+	assert(scheduler);
+	
 	SchedulerClear(scheduler);
 	PQDestroy(scheduler->tasks_priority_queue);
 	free(scheduler);
@@ -52,14 +59,20 @@ ilrd_uid_t SchedulerAddTask(scheduler_t *scheduler,
 	int enqueue_status = 0;
 	task_t *task = NULL;
 	ilrd_uid_t uid = UIDGetBad();
+	assert(scheduler);
 	
 	task = CreateTask(action_func, clean_func,
 				action_param, time_interval);
-	uid = TaskGetUid(task);
+				
+	if (NULL == task)
+	{
+		return UIDGetBad();
+	}
 	
+	uid = TaskGetUid(task);
 	if (UIDIsEqual(UIDGetBad(), uid))
 	{
-		return uid;
+		return UIDGetBad();
 	}
 	
 	enqueue_status = PQEnqueue(scheduler->tasks_priority_queue, task);
@@ -75,7 +88,10 @@ ilrd_uid_t SchedulerAddTask(scheduler_t *scheduler,
 
 int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t task_uid)
 {
-	task_t *erased_task = PQErase(scheduler->tasks_priority_queue, MatchTask, &task_uid);
+	task_t *erased_task = NULL;
+	assert(scheduler);
+	
+	erased_task = PQErase(scheduler->tasks_priority_queue, MatchTask, &task_uid);
 	if (NULL == erased_task)
 	{
 		return 1;
@@ -100,50 +116,46 @@ int SchedulerRun(scheduler_t *scheduler)
 	size_t time_until_task = 0;
 	int action_func_status = 0;
 	size_t current_time = 0;
-	is_scheduler_on = SCHEDULER_ON;
+	scheduler->is_scheduler_on = SCHEDULER_ON;
+	assert(scheduler);
 	
-	while (is_scheduler_on == SCHEDULER_ON && !SchedulerIsEmpty(scheduler))
+	while (scheduler->is_scheduler_on == SCHEDULER_ON && !SchedulerIsEmpty(scheduler))
 	{
 		task = PQPeek(scheduler->tasks_priority_queue);
-		
 		current_time = time(NULL);
 		time_until_task = TaskGetTimeToStart(task) - current_time;
+		
 		while (time_until_task > 0)
 		{
 			sleep(1);
+			/* TODO: after every 1 sec sleep, check stream (file, terminal, stdin, etc...) for a-synchronic STOP command */
+			/* if i use sleep(time_until_task) i will miss the stop command */
 			current_time = time(NULL);
 			time_until_task = TaskGetTimeToStart(task) - current_time;
 		}
 		
 		action_func_status = TaskExecuteActionFunc(task);
 		
-
-		/* if after executing the action function the peek() returns a different task, that means the task removed itself from the queue */
-		if (!UIDIsEqual(TaskGetUid(task), TaskGetUid(PQPeek(scheduler->tasks_priority_queue))))
+		task = PQErase(scheduler->tasks_priority_queue, MatchTask, task);
+		/* if PQErase returned NULL, the task wasn't found on the queue => it removed itself => execute cleanup */
+		if (NULL == task)
+		{
+			TaskExecuteCleanFunc(task);
+			DestroyTask(task);
+		}
+		else if (action_func_status == ACTION_FUNC_REMOVE_ME)
 		{
 			TaskExecuteCleanFunc(task);
 			DestroyTask(task);
 		}
 		else
 		{
-			task = PQDequeue(scheduler->tasks_priority_queue);
-			
-			/* if action function return status is -1, that means the function opts-out from the queue */
-			if (action_func_status == -1)
-			{
-				TaskExecuteCleanFunc(task);
-				DestroyTask(task);
-			}
-			/* if the function didn't remove itself from the queue and didnt opt-out, update function time for activation and re-enqueue */
-			else
-			{	
-				TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
-				PQEnqueue(scheduler->tasks_priority_queue, task);
-			}
+			TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
+			PQEnqueue(scheduler->tasks_priority_queue, task);
 		}
 	}
 	
-	if (is_scheduler_on == SCHEDULER_OFF)
+	if (scheduler->is_scheduler_on == SCHEDULER_OFF)
 	{
 		return 1;
 	}
@@ -154,8 +166,8 @@ int SchedulerRun(scheduler_t *scheduler)
 
 void SchedulerStop(scheduler_t *scheduler)
 {
-	(void)(scheduler);
-	is_scheduler_on = SCHEDULER_OFF;
+	assert(scheduler);	
+	scheduler->is_scheduler_on = SCHEDULER_OFF;
 }
 
 
@@ -163,6 +175,8 @@ void SchedulerStop(scheduler_t *scheduler)
 void SchedulerClear(scheduler_t *scheduler)
 {
 	task_t *task = NULL;
+	assert(scheduler);
+	
 	while (!SchedulerIsEmpty(scheduler))
 	{
 		task = PQDequeue(scheduler->tasks_priority_queue);
@@ -175,6 +189,7 @@ void SchedulerClear(scheduler_t *scheduler)
 
 int SchedulerIsEmpty(const scheduler_t *scheduler)
 {
+	assert(scheduler);
 	return PQIsEmpty(scheduler->tasks_priority_queue);
 }
 

@@ -26,7 +26,10 @@ task_t *CreateTask(scheduler_action_func_t scheduler_action_func,
 			size_t interval)
 {
 	task_t *task = (task_t *)malloc(sizeof(task_t));
-	
+	if (NULL == task)
+	{
+		return NULL;
+	}
 	task->uid = UIDCreate();
 	task->scheduler_action_func = scheduler_action_func;
 	task->scheduler_clean_func = scheduler_clean_func;

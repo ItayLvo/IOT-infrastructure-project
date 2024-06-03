@@ -58,7 +58,7 @@ int PrintAndIncrementNumActionFunc(void *num)
 	
 	if (*(int *)num == 10)
 	{
-		return -1;
+		return 2;
 	}
 	
 	
