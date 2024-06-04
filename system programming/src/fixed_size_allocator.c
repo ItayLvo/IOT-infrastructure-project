@@ -5,11 +5,11 @@
 
 #include "fixed_size_allocator.h"		/* FSA functions, typedefs */
 
-#define WORD_SIZE 8
+#define WORD_SIZE sizeof(void *)
 
 struct fixed_size_allocator
 {
-	void *free_list;
+	size_t free_list_offset;
 };
 
 static size_t AlignBlockSize(size_t block_size);
@@ -19,26 +19,27 @@ fixed_size_allocator_t *FSAInitialize(void *memory_pool, size_t block_size, size
 {
 	fixed_size_allocator_t *allocator = (fixed_size_allocator_t *)memory_pool;
 	size_t index = 0;
-	char *start_of_blocks = NULL;
-	char *current_block = NULL;
 	size_t total_blocks = 0;
+	size_t *current_block = NULL;
+	size_t offset = 0;
 	
 	assert(memory_pool);
 	
 	block_size = AlignBlockSize(block_size);
-	
 	total_blocks = (pool_size - sizeof(fixed_size_allocator_t)) / block_size;
 	
-	start_of_blocks = (char *)allocator + sizeof(fixed_size_allocator_t);
-	allocator->free_list = (void *)start_of_blocks;
+	allocator->free_list_offset = sizeof(fixed_size_allocator_t);
 	
-	current_block = start_of_blocks;
+	offset = allocator->free_list_offset;
+	current_block = (size_t *)((char *)allocator + offset);
+	
 	for (index = 0; index < total_blocks - 1; ++index)
 	{
-		*(void **)current_block = current_block + block_size;
-		current_block += block_size;
+		offset += block_size;
+		*current_block = offset;
+		current_block = (size_t *)((char *)allocator + offset);
 	}
-	*(void **)current_block = NULL;
+	*current_block = 0;
 	
 	return allocator;
 }
@@ -46,36 +47,37 @@ fixed_size_allocator_t *FSAInitialize(void *memory_pool, size_t block_size, size
 
 void *FSAAlloc(fixed_size_allocator_t *allocator)
 {
-	void *allocated_block = NULL;
+	size_t *allocated_block = NULL;
 	
 	assert(allocator);
-	if (allocator->free_list == NULL)
+	if (0 == allocator->free_list_offset)
 	{
 		return NULL;
 	}
 	
-	allocated_block = allocator->free_list;
-	allocator->free_list = *(void **)(allocator->free_list);
+	allocated_block = (void *)((char *)allocator + allocator->free_list_offset);
+	allocator->free_list_offset = *allocated_block;
 
 	return allocated_block;
 }
 
 void FSAFree(fixed_size_allocator_t *allocator, void *mem_to_free_ptr)
 {
-	*(void **)mem_to_free_ptr = allocator->free_list;
+	size_t *ptr_to_free_addrs = (size_t *)mem_to_free_ptr;
+	*ptr_to_free_addrs = allocator->free_list_offset;
 	
-	allocator->free_list = mem_to_free_ptr;
+	allocator->free_list_offset = (size_t)ptr_to_free_addrs - (size_t)allocator;
 }
 
 
 size_t FSACountFree(fixed_size_allocator_t *allocator)
 {
-	void *runner = allocator->free_list;
+	size_t current_offset = allocator->free_list_offset;
 	size_t count = 0;
 	
-	while (NULL != runner)
+	while (0 != current_offset)
 	{
-		runner = *(void **)runner;
+		current_offset = *(size_t *)((char *)allocator + current_offset);
 		++count;
 	}
 	
