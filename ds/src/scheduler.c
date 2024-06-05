@@ -103,13 +103,7 @@ int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t task_uid)
 }
 
 
-/* a-synchronic stop pseudo-code: */
-/* fopen (which file? if sent by user, need to change API of Run/Create) before outer while loop */	
-/* fread before entering inner while loop */
-/* if stop signal exists in file => stop the scheduler */
-/* fread after each sleep(1) iteration */
-/* if stop signal exists in file => stop the scheduler */
-/* fclose before return statements */
+
 int SchedulerRun(scheduler_t *scheduler)
 {
 	task_t *task = NULL;
@@ -121,29 +115,30 @@ int SchedulerRun(scheduler_t *scheduler)
 	
 	while (scheduler->is_scheduler_on == SCHEDULER_ON && !SchedulerIsEmpty(scheduler))
 	{
-		task = PQPeek(scheduler->tasks_priority_queue);
+		task = PQDequeue(scheduler->tasks_priority_queue);
 		current_time = time(NULL);
+		if (-1 == current_time)
+		{
+			return 3;
+		}
+		
 		time_until_task = TaskGetTimeToStart(task) - current_time;
 		
+		/* sleep(time_until_task) can end before time_until_task seconds! */
 		while (time_until_task > 0)
 		{
-			sleep(1);
-			/* TODO: after every 1 sec sleep, check stream (file, terminal, stdin, etc...) for a-synchronic STOP command */
-			/* if i use sleep(time_until_task) i will miss the stop command */
+			sleep(time_until_task);
 			current_time = time(NULL);
+			if (-1 == current_time)
+			{
+				return 3;
+			}
 			time_until_task = TaskGetTimeToStart(task) - current_time;
 		}
 		
 		action_func_status = TaskExecuteActionFunc(task);
-		
-		task = PQErase(scheduler->tasks_priority_queue, MatchTask, task);
-		/* if PQErase returned NULL, the task wasn't found on the queue => it removed itself => execute cleanup */
-		if (NULL == task)
-		{
-			TaskExecuteCleanFunc(task);
-			DestroyTask(task);
-		}
-		else if (action_func_status == ACTION_FUNC_REMOVE_ME)
+
+		if (action_func_status == ACTION_FUNC_REMOVE_ME)
 		{
 			TaskExecuteCleanFunc(task);
 			DestroyTask(task);
@@ -151,7 +146,10 @@ int SchedulerRun(scheduler_t *scheduler)
 		else
 		{
 			TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
-			PQEnqueue(scheduler->tasks_priority_queue, task);
+			if (NULL == PQEnqueue(scheduler->tasks_priority_queue, task))
+			{
+				return 3;
+			}
 		}
 	}
 	
