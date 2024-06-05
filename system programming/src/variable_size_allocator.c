@@ -63,24 +63,24 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 				{
 					consecutive_block_sum += (*block_runner + BLOCK_HEADER_SIZE);
 					block_runner = (long *)((char *)block_runner + (current_block_size + BLOCK_HEADER_SIZE));
-					current_offset += (current_block_size + BLOCK_HEADER_SIZE);
-					current_block_size = *block_runner;
+					current_offset = (char *)block_runner - (char *)allocator;
 					++count_merged_blocks;
+					
+					if (current_offset < (allocator->pool_size - BLOCK_HEADER_SIZE))	/* to prevent dereferening outside of pool */
+					{
+						current_block_size = *block_runner;	
+					}
 				}
 				
-				if (current_offset >= allocator->pool_size)		/* reached end of pool, no block found */
-				{
-					return NULL;
-				}
-				else if (current_block_size < 0) 				/* current consecutive series of blocks is not sufficient */
+				if (current_block_size < 0) 				/* current consecutive series of blocks is not sufficient */
 				{
 					current_block = block_runner;
 					consecutive_block_sum = 0;
+					current_block = (long *)((char *)current_block + ((current_block_size * -1) + BLOCK_HEADER_SIZE));
 				}
 				else if (consecutive_block_sum == (block_size + BLOCK_HEADER_SIZE))	/* size fits exactly: allocate without creating next header */
 				{
 					*current_block = (consecutive_block_sum * -1);
-					
 					return ((char *)current_block + BLOCK_HEADER_SIZE);
 				}
 				else if (consecutive_block_sum > (block_size + BLOCK_HEADER_SIZE))	/* size fits with extra room: allocate and create next header*/
@@ -93,6 +93,10 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 					*new_header = space_remainder;
 					
 					return ((void *)((char *)current_block + BLOCK_HEADER_SIZE));
+				}
+				else 	/* reached end of pool, no fitting block found (current_offset >= allocator->pool_size) */
+				{
+					return NULL;	/* what if i reached end of pool, but i can allocate now? */
 				}
 			}
 			else	/* current block is avaliable and is sufficient in size */
@@ -115,9 +119,10 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 					return ((void *)((char *)current_block + BLOCK_HEADER_SIZE));
 				}
 			}
+			
+			current_block = (long *)((char *)current_block + current_block_size + BLOCK_HEADER_SIZE);	/* + header size ??? */
 		}
 		
-		current_block = (long *)((char *)current_block + current_block_size);
 		current_offset = (char *)current_block - (char *)allocator;
 		consecutive_block_sum = 0;
 		count_merged_blocks = 0;
