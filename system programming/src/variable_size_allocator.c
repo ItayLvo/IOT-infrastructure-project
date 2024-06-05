@@ -13,8 +13,9 @@ struct variable_size_allocator
 	size_t pool_size;
 };
 
+static void *AlignMemoryPoolStart(void *memory_pool);
+static size_t AlignPoolSize(size_t pool_size);
 static size_t AlignBlockSize(size_t block_size);
-
 
 vsa_t *VSAInitialize(void *memory_pool, size_t pool_size)
 {
@@ -22,8 +23,8 @@ vsa_t *VSAInitialize(void *memory_pool, size_t pool_size)
 	long *first_block = NULL;
 	assert(memory_pool);
 	
-	allocator = (vsa_t *)memory_pool;
-	allocator->pool_size = pool_size;
+	allocator = (vsa_t *)(AlignMemoryPoolStart(memory_pool));
+	allocator->pool_size = AlignPoolSize(pool_size);
 	
 	first_block = (long *)((char *)memory_pool + sizeof(vsa_t));
 	*first_block = pool_size - sizeof(vsa_t) - BLOCK_HEADER_SIZE;
@@ -41,6 +42,8 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 	long *block_runner = NULL;
 	size_t count_merged_blocks = 0;
 	size_t current_offset = (char *)current_block - (char *)allocator;
+	
+	block_size = AlignBlockSize(block_size);
 	
 	while (current_offset < (allocator->pool_size - BLOCK_HEADER_SIZE))
 	{
@@ -64,7 +67,6 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 					consecutive_block_sum += (*block_runner + BLOCK_HEADER_SIZE);
 					block_runner = (long *)((char *)block_runner + (current_block_size + BLOCK_HEADER_SIZE));
 					current_offset = (char *)block_runner - (char *)allocator;
-					++count_merged_blocks;
 					
 					if (current_offset < (allocator->pool_size - BLOCK_HEADER_SIZE))	/* to prevent dereferening outside of pool */
 					{
@@ -72,13 +74,7 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 					}
 				}
 				
-				if (current_block_size < 0) 				/* current consecutive series of blocks is not sufficient */
-				{
-					current_block = block_runner;
-					consecutive_block_sum = 0;
-					current_block = (long *)((char *)current_block + ((current_block_size * -1) + BLOCK_HEADER_SIZE));
-				}
-				else if (consecutive_block_sum == (block_size + BLOCK_HEADER_SIZE))	/* size fits exactly: allocate without creating next header */
+				if (consecutive_block_sum == (block_size + BLOCK_HEADER_SIZE))	/* size fits exactly: allocate without creating next header */
 				{
 					*current_block = (consecutive_block_sum * -1);
 					return ((char *)current_block + BLOCK_HEADER_SIZE);
@@ -88,15 +84,21 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 					long *new_header = NULL;
 					size_t space_remainder = consecutive_block_sum - (block_size + BLOCK_HEADER_SIZE);
 					
-					*current_block = ((block_size + (BLOCK_HEADER_SIZE * count_merged_blocks)) * -1);
+					*current_block = (block_size * -1);
 					new_header = (long *)((char *)current_block + block_size + BLOCK_HEADER_SIZE);
 					*new_header = space_remainder;
 					
 					return ((void *)((char *)current_block + BLOCK_HEADER_SIZE));
 				}
-				else 	/* reached end of pool, no fitting block found (current_offset >= allocator->pool_size) */
+				else if (current_offset >= (allocator->pool_size - BLOCK_HEADER_SIZE)) /* reached end of pool, no fitting block found (current_offset >= allocator->pool_size) */
 				{
-					return NULL;	/* what if i reached end of pool, but i can allocate now? */
+					return NULL;
+				}
+				else if (current_block_size < 0) 				/* current consecutive series of blocks is not sufficient */
+				{
+					current_block = block_runner;
+					consecutive_block_sum = 0;
+					current_block = (long *)((char *)current_block + ((current_block_size * -1) + BLOCK_HEADER_SIZE));
 				}
 			}
 			else	/* current block is avaliable and is sufficient in size */
@@ -140,7 +142,7 @@ static int FindFirstFit(vsa_t *allocator, size_t block_size, char *start_index)
 
 void VSAFree(void *mem_to_free_ptr)
 {
-	*(long *)mem_to_free_ptr *= -1;
+	*(long *)((long *)mem_to_free_ptr - 1) *= -1;
 }
 
 
@@ -164,6 +166,32 @@ size_t VSALargestChunkAvailable(vsa_t *vsa)
 
 
 
+
+
+static void *AlignMemoryPoolStart(void *pool)
+{
+	char *runner = NULL;
+	assert(pool);
+	
+	runner = (char *)pool;
+	while ((size_t)runner % WORD_SIZE != 0)
+	{
+		++runner;
+	}
+	
+	return (void *)runner;
+}
+
+
+static size_t AlignPoolSize(size_t pool_size)
+{
+	while (pool_size % WORD_SIZE != 0)
+	{
+		--pool_size;
+	}
+	
+	return pool_size;
+}
 
 static size_t AlignBlockSize(size_t block_size)
 {
