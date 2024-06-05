@@ -16,15 +16,21 @@ struct variable_size_allocator
 static void *AlignMemoryPoolStart(void *memory_pool);
 static size_t AlignPoolSize(size_t pool_size);
 static size_t AlignBlockSize(size_t block_size);
+static long *MergeFreeBlocks(long *prev, long *next);
+static long GetAbsValue(long num);
+
 
 vsa_t *VSAInitialize(void *memory_pool, size_t pool_size)
 {
 	vsa_t *allocator = NULL;	
 	long *first_block = NULL;
+	size_t pool_aligned_penalty = 0;
 	assert(memory_pool);
 	
 	allocator = (vsa_t *)(AlignMemoryPoolStart(memory_pool));
-	allocator->pool_size = AlignPoolSize(pool_size);
+	pool_aligned_penalty = (char *)allocator - (char *)memory_pool;
+	
+	allocator->pool_size = AlignPoolSize(pool_size - pool_aligned_penalty);
 	
 	first_block = (long *)((char *)memory_pool + sizeof(vsa_t));
 	*first_block = pool_size - sizeof(vsa_t) - BLOCK_HEADER_SIZE;
@@ -35,12 +41,10 @@ vsa_t *VSAInitialize(void *memory_pool, size_t pool_size)
 
 void *VSAAlloc(vsa_t *allocator, size_t block_size)
 {
-	/* TODO align pool size and block sizes */
 	long *current_block = (long *)((char *)allocator + sizeof(vsa_t));
 	long current_block_size = 0;
 	long consecutive_block_sum = 0;
 	long *block_runner = NULL;
-	size_t count_merged_blocks = 0;
 	size_t current_offset = (char *)current_block - (char *)allocator;
 	
 	block_size = AlignBlockSize(block_size);
@@ -94,7 +98,7 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 				{
 					return NULL;
 				}
-				else if (current_block_size < 0) 				/* current consecutive series of blocks is not sufficient */
+				else if (current_block_size < 0) 	/* current consecutive series of blocks is not sufficient */
 				{
 					current_block = block_runner;
 					consecutive_block_sum = 0;
@@ -122,23 +126,17 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 				}
 			}
 			
-			current_block = (long *)((char *)current_block + current_block_size + BLOCK_HEADER_SIZE);	/* + header size ??? */
+			current_block = (long *)((char *)current_block + current_block_size + BLOCK_HEADER_SIZE);
 		}
 		
 		current_offset = (char *)current_block - (char *)allocator;
 		consecutive_block_sum = 0;
-		count_merged_blocks = 0;
 	}
 	
 	return NULL;
 }
 
-/*
-static int FindFirstFit(vsa_t *allocator, size_t block_size, char *start_index)
-{
-	
-}
-*/
+
 
 void VSAFree(void *mem_to_free_ptr)
 {
@@ -146,27 +144,59 @@ void VSAFree(void *mem_to_free_ptr)
 }
 
 
-size_t VSALargestChunkAvailable(vsa_t *vsa)
+
+size_t VSALargestChunkAvailable(vsa_t *allocator)
 {
-	size_t largest_chunk = 0;
-	size_t *current = (size_t *)((char *)vsa + sizeof(vsa_t));
-
-	while (*current != 0)
+	long *start_block = (long *)((char *)allocator + sizeof(vsa_t));
+	long current_block_size = 0;
+	long consecutive_block_sum = 0;
+	long *block_runner = start_block;
+	size_t current_offset = (char *)start_block - (char *)allocator;
+	size_t max_chunk = 0;
+	
+	while (current_offset < (allocator->pool_size - BLOCK_HEADER_SIZE))
 	{
-		if (*current > largest_chunk)
+		current_block_size = *block_runner;
+		
+		if (current_block_size > 0)
 		{
-			largest_chunk = *current;
+			consecutive_block_sum += (*block_runner + BLOCK_HEADER_SIZE);
+			block_runner = (long *)((char *)block_runner + (current_block_size + BLOCK_HEADER_SIZE));
+			current_offset = (char *)block_runner - (char *)allocator;
+			
+			if (current_offset < (allocator->pool_size - BLOCK_HEADER_SIZE))	/* to prevent dereferening outside of pool */
+			{
+				current_block_size = *block_runner;	
+			}
 		}
-		current = (size_t *)((char *)vsa + *(current + 1));
+		else
+		{
+			if (consecutive_block_sum > max_chunk)
+			{
+				max_chunk = consecutive_block_sum;
+			}
+			
+			start_block = (long *)((char *)start_block + ((current_block_size * -1) + BLOCK_HEADER_SIZE));
+			block_runner = start_block;
+			current_offset = (char *)start_block - (char *)allocator;
+		}
+		
+		if (consecutive_block_sum > max_chunk)
+		{
+			max_chunk = consecutive_block_sum;
+		}
+		
+		consecutive_block_sum = 0;
 	}
-
-    return largest_chunk;
+	
+	return max_chunk;
 }
 
 
 
 
 
+/***************** static helper functions *****************/
 
 static void *AlignMemoryPoolStart(void *pool)
 {
