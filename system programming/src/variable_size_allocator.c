@@ -18,6 +18,8 @@ static size_t AlignPoolSize(size_t pool_size);
 static size_t AlignBlockSize(size_t block_size);
 static long *MergeFreeBlocks(long *prev, long *next);
 static long GetAbsValue(long num);
+static long *AdvanceToNextBlockHeader(long *block);
+static size_t CalculateCurrentOffset(vsa_t *allocator, long *current_block);
 
 
 vsa_t *VSAInitialize(void *memory_pool, size_t pool_size)
@@ -25,6 +27,7 @@ vsa_t *VSAInitialize(void *memory_pool, size_t pool_size)
 	vsa_t *allocator = NULL;	
 	long *first_block = NULL;
 	size_t pool_aligned_penalty = 0;
+
 	assert(memory_pool);
 	
 	allocator = (vsa_t *)(AlignMemoryPoolStart(memory_pool));
@@ -39,6 +42,7 @@ vsa_t *VSAInitialize(void *memory_pool, size_t pool_size)
 }
 
 
+
 void *VSAAlloc(vsa_t *allocator, size_t block_size)
 {
 	long *current_block = (long *)((char *)allocator + sizeof(vsa_t));
@@ -46,17 +50,18 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 	long consecutive_block_sum = 0;
 	long *block_runner = NULL;
 	size_t current_offset = (char *)current_block - (char *)allocator;
-	
+	size_t valid_pool_size = allocator->pool_size - BLOCK_HEADER_SIZE;
+
 	block_size = AlignBlockSize(block_size);
 	
-	while (current_offset < (allocator->pool_size - BLOCK_HEADER_SIZE))
+	while (current_offset < valid_pool_size)
 	{
 		current_block_size =  *current_block;
 		
 		/* if current block size is negative => the current block is already alloc'd. move pointer to next block */
 		if (current_block_size < 0)
 		{
-			current_block = (long *)((char *)current_block + ((current_block_size * -1) + BLOCK_HEADER_SIZE));
+			current_block = AdvanceToNextBlockHeader(current_block);
 		}
 		/* else, current block size is positive => check if there's enough room to fit request */
 		else
@@ -65,14 +70,14 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 			{
 				block_runner = current_block;
 				while (current_block_size > 0 &&
-					current_offset < (allocator->pool_size - BLOCK_HEADER_SIZE) &&
+					current_offset < valid_pool_size &&
 					consecutive_block_sum < (block_size + BLOCK_HEADER_SIZE))
 				{
 					consecutive_block_sum += (*block_runner + BLOCK_HEADER_SIZE);
-					block_runner = (long *)((char *)block_runner + (current_block_size + BLOCK_HEADER_SIZE));
-					current_offset = (char *)block_runner - (char *)allocator;
+					block_runner = AdvanceToNextBlockHeader(block_runner);
+					current_offset = CalculateCurrentOffset(allocator, block_runner);
 					
-					if (current_offset < (allocator->pool_size - BLOCK_HEADER_SIZE))	/* to prevent dereferening outside of pool */
+					if (current_offset < valid_pool_size)	/* to prevent dereferening outside of pool */
 					{
 						current_block_size = *block_runner;	
 					}
@@ -94,7 +99,7 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 					
 					return ((void *)((char *)current_block + BLOCK_HEADER_SIZE));
 				}
-				else if (current_offset >= (allocator->pool_size - BLOCK_HEADER_SIZE)) /* reached end of pool, no fitting block found (current_offset >= allocator->pool_size) */
+				else if (current_offset >= valid_pool_size) /* reached end of pool, no fitting block found (current_offset >= allocator->pool_size) */
 				{
 					return NULL;
 				}
@@ -102,7 +107,7 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 				{
 					current_block = block_runner;
 					consecutive_block_sum = 0;
-					current_block = (long *)((char *)current_block + ((current_block_size * -1) + BLOCK_HEADER_SIZE));
+					current_block = AdvanceToNextBlockHeader(current_block);
 				}
 			}
 			else	/* current block is avaliable and is sufficient in size */
@@ -125,11 +130,11 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 					return ((void *)((char *)current_block + BLOCK_HEADER_SIZE));
 				}
 			}
-			
+			/*TODO: make this more elegant */
 			current_block = (long *)((char *)current_block + current_block_size + BLOCK_HEADER_SIZE);
 		}
 		
-		current_offset = (char *)current_block - (char *)allocator;
+		current_offset = CalculateCurrentOffset(allocator, current_block);
 		consecutive_block_sum = 0;
 	}
 	
@@ -198,6 +203,13 @@ size_t VSALargestChunkAvailable(vsa_t *allocator)
 
 /***************** static helper functions *****************/
 
+
+static long *AdvanceToNextBlockHeader(long *block)
+{
+	return (long *)((char *)block + GetAbsValue(*block) + BLOCK_HEADER_SIZE);
+}
+
+
 static void *AlignMemoryPoolStart(void *pool)
 {
 	char *runner = NULL;
@@ -239,4 +251,14 @@ static size_t AlignBlockSize(size_t block_size)
 	block_size = (((block_size / WORD_SIZE) + 1) * WORD_SIZE);
 	
 	return block_size;
+}
+
+static size_t CalculateCurrentOffset(vsa_t *allocator, long *current_block)
+{
+	return (char *)current_block - (char *)allocator;
+}
+
+static long GetAbsValue(long num)
+{
+	return num < 0 ? (num * -1) : num;
 }
