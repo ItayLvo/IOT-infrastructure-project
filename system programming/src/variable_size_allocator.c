@@ -1,6 +1,6 @@
 /*
 Date: 07/06
-Status: Fixed after CR | TODO: Split Alloc function to another Merge helper function | Implement Magic number headers
+Status: Fixed after CR | TODO: Split Alloc function to another Merge helper function | Implement Magic number in block headers
 Reveiwed by: Rina
 */
 
