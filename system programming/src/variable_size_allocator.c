@@ -1,8 +1,14 @@
+/*
+Date: 07/06
+Status: Fixed after CR | TODO: Split Alloc function to another Merge helper function | Implement Magic number headers
+Reveiwed by: Rina
+*/
+
 #include <stddef.h>	/* size_t */
 #include <stdlib.h>	/* malloc */
 #include <assert.h>	/* assert */
 
-#include "variable_size_allocator.h"		/* FSA functions, typedefs */
+#include "variable_size_allocator.h"		/* VSA functions, typedefs */
 
 #define WORD_SIZE sizeof(void *)
 #define BLOCK_HEADER_SIZE sizeof(size_t *)
@@ -30,11 +36,12 @@ vsa_t *VSAInitialize(void *memory_pool, size_t pool_size)
 
 	assert(memory_pool);
 	
+	/* align pool starting address and calculate remaining size */
 	allocator = (vsa_t *)(AlignMemoryPoolStart(memory_pool));
 	pool_aligned_penalty = (char *)allocator - (char *)memory_pool;
-	
 	allocator->pool_size = AlignPoolSize(pool_size - pool_aligned_penalty);
 	
+	/* set first block header */
 	first_block = (long *)((char *)memory_pool + sizeof(vsa_t));
 	*first_block = pool_size - sizeof(vsa_t) - BLOCK_HEADER_SIZE;
 	
