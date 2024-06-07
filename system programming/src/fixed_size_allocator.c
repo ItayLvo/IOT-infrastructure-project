@@ -1,6 +1,11 @@
+/*
+Date: 07/06/24
+Reviwed by: Yarden
+Status: Done (fixed after CR)
+*/
+
 #include <stddef.h>	/* size_t */
 #include <stdlib.h>	/* malloc */
-#include <stdio.h>	/* printf */
 #include <assert.h>	/* assert */
 
 #include "fixed_size_allocator.h"		/* FSA functions, typedefs */
@@ -63,7 +68,12 @@ void *FSAAlloc(fixed_size_allocator_t *allocator)
 
 void FSAFree(fixed_size_allocator_t *allocator, void *mem_to_free_ptr)
 {
-	size_t *ptr_to_free_addrs = (size_t *)mem_to_free_ptr;
+	size_t *ptr_to_free_addrs = NULL;
+	
+	assert(allocator);
+	assert(mem_to_free_ptr);
+	
+	ptr_to_free_addrs = (size_t *)mem_to_free_ptr;
 	*ptr_to_free_addrs = allocator->free_list_offset;
 	
 	allocator->free_list_offset = (size_t)ptr_to_free_addrs - (size_t)allocator;
@@ -72,9 +82,13 @@ void FSAFree(fixed_size_allocator_t *allocator, void *mem_to_free_ptr)
 
 size_t FSACountFree(fixed_size_allocator_t *allocator)
 {
-	size_t current_offset = allocator->free_list_offset;
+	size_t current_offset = 0;
 	size_t count = 0;
 	
+	assert(allocator);
+	
+	current_offset = allocator->free_list_offset;
+
 	while (0 != current_offset)
 	{
 		current_offset = *(size_t *)((char *)allocator + current_offset);
