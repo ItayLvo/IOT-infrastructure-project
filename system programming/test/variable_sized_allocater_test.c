@@ -22,7 +22,7 @@ static void TestVSA1(void)
 	long *b2 = NULL;
 	long *b3 = NULL;
 	
-	long *ptr = (long *)malloc(250);
+	long *ptr = (long *)calloc(250, 1);
 	vsa_t *vsa = VSAInitialize(ptr, 250);
 	
 	b1 = (long *)VSAAlloc(vsa, 40);
@@ -71,7 +71,7 @@ static void TestVSA2(void)
 	long *b5 = NULL;
 	long *b6 = NULL;
 	
-	long *ptr = (long *)malloc(1000);
+	long *ptr = (long *)calloc(1000, 1);
 	vsa_t *vsa = VSAInitialize(ptr, 1000);
 	
 	printf("lca %ld\n", VSALargestChunkAvailable(vsa));
