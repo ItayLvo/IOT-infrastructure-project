@@ -2,8 +2,8 @@
 #include <stdlib.h>	/* malloc */
 #include <assert.h>	/* assert */
 
-#include "../include/singly_linked_list.h"
-#include "../include/queue.h"
+#include "sllist.h"
+#include "queue.h"
 
 struct queue
 {
@@ -52,7 +52,11 @@ void *QueuePeek(const queue_t *queue)
 
 void QueueDequeue(queue_t *queue)
 {
-	SLListRemove(queue->list, SLListGetBegin(queue->list));
+	/* Changed on 9th june when working on makefile to match sllist.h remove prototype */
+	/* the previous remove command is in comment. new remove not tested */
+	
+	/* SLListRemove(queue->list, SLListGetBegin(queue->list)); */
+	SLListRemove(SLListGetBegin(queue->list));
 }
 
 

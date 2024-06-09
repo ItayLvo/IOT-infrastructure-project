@@ -46,7 +46,7 @@ Return Value: void
 Time Complexity: O(1)
 Space: O(1)
 */
-void SLListRemove(iterator_t iterator);	/****************passing tail as param*************/
+void SLListRemove(iterator_t iterator);
 
 /*
 Description: Return the count of all the elements in the list
@@ -151,7 +151,7 @@ Return Value: iterator to the starting element of list1
 Time Complexity: O(1)
 Space: O(1)
 */
-iterator_t AppendSLList(linked_list_t* list1, linked_list_t* list2);
+int SLListAppendLists(linked_list_t* list1, linked_list_t* list2);
 
 #endif /* __LINKED_LIST_H__ */
 
