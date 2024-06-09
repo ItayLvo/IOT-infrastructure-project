@@ -1,6 +1,6 @@
 /*
-Date: 07/06
-Status: Fixed after CR | TODO: Update LargetChunk function to use Merge helper function | Implement Magic number in block headers
+Date: 09/06
+Status: Fixed after CR | TODO: Update LargetChunk function to use MergeFreeBlocks helper function | Implement Magic number in block headers
 Reveiwed by: Rina
 */
 
@@ -54,8 +54,6 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 {
 	long *current_block = (long *)((char *)allocator + sizeof(vsa_t));
 	long current_block_size = 0;
-	long consecutive_block_sum = 0;
-	long *block_runner = NULL;
 	size_t current_offset = (char *)current_block - (char *)allocator;
 	size_t valid_pool_size = allocator->pool_size - BLOCK_HEADER_SIZE;
 
@@ -75,6 +73,7 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 		{
 			if (current_block_size < (block_size + BLOCK_HEADER_SIZE)) /* current block is avaliable but too small for requested block size */
 			{
+				/* call Merge function to try to de-fragment and allocate after defragmentation */
 				void *allocated_merged_block = MergeFreeBlocks(allocator, current_block, block_size);
 				if (NULL != allocated_merged_block)
 				{
@@ -87,7 +86,6 @@ void *VSAAlloc(vsa_t *allocator, size_t block_size)
 			}
 			
 			current_block = (long *)((char *)current_block + current_block_size + BLOCK_HEADER_SIZE);
-			consecutive_block_sum = 0;
 		}
 		
 		current_offset = CalculateCurrentOffset(allocator, current_block);
