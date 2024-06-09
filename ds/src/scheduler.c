@@ -10,6 +10,7 @@
 
 enum scheduler_status_t {SCHEDULER_OFF, SCHEDULER_ON};
 enum action_func_status {ACTION_FUNC_SUCCESS, ACTION_FUNC_FAILURE, ACTION_FUNC_REMOVE_ME};
+enum run_function_status {RUN_FUNC_ENDED = 0, RUN_FUNC_STOPPED = 1, RUN_FUNC_ERROR = 2};
 
 struct scheduler
 {
@@ -119,7 +120,7 @@ int SchedulerRun(scheduler_t *scheduler)
 		current_time = time(NULL);
 		if (-1 == current_time)
 		{
-			return 3;
+			return RUN_FUNC_ERROR;
 		}
 		
 		time_until_task = TaskGetTimeToStart(task) - current_time;
@@ -131,7 +132,7 @@ int SchedulerRun(scheduler_t *scheduler)
 			current_time = time(NULL);
 			if (-1 == current_time)
 			{
-				return 3;
+				return RUN_FUNC_ERROR;
 			}
 			time_until_task = TaskGetTimeToStart(task) - current_time;
 		}
@@ -148,17 +149,17 @@ int SchedulerRun(scheduler_t *scheduler)
 			TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
 			if (NULL == PQEnqueue(scheduler->tasks_priority_queue, task))
 			{
-				return 3;
+				return RUN_FUNC_ERROR;
 			}
 		}
 	}
 	
 	if (scheduler->is_scheduler_on == SCHEDULER_OFF)
 	{
-		return 1;
+		return RUN_FUNC_STOPPED;
 	}
 	
-	return 0;
+	return RUN_FUNC_ENDED;
 }
 
 
