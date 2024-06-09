@@ -9,7 +9,7 @@
 #include "scheduler.h"		/* scheduler_t functions */
 
 enum scheduler_status_t {SCHEDULER_OFF, SCHEDULER_ON};
-enum action_func_status {ACTION_FUNC_SUCCESS, ACTION_FUNC_FAILURE, ACTION_FUNC_REMOVE_ME};
+enum action_func_status {ACTION_FUNC_SUCCESS, ACTION_FUNC_FAILURE, ACTION_FUNC_REMOVE_TASK_FROM_QUEUE};
 enum run_function_status {RUN_FUNC_ENDED = 0, RUN_FUNC_STOPPED = 1, RUN_FUNC_ERROR = 2};
 
 struct scheduler
@@ -139,7 +139,7 @@ int SchedulerRun(scheduler_t *scheduler)
 		
 		action_func_status = TaskExecuteActionFunc(task);
 
-		if (action_func_status == ACTION_FUNC_REMOVE_ME)
+		if (action_func_status == ACTION_FUNC_REMOVE_TASK_FROM_QUEUE)
 		{
 			TaskExecuteCleanFunc(task);
 			DestroyTask(task);
@@ -147,7 +147,7 @@ int SchedulerRun(scheduler_t *scheduler)
 		else
 		{
 			TaskSetTimeToStart(task, current_time + TaskGetInterval(task));
-			if (NULL == PQEnqueue(scheduler->tasks_priority_queue, task))
+			if (0 != PQEnqueue(scheduler->tasks_priority_queue, task))
 			{
 				return RUN_FUNC_ERROR;
 			}
