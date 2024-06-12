@@ -85,13 +85,8 @@ bst_iterator_t BSTInsert(bst_t *tree, void *data)
 {
 	bst_iterator_t new_node = BSTCreateIterator(data);
  
-	// Pointer to start traversing from root and
-	// traverses downward path to search
-	// where the new node to be inserted
 	bst_iterator_t runner = tree->root->left;
  
-	// Pointer y maintains the trailing
-	// pointer of x
 	bst_iterator_t prev = NULL /* TODO invalid iter */
  
 	while (NULL != runner) 
@@ -108,26 +103,22 @@ bst_iterator_t BSTInsert(bst_t *tree, void *data)
 		}
 	}
  
-	// If the root is NULL i.e the tree is empty
-	// The new node is the root node
 	if (NULL == prev)
 	{
 		prev = newnode;
  	}
  	
-	// If the new data is less than the leaf node data
-	// Assign the new node to be its left child
 	else if (data < prev->data)
 	{
 		prev->left = newnode;
  	}
-	// else assign the new node its right child
+
 	else
 	{
 		prev->right = newnode;
 	}
-	// Returns the pointer where the
-	// new node is inserted
+
+
 	return prev;
 }
 
