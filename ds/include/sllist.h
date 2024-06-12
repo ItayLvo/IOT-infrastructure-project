@@ -132,7 +132,7 @@ Return Value: exit status of the action function
 Time Complexity: O(n)
 Space: O(1)
 */
-int SLListForEach(iterator_t tart, iterator_t end,
+int SLListForEach(iterator_t start, iterator_t end,
  				   action_func_t func, void *data_input);
 
 /*
