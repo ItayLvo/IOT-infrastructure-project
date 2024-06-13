@@ -1,6 +1,8 @@
 #ifndef __BST_H__
 #define __BST_H__
 
+#include <stddef.h>
+
 /******** typedefs: ********/ 
 
 typedef struct binary_search_tree_t bst_t;
@@ -23,20 +25,6 @@ Return Value: int that represent status. 0 for success , non 0 for failure
 */
 typedef int (*action_func_t)(void *dest, void *param);
 
-/******** struct definitions (in src file!): ********/
-
-struct binary_search_tree_t
-{
-    struct bst_node_t *root;
-    bst_compare_func_t compare_func;
-}
-
-struct bst_node_t
-{
-    void *data;
-    struct bst_node_t *left;
-    struct bst_node_t *right;
-}
 
 /******** function forward declerations: ********/ 
 
@@ -79,7 +67,7 @@ Return Value: Data of removed element
 Time Complexity: O(n) worst case, O(logn) avg case
 Space: O(1)
 */
-bst_iterator_t BSTRemove(bst_iterator_t iterator);  /* return value? */
+void *BSTRemove(bst_iterator_t iterator);  /* return value? */
 
 
 /*
@@ -141,7 +129,7 @@ Return Value: exit status of the action function
 Time Complexity: O(n)
 Space: O(1)
 */
-int BSTForEach(bst_t *tree, action_func_t func, void *data_input);
+int BSTForEach(bst_t *tree, action_func_t func, void *param);
 
 
 /*
@@ -151,7 +139,7 @@ Return Value: bst_t iterator
 Time Complexity: O(n) worst case, O(logn) avg case
 Space: O(1)
 */
-bst_t iterator *BSTNext(const bst_iterator_t iterator);
+bst_iterator_t BSTNext(const bst_iterator_t iterator);
 
 
 /*
@@ -161,30 +149,27 @@ Return Value: bst_t iterator
 Time Complexity:O(n)
 Space: O(1)
 */
-bst_t iterator *BSTPrev(const bst_iterator_t iterator);
+bst_iterator_t BSTPrev(const bst_iterator_t iterator);
 
 
 /*
 Description: Get the first iterator of an in-order traversal.
-מה זה?
 Params: bst_t iterator
 Return Value: bst_t iterator
 Time Complexity: O(logn) avg case, O(n) worst case
 Space: O(1)
 */
-bst_t iterator *BSTFBegin(const bst_iterator_t iterator);
+bst_iterator_t BSTBegin(const bst_t *tree);
 
 
 /*
 Description: Get the last iterator of an in-order traversal.
-איבר שאין אחריו אף איבר. סוג של דאמי אחרי האיבר הגדול ביותר
 Params: bst_t iterator
 Return Value: bst_t iterator
 Time Complexity: Time Complexity: O(1). save it somewhere
 Space: O(1)
 */
-bst_t iterator *BSTEnd(const bst_iterator_t iterator);
+bst_iterator_t BSTEnd(const bst_t *tree);
 
-#endif  /* __BST_H__
-
+#endif  /* __BST_H__ */
 
