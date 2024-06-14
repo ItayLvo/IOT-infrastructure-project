@@ -1,7 +1,7 @@
 /*
-date:
+date: 14/7
 reviewer:
-status:
+status: waiting for CR | need to implement static functions to handle iterators/nodes
 */
 
 
@@ -74,6 +74,7 @@ void BSTDestroy(bst_t *tree)
 }
 
 
+
 bst_iterator_t BSTInsert(bst_t *tree, void *data)
 {
 	bst_iterator_t new_node = BSTCreateIterator(data);
@@ -88,7 +89,7 @@ bst_iterator_t BSTInsert(bst_t *tree, void *data)
 	
 	if (NULL == new_node)
 	{
-		return NULL; /* todo invalid iter */
+		return BSTEnd(tree);
 	}
 
  
@@ -153,24 +154,10 @@ void *BSTRemove(bst_iterator_t iterator_to_remove)
 		
 		free(iterator_to_remove);
 	}
-	/* if the iterator to remove only has a right child */
-	else if (NULL == iterator_to_remove->left)
-	{
-		/* if the iterator to remove is a left child */
-		if (iterator_to_remove->parent->left == iterator_to_remove)
-		{
-			iterator_to_remove->parent->left = iterator_to_remove->right;
-		}
-		else
-		{
-			iterator_to_remove->parent->right = iterator_to_remove->right;
-		}
-		
-		iterator_to_remove->right->parent = iterator_to_remove->parent;
-		free(iterator_to_remove);
-	}
+	/* if the iterator to remove only has a left child */
 	else if (NULL == iterator_to_remove->right)
 	{
+		/* if the iterator to remove is a left child */
 		if (iterator_to_remove->parent->left == iterator_to_remove)
 		{
 			iterator_to_remove->parent->left = iterator_to_remove->left;
@@ -181,6 +168,21 @@ void *BSTRemove(bst_iterator_t iterator_to_remove)
 		}
 		
 		iterator_to_remove->left->parent = iterator_to_remove->parent;
+		free(iterator_to_remove);
+	}
+	else if (NULL == iterator_to_remove->left)
+	{
+		
+		if (iterator_to_remove->parent->left == iterator_to_remove)
+		{
+			iterator_to_remove->parent->left = iterator_to_remove->right;
+		}
+		else
+		{
+			iterator_to_remove->parent->right = iterator_to_remove->right;
+		}
+		
+		iterator_to_remove->right->parent = iterator_to_remove->parent;
 		free(iterator_to_remove);
 	}
 	else	/* iterator to remove has 2 children */
@@ -241,7 +243,7 @@ bst_iterator_t BSTFind(const bst_t *tree, void *data)
 		}
 	}
 	
-	return NULL;	/* todo invalid iter */
+	return BSTEnd(tree);
 }
 
 
@@ -348,7 +350,9 @@ bst_iterator_t BSTEnd(const bst_t *tree)
 
 bst_iterator_t BSTBegin(const bst_t *tree)
 {
-	return GetSmallestLeaf(tree->root->left);
+	assert(tree);
+	
+	return GetSmallestLeaf(tree->root);
 }
 
 
