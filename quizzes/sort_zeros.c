@@ -5,7 +5,7 @@ static void Swap(int *a, int *b);
 
 int main()
 {
-	int i = 0, arr[10] = {1,0,0,1,0,1,0,1,0,1};
+	int i = 0, arr[10] = {1,0,1,0,0,1,1,0,1,0};
 	SortZeros(arr, 10);
 	
 	for (i = 0; i < 10; ++i)
