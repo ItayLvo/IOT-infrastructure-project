@@ -1,0 +1,114 @@
+#include <stdio.h>	/* printf */
+#include <time.h>	/* time() */
+#include <stdlib.h>	/* rand, srand, qsort */
+
+#include "sorts.h"
+
+#define SIZE 10
+#define MIN_7_DIGIT 1000000
+#define MAX_7_DIGIT 9999999
+
+static void PrintArray(int *arr, int n);
+static int Compare(const void *a, const void *b);
+
+
+int main()
+{
+	int arr1[SIZE], arr2[SIZE], arr3[SIZE], arr4[SIZE], arr7[SIZE];
+	clock_t start;
+	clock_t end;
+	double sort_time = 0;
+	int i = 0;
+	
+	int arr5[9] = {4,2,7,5,2,3,6,6,10};
+	int arr6[9] = {4,2,7,5,2,3,6,6,10};
+	
+	srand(time(NULL));
+    
+
+	for (i = 0; i < SIZE; ++i)
+	{
+		arr1[i] = rand();
+	}
+    
+	for (i = 0; i < SIZE; ++i)
+	{
+		arr2[i] = arr1[i];
+		arr3[i] = arr1[i];
+		arr4[i] = arr1[i];
+	}
+	
+	for (i = 0; i < SIZE; ++i)
+	{
+		arr7[i] = MIN_7_DIGIT + rand() % (MAX_7_DIGIT - MIN_7_DIGIT + 1);
+	}
+
+
+	start = clock();
+	SelectionSort(arr1, SIZE);
+	end = clock();
+	sort_time = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("SelectionSort took %f seconds\n", sort_time);
+	
+	
+	start = clock();
+	BubbleSort(arr2, SIZE);
+	end = clock();
+	sort_time = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("BubbleSort took %f seconds\n", sort_time);
+	
+	
+	start = clock();
+	InsertionSort(arr3, SIZE);
+	end = clock();
+	sort_time = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("InsertionSort took %f seconds\n", sort_time);
+    
+
+	start = clock();
+	qsort(arr4, SIZE, sizeof(int), Compare);
+	end = clock();
+	sort_time = ((double)(end - start)) / CLOCKS_PER_SEC;
+	printf("qsort took %f seconds\n", sort_time);
+	
+	
+	printf("before counting sort: \n");
+	PrintArray(arr5, 9);
+	printf("after counting sort: \n");
+	CountingSort(arr5, 9);
+	PrintArray(arr5, 9);
+	
+	printf("before qsort: \n");
+	PrintArray(arr6, 9);
+	printf("after qsort: \n");
+	qsort(arr6, 9, sizeof(int), Compare);
+	PrintArray(arr6, 9);
+	
+	printf("\n");
+	
+	printf("before radix sort: \n");
+	PrintArray(arr7, SIZE);
+	printf("after radix sort: \n");
+	RadixSort(arr7, SIZE);
+	PrintArray(arr7, SIZE);
+	return 0;
+}
+
+
+
+
+static int Compare(const void *a, const void *b)
+{
+	return (*(int *)a - *(int *)b);
+}
+
+static void PrintArray(int *arr, int n)
+{
+	int i = 0;
+	
+	for (i = 0; i < n; ++i)
+	{
+		printf("%d ", arr[i]);
+	}
+	printf("\n");
+}
