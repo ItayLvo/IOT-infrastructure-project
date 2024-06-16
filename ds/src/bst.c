@@ -11,11 +11,11 @@ status: waiting for CR | need to implement static functions to handle iterators/
 
 #include "bst.h"	/* bst_t typedef, bst_t functions */
 
-static bst_iterator_t BSTCreateIterator(void *data);
-static void *BSTIteratorGetData(bst_iterator_t iterator);
-static bst_iterator_t GetSmallestLeaf(bst_iterator_t sub_tree_root);
-static bst_iterator_t GetBiggestLeaf(bst_iterator_t sub_tree_root);
 
+#define IterToNode(x) (struct bst_node_t *)(x)
+#define NodeToIter(x) (bst_iterator_t)(x)
+
+enum child_t {HAS_RIGHT_CHILD, HAS_LEFT_CHILD};
 
 struct binary_search_tree_t
 {
@@ -34,6 +34,14 @@ struct bst_node_t
 
 
 
+static void *BSTIteratorGetData(bst_iterator_t iterator);
+static struct bst_node_t *BSTCreateNode(void *data);
+static struct bst_node_t *GetSmallestLeaf(bst_iterator_t sub_tree_root);
+static struct bst_node_t *GetBiggestLeaf(bst_iterator_t sub_tree_root);
+static void RemoveHasOneChild(struct bst_node_t *iterator_to_remove, enum child_t child);
+static void RemoveHasNoChildren(struct bst_node_t *iterator_to_remove);
+static void RemoveHasTwoChildren(struct bst_node_t *iterator_to_remove);
+
 
 bst_t *BSTCreate(bst_compare_func_t cmp_func)
 {
@@ -47,7 +55,7 @@ bst_t *BSTCreate(bst_compare_func_t cmp_func)
 		return NULL;
 	}
 	
-	bst->root = BSTCreateIterator(NULL);
+	bst->root = BSTCreateNode(NULL);
 	if (NULL == bst->root)
 	{
 		free(bst);
@@ -59,7 +67,8 @@ bst_t *BSTCreate(bst_compare_func_t cmp_func)
 	return bst;
 }
 
-
+/* old version */
+/*
 void BSTDestroy(bst_t *tree)
 {
 	assert(tree);
@@ -72,14 +81,49 @@ void BSTDestroy(bst_t *tree)
 	free(tree->root);
 	free(tree);
 }
+*/
+
+void BSTDestroy(bst_t *tree)
+{
+	/* post-order traversal*/
+	
+	struct bst_node_t *runner = NULL;
+	struct bst_node_t *parent = NULL;
+
+	assert(tree);
+
+	runner = tree->root->left;
+	
+	while (NULL != runner && runner != tree->root)
+	{
+		
+		if (NULL != runner->left)
+		{
+			runner = runner->left;
+		}
+		else if (NULL != runner->right)
+		{
+			runner = runner->right;
+		}
+		else
+		{
+			parent = runner->parent;
+			BSTRemove(runner);
+			runner = parent;
+		}
+	}
+	
+	free(tree->root);
+	free(tree);
+}
 
 
 
 bst_iterator_t BSTInsert(bst_t *tree, void *data)
 {
-	bst_iterator_t new_node = BSTCreateIterator(data);
-	bst_iterator_t runner = NULL;
-	bst_iterator_t parent = NULL; /* todo invalid iter */
+	struct bst_node_t *new_node = BSTCreateNode(data);
+	struct bst_node_t *runner = NULL;
+	struct bst_node_t *parent = NULL;
 	int compare_result = 0;
 	
 	assert(tree);
@@ -124,7 +168,7 @@ bst_iterator_t BSTInsert(bst_t *tree, void *data)
 
 	new_node->parent = parent;
 
-	return new_node;
+	return NodeToIter(new_node);
 }
 
 
@@ -133,7 +177,6 @@ bst_iterator_t BSTInsert(bst_t *tree, void *data)
 void *BSTRemove(bst_iterator_t iterator_to_remove)
 {
 	void *data = NULL;
-	bst_iterator_t next_iterator = NULL;
 	assert(iterator_to_remove);
 	
 	data = BSTGetData(iterator_to_remove);
@@ -141,74 +184,21 @@ void *BSTRemove(bst_iterator_t iterator_to_remove)
 	/* if the iterator to remove is a leaf node */
 	if(iterator_to_remove->left == NULL && iterator_to_remove->right == NULL)
 	{
-		/* if the iterator to remove is a left child */
-		if(iterator_to_remove->parent->left == iterator_to_remove)
-		{
-			iterator_to_remove->parent->left = NULL;
-		}
-		/* if the iterator to remove is a right child */
-		else
-		{
-			iterator_to_remove->parent->right = NULL;
-		}
-		
-		free(iterator_to_remove);
+		RemoveHasNoChildren(iterator_to_remove);
 	}
 	/* if the iterator to remove only has a left child */
 	else if (NULL == iterator_to_remove->right)
 	{
-		/* if the iterator to remove is a left child */
-		if (iterator_to_remove->parent->left == iterator_to_remove)
-		{
-			iterator_to_remove->parent->left = iterator_to_remove->left;
-		}
-		else
-		{
-			iterator_to_remove->parent->right = iterator_to_remove->left;
-		}
-		
-		iterator_to_remove->left->parent = iterator_to_remove->parent;
-		free(iterator_to_remove);
+		RemoveHasOneChild(iterator_to_remove, HAS_LEFT_CHILD);
 	}
 	else if (NULL == iterator_to_remove->left)
 	{
 		
-		if (iterator_to_remove->parent->left == iterator_to_remove)
-		{
-			iterator_to_remove->parent->left = iterator_to_remove->right;
-		}
-		else
-		{
-			iterator_to_remove->parent->right = iterator_to_remove->right;
-		}
-		
-		iterator_to_remove->right->parent = iterator_to_remove->parent;
-		free(iterator_to_remove);
+		RemoveHasOneChild(iterator_to_remove, HAS_RIGHT_CHILD);
 	}
 	else	/* iterator to remove has 2 children */
 	{
-		next_iterator = BSTNext(iterator_to_remove);
-		
-		iterator_to_remove->data = next_iterator->data;
-		
-		if (BSTIsSameIter(next_iterator->parent, iterator_to_remove))
-		{
-			iterator_to_remove->right = next_iterator->right;
-			if (NULL != next_iterator->right)
-			{
-				next_iterator->right->parent = iterator_to_remove;
-			}
-		}
-		else
-		{
-			next_iterator->parent->left = next_iterator->right;
-			if (NULL != next_iterator->right)
-			{
-				next_iterator->right->parent = next_iterator->parent;
-			}
-		}
-		
-		free(next_iterator);
+		RemoveHasTwoChildren(iterator_to_remove);
 	}
 	
 	return data;
@@ -219,7 +209,7 @@ void *BSTRemove(bst_iterator_t iterator_to_remove)
 
 bst_iterator_t BSTFind(const bst_t *tree, void *data)
 {
-	bst_iterator_t runner = NULL; /* todo invalid iter */
+	struct bst_node_t *runner = NULL;
 	int compare_result = 0;
 	
 	assert(tree);
@@ -231,7 +221,7 @@ bst_iterator_t BSTFind(const bst_t *tree, void *data)
 		
 		if (compare_result == 0)
 		{
-			return runner;
+			return NodeToIter(runner);
 		}
 		else if (compare_result > 0)
 		{
@@ -264,7 +254,7 @@ int BSTIsEmpty(const bst_t *tree)
 size_t BSTSize(const bst_t *tree)
 {
 	size_t count = 0;
-	bst_iterator_t runner = {0};	/* todo get invalid iter */
+	struct bst_node_t *runner = NULL;
 	
 	assert(tree);
 	
@@ -274,9 +264,9 @@ size_t BSTSize(const bst_t *tree)
 		return 0;
 	}
 	
-	while (!BSTIsSameIter(runner , BSTEnd(tree)))
+	while (!BSTIsSameIter(NodeToIter(runner) , BSTEnd(tree)))
 	{
-		runner = BSTNext(runner);
+		runner = IterToNode(BSTNext(NodeToIter(runner)));
 		++count;
 	}
 	
@@ -287,8 +277,8 @@ size_t BSTSize(const bst_t *tree)
 
 bst_iterator_t BSTNext(const bst_iterator_t iterator)
 {
-	bst_iterator_t runner = iterator;
-	bst_iterator_t parent = NULL;
+	struct bst_node_t *runner = IterToNode(iterator);
+	struct bst_node_t *parent = NULL;
 	
 	assert(runner);
 	
@@ -306,7 +296,7 @@ bst_iterator_t BSTNext(const bst_iterator_t iterator)
 	else
 	{
 		runner = GetSmallestLeaf(runner->right);
-		return runner;
+		return NodeToIter(runner);
 	}
 }
 
@@ -314,8 +304,8 @@ bst_iterator_t BSTNext(const bst_iterator_t iterator)
 
 bst_iterator_t BSTPrev(const bst_iterator_t iterator)	/*iterisequal*/
 {
-	bst_iterator_t runner = iterator;
-	bst_iterator_t parent = NULL;
+	struct bst_node_t *runner = IterToNode(iterator);
+	struct bst_node_t *parent = NULL;
 	
 	assert(NULL != runner);
 	
@@ -328,12 +318,12 @@ bst_iterator_t BSTPrev(const bst_iterator_t iterator)	/*iterisequal*/
 			parent = runner->parent;
 		}
 		
-		return (parent == NULL)? iterator : parent;
+		return (parent == NULL)? iterator : NodeToIter(parent);
 	}
 	else
 	{
 		runner = GetBiggestLeaf(runner->left);
-		return runner;
+		return NodeToIter(runner);
 	}
 }
 
@@ -352,25 +342,25 @@ bst_iterator_t BSTBegin(const bst_t *tree)
 {
 	assert(tree);
 	
-	return GetSmallestLeaf(tree->root);
+	return NodeToIter(GetSmallestLeaf(tree->root));
 }
 
 
 
 int BSTForEach(bst_t *tree, action_func_t action_func, void *param)
 {
-	bst_iterator_t runner = {0};
+	struct bst_node_t *runner = NULL;
 	int action_func_result = 0;
 	
 	assert(tree);
 	assert(action_func);
 	
-	runner = BSTBegin(tree);
+	runner = IterToNode(BSTBegin(tree));
 	
-	while (!BSTIsSameIter(runner , BSTEnd(tree)))
+	while (!BSTIsSameIter(NodeToIter(runner) , BSTEnd(tree)))
 	{
 		action_func_result += (action_func)(BSTGetData(runner), param);
-		runner = BSTNext(runner);
+		runner = IterToNode(BSTNext(runner));
 	}
 	
 	return action_func_result;
@@ -380,7 +370,7 @@ int BSTForEach(bst_t *tree, action_func_t action_func, void *param)
 
 int BSTIsSameIter(bst_iterator_t iter1, bst_iterator_t iter2)
 {
-	return iter1 == iter2; /* TODO iter to node */
+	return IterToNode(iter1) == IterToNode(iter2);
 }
 
 
@@ -389,12 +379,93 @@ int BSTIsSameIter(bst_iterator_t iter1, bst_iterator_t iter2)
 
 /******** static functions ********/
 
-static bst_iterator_t BSTCreateIterator(void *data)
+
+
+
+static void RemoveHasTwoChildren(struct bst_node_t *iterator_to_remove)
 {
-	bst_iterator_t node = malloc(sizeof(struct bst_node_t));
+	struct bst_node_t *next_iterator = BSTNext(iterator_to_remove);
+		
+	iterator_to_remove->data = next_iterator->data;
+	
+	if (BSTIsSameIter(next_iterator->parent, iterator_to_remove))
+	{
+		iterator_to_remove->right = next_iterator->right;
+		if (NULL != next_iterator->right)
+		{
+			next_iterator->right->parent = iterator_to_remove;
+		}
+	}
+	else
+	{
+		next_iterator->parent->left = next_iterator->right;
+		if (NULL != next_iterator->right)
+		{
+			next_iterator->right->parent = next_iterator->parent;
+		}
+	}
+	
+	free(next_iterator);
+}
+
+static void RemoveHasNoChildren(struct bst_node_t *iterator_to_remove)
+{
+	/* if the iterator to remove is a left child */
+	if(iterator_to_remove->parent->left == iterator_to_remove)
+	{
+		iterator_to_remove->parent->left = NULL;
+	}
+	/* if the iterator to remove is a right child */
+	else
+	{
+		iterator_to_remove->parent->right = NULL;
+	}
+	
+	free(iterator_to_remove);
+}
+
+static void RemoveHasOneChild(struct bst_node_t *iterator_to_remove, enum child_t child)
+{
+	if (child == HAS_LEFT_CHILD)
+	{
+		/* if the node to remove only has a right child */
+		if (iterator_to_remove->parent->left == iterator_to_remove)
+		{
+			iterator_to_remove->parent->left = iterator_to_remove->left;
+		}
+		else
+		{
+			iterator_to_remove->parent->right = iterator_to_remove->left;
+		}
+		
+		iterator_to_remove->left->parent = iterator_to_remove->parent;
+		free(iterator_to_remove);
+	}
+	else 	/* node to remove only has a left child */
+	{
+		
+		if (iterator_to_remove->parent->left == iterator_to_remove)
+		{
+			iterator_to_remove->parent->left = iterator_to_remove->right;
+		}
+		else
+		{
+			iterator_to_remove->parent->right = iterator_to_remove->right;
+		}
+		
+		iterator_to_remove->right->parent = iterator_to_remove->parent;
+		free(iterator_to_remove);
+	}
+}
+
+
+
+static struct bst_node_t *BSTCreateNode(void *data)
+{
+	struct bst_node_t *node = malloc(sizeof(struct bst_node_t));
 	if (NULL == node)
 	{
-		return NULL;	/* TODO return invalid iterator */
+		return NULL;
 	}
 	
 	node->data = data;
@@ -414,10 +485,10 @@ static void *BSTIteratorGetData(bst_iterator_t iterator)
 
 
 
-static bst_iterator_t GetSmallestLeaf(bst_iterator_t sub_tree_root)
+static struct bst_node_t *GetSmallestLeaf(bst_iterator_t sub_tree_root)
 {
-	bst_iterator_t runner = sub_tree_root;
-	if (NULL == sub_tree_root)	/* todo invalid iterator */
+	struct bst_node_t *runner = sub_tree_root;
+	if (NULL == sub_tree_root)
 	{
 		return NULL;
 	}
@@ -431,9 +502,9 @@ static bst_iterator_t GetSmallestLeaf(bst_iterator_t sub_tree_root)
 }
 
 
-static bst_iterator_t GetBiggestLeaf(bst_iterator_t sub_tree_root)
+static struct bst_node_t *GetBiggestLeaf(bst_iterator_t sub_tree_root)
 {
-	bst_iterator_t runner = sub_tree_root;
+	struct bst_node_t *runner = sub_tree_root;
 	
 	while (NULL != runner->right)
 	{
