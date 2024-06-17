@@ -8,6 +8,7 @@ status:
 #include <stdlib.h>	/* malloc */
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
+#include <string.h>	/* strncmp */
 
 #include "recursion.h"	/* recursion functions */
 
@@ -67,17 +68,132 @@ node_t *FlipList(node_t *node)
 }
 
 
+/*
+void SortStack(stack_t *stack)
+{
+	int a, b;
+	
+	if (IsEmpty(stack))
+	{
+		return;
+	}
+	
+	a = StackPop(stack);
+	
+	if (!IsEmpty(stack))
+	{
+		b = StackPop(stack);
+	}	
+}
+*/
+
+size_t Strlen(char *str)
+{
+	if (*str == '\0')
+	{
+		return 0;
+	}
+	
+	return 1 + (Strlen(++str));
+}
+
+
+int Strcmp(char *str1, char *str2)
+{
+	if (*str1 == '\0' && *str2 == '\0')
+	{
+		return 1;
+	}
+	
+	if (*str1 != *str2)
+	{
+		return 0;
+	}
+	
+	return (Strcmp(++str1, ++str2));
+}
+
+
+char *Strcpy(char *dest, char *src)
+{
+	char *original_dest_head = dest;
+	
+	if (*src == '\0')
+	{
+		*dest = *src;
+		return NULL;
+	}
+	
+	*dest = *src;
+	
+	Strcpy(++dest, ++src);
+	
+	return original_dest_head;
+}
 
 
 
 
 
+
+char *Strcat(char *dest, char *src)
+{
+	char *original_dest_head = dest;
+	if (*dest != '\0')
+	{
+		Strcat(++dest, src);
+	}
+	else
+	{
+		Strcpy(dest, src);
+		return original_dest_head;
+	}
+}
+
+/* implementation without using Strcpy: */
+/*	
+void Strcat(char *dest, char *src)
+{
+	
+	if (*dest != '\0')
+	{
+		Strcat(++dest, src);
+	}
+	else
+	{
+		*dest = *src;
+		if (*src != '\0')
+		{
+			Strcat(++dest, ++src);
+		}
+		else
+		{
+			return; 
+		}
+	}
+}
+*/
+
+
+
+char *Strstr(const char *haystack, const char *needle)
+{
+	if (strlen(haystack) < strlen(needle) || *haystack == '\0')
+	{
+		return NULL;
+	}
+	
+	if (strcmp(haystack, needle))
+	{
+		return (char *)haystack;
+	}
+	
+	return Strstr(++haystack, needle);
+}
 
 
 
 /**** helper singly linked list functions for FlipList exercise *****/
-
-
 node_t *CreateNode(void *data)
 {
 	node_t *new_node = (node_t *)malloc(sizeof(node_t));
@@ -91,8 +207,6 @@ node_t *CreateNode(void *data)
 	
 	return new_node;
 }
-
-
 void AppendNode(node_t **head, void *data)
 {
 	node_t *current;
@@ -112,9 +226,6 @@ void AppendNode(node_t **head, void *data)
 	
 	current->next = new_node;
 }
-
-
-
 void PrintList(node_t *head, void (*PrintData)(void *))
 {
 	node_t *current = head;
@@ -127,8 +238,6 @@ void PrintList(node_t *head, void (*PrintData)(void *))
 	
 	printf("\n");
 }
-
-
 void FreeList(node_t *head)
 {
 	node_t *current = head;
@@ -141,12 +250,10 @@ void FreeList(node_t *head)
 		current = next_node;
 	}
 }
-
 void PrintInt(void *data)
 {
 	printf("%d ", *(int *)data);
 }
-
-
+/*******************************************************/
 
 
