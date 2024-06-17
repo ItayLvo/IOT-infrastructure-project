@@ -1,7 +1,7 @@
 /*
-date: 14/7
-reviewer:
-status: waiting for CR | need to implement static functions to handle iterators/nodes
+date: 16/7
+reviewer: Amit E.
+status: done
 */
 
 
@@ -67,21 +67,6 @@ bst_t *BSTCreate(bst_compare_func_t cmp_func)
 	return bst;
 }
 
-/* old version */
-/*
-void BSTDestroy(bst_t *tree)
-{
-	assert(tree);
-	
-	while(!BSTIsEmpty(tree))
-	{
-		BSTRemove(BSTBegin(tree));
-	}
-	
-	free(tree->root);
-	free(tree);
-}
-*/
 
 void BSTDestroy(bst_t *tree)
 {
