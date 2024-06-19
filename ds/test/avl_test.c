@@ -1,6 +1,8 @@
 #include <stdio.h>	/* printf */
 
-#include "bst.h"
+#include "avl.h"
+
+/*
 #include "test_utility.h"
 
 
@@ -11,9 +13,78 @@ void TestSize();
 void TestRemove();
 void TestFind();
 void TestForEach();
+*/
+
+static int CompareInt(const void *item, const void *data_to_compare);
+
+int main()
+{
+	/*
+	TestIsEmpty();
+	TestInsert();
+	TestSize();
+	TestRemove();
+	TestFind();
+	TestForEach();
+	Test();
+	*/
+	
+	int x1 = 1, x2 = 2, x3 = 3, x4 = 4, x5 =5, x6 = 6, x7 = 7, x10 = 10, x15 = 15;
+	int status = 0;
+	
+	avl_t *avl = AVLCreate(CompareInt);
+	printf("is empty? %d\n", AVLIsEmpty(avl));
+	printf("tree size = %lu\n", AVLCount(avl));
+	
+	status = AVLInsert(avl, &x2);
+	
+	printf("is empty? %d\n", AVLIsEmpty(avl));
+	printf("tree size = %lu\n", AVLCount(avl));
+	
+	status = AVLInsert(avl, &x3);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x1);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x4);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x5);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x6);
+	printf("tree size = %lu\n", AVLCount(avl));
+	
+	status = AVLInsert(avl, &x7);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x15);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x10);
+	printf("tree size = %lu\n", AVLCount(avl));
+	
+	
+	printf("searching: %d\n", *(int *)AVLFind(avl, &x1));
+	printf("searching: %d\n", *(int *)AVLFind(avl, &x2));
+	printf("searching: %d\n", *(int *)AVLFind(avl, &x3));
+	printf("searching: %d\n", *(int *)AVLFind(avl, &x4));
+	printf("searching: %d\n", *(int *)AVLFind(avl, &x5));
+	printf("searching: %d\n", *(int *)AVLFind(avl, &x6));
+	printf("searching: %d\n", *(int *)AVLFind(avl, &x7));
+	printf("searching: %d\n", *(int *)AVLFind(avl, &x15));
+	
+	
+	
+	AVLDestroy(avl);
+	
+	return 0;
+}
 
 
 
+
+static int CompareInt(const void *item, const void *data_to_compare)
+{
+ 	return (*(int *)item - *(int *)data_to_compare);
+}
+
+/*
 
 void TestIsEmpty()
 {
@@ -200,29 +271,8 @@ void TestForEach()
 }
 
 
+*/
 
 
 
 
-int main()
-{
-	
-	TestIsEmpty();
-	TestInsert();
-	TestSize();
-	TestRemove();
-	TestFind();
-	TestForEach();
-	
-	Test();
-	
-	return 0;
-}
-
-
-
-
-static int CompareInt(const void *item, const void *data_to_compare)
-{
- 	return (*(int *)item - *(int *)data_to_compare);
-}

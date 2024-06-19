@@ -32,7 +32,7 @@ return: Pointer to binary tree. NULL if failed
 time complexity: O(1)
 space complexity: O(1)
 */
-avl_t *AVLCreate(avl_cmp_func_t compare);
+avl_t *AVLCreate(avl_compare_func_t compare);
 
 /*
 AVLDestroy
