@@ -11,8 +11,10 @@ status:
 #include <string.h>	/* strncmp */
 
 #include "recursion.h"	/* recursion functions */
+#include "stack.h"	/* stack API */
 
 
+void InsertSorted(stack_t *stack, int top);
 
 struct node_t
 {
@@ -68,24 +70,48 @@ node_t *FlipList(node_t *node)
 }
 
 
-/*
+
 void SortStack(stack_t *stack)
 {
-	int a, b;
+	int top = 0;
 	
-	if (IsEmpty(stack))
+	if (!StackIsEmpty(stack))
 	{
+		StackPeek(stack, &top);
+		StackPop(stack);
+	
+		SortStack(stack);
+	
+		InsertSorted(stack, top);
+	}
+}
+
+void InsertSorted(stack_t *stack, int top)
+{
+	int new_top = 0;
+	int tmp = 0;
+	
+	if (!StackIsEmpty(stack))
+	{
+		StackPeek(stack, &tmp);
+	}
+	
+	if (StackIsEmpty(stack) || top > tmp)
+	{
+		StackPush(stack, &top);
 		return;
 	}
 	
-	a = StackPop(stack);
+	StackPeek(stack, &new_top);
+	StackPop(stack);
 	
-	if (!IsEmpty(stack))
-	{
-		b = StackPop(stack);
-	}	
+	InsertSorted(stack, new_top);
+	
+	StackPush(stack, &new_top);
 }
-*/
+
+
+
 
 size_t Strlen(char *str)
 {
@@ -183,7 +209,7 @@ char *Strstr(const char *haystack, const char *needle)
 		return NULL;
 	}
 	
-	if (strcmp(haystack, needle))
+	if (strncmp(haystack, needle, strlen(needle)) == 0)
 	{
 		return (char *)haystack;
 	}

@@ -2,9 +2,10 @@
 #include <stdlib.h>	/* malloc */
 
 #include "recursion.h"
-
+#include "stack.h"
 
 static int TestFlipList();
+static int TestStackSort();
 
 int main()
 {
@@ -37,6 +38,9 @@ int main()
 	
 	free(dest);
 	
+	printf("\n");
+	TestStackSort();
+	
 	return 0;
 }
 
@@ -65,4 +69,51 @@ static int TestFlipList()
 
 	return 0;
 }
+
+
+static int TestStackSort()
+{
+	stack_t *stack_ptr;
+	int x1 = 1, x2 = 2, x3 = 3, x4 = 4, x5 = 5;
+	int print = 0;
+	stack_ptr = StackCreateOneMalloc(50, sizeof(int));
+	
+	StackPush(stack_ptr, &x2);
+	StackPush(stack_ptr, &x5);
+	StackPush(stack_ptr, &x3);
+	StackPush(stack_ptr, &x4);
+	StackPush(stack_ptr, &x1);
+	
+	
+	SortStack(stack_ptr);
+	
+	StackPeek(stack_ptr, &print);
+	printf("%d\n", print);
+	StackPop(stack_ptr);
+	StackPeek(stack_ptr, &print);
+	printf("%d\n", print);
+	StackPop(stack_ptr);
+	StackPeek(stack_ptr, &print);
+	printf("%d\n", print);
+	StackPop(stack_ptr);
+	StackPeek(stack_ptr, &print);
+	printf("%d\n", print);
+	StackPop(stack_ptr);
+	StackPeek(stack_ptr, &print);
+	printf("%d\n", print);
+	StackPop(stack_ptr);
+	
+	
+	return 0;
+	
+}
+
+
+
+
+
+
+
+
+
 
