@@ -265,7 +265,7 @@ static avl_node_t *AVLFixBalance(avl_node_t *root, int balance)
 	
 	if (balance >= 2)
 	{
-		if (CalculateBalance(root->left) >= 1)			/* if (root->left->left != NULL) */	
+		if (CalculateBalance(root->left) >= 0)
 		{
 			/* left left */
 			root = AVLRotateRight(root);
@@ -281,7 +281,7 @@ static avl_node_t *AVLFixBalance(avl_node_t *root, int balance)
 	}
 	else
 	{
-		if (CalculateBalance(root->right) <= -1)		/*  if (root->right->right != NULL) */
+		if (CalculateBalance(root->right) <= 0)
 		{
 			/* right right */
 			root = AVLRotateLeft(root);
