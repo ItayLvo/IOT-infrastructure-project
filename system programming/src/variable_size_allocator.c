@@ -1,6 +1,8 @@
 /*
 Date: 09/06
-Status: Fixed after CR | TODO: Update LargetChunk function to use MergeFreeBlocks helper function | Implement Magic number in block headers
+Status: Fixed after CR
+	TODO: Update LargetChunk function to use MergeFreeBlocks helper function
+	TODO: Implement Magic number check in block headers for VSAFree()
 Reveiwed by: Rina
 */
 

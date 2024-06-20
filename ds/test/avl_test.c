@@ -28,13 +28,22 @@ int main()
 	printf("searching: %d\n", *(int *)AVLFind(avl, &x4));
 	printf("root height: %lu\n", AVLHeight(avl));
 	
+	/*
 	AVLDestroy(avl);
+	*/
+	AVLRemove(avl, &x8);
+	AVLRemove(avl, &x1);
+	printf("tree size = %lu\n", AVLCount(avl));
+	printf("root height: %lu\n", AVLHeight(avl));
+	AVLRemove(avl, &x7);
+	AVLRemove(avl, &x6);
+	status = AVLInsert(avl, &x1);
 	
 	return 0;
 }
 
 /*
-p *(int *)avl->root->
+p *(int *)tree->root->
 p AVLCount(avl)
 p AVLHeight(avl)
 */
