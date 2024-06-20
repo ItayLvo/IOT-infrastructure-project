@@ -33,14 +33,18 @@ static void *AVLFindNode(avl_node_t *node, avl_compare_func_t compare_func, void
 static int AVLForEachHelper(avl_node_t *node, avl_action_func_t action_func, void *params);
 static avl_node_t *AVLCreateNode(void *data);
 static size_t AVLGetNodeHeight(const avl_node_t *node);
-static void AVLDestroyHelper(avl_node_t *node);
-static void AVLRemoveHelper(avl_node_t *node, void *data);
+
+static void AVLDestroyHelper(avl_node_t *node, avl_compare_func_t compare_func);
+static avl_node_t *AVLRemoveHelper(avl_node_t *node_to_remove, avl_compare_func_t compare_func, void *data);
+static avl_node_t *AVLRemoveNode(avl_node_t *node_to_remove);
+static avl_node_t *FindInOrderSuccessor(avl_node_t *node_to_remove);
+
 static avl_node_t *AVLInsertNode(avl_node_t *runner, avl_node_t *new_node, avl_compare_func_t);
 static size_t MaxHeightOfTwoNodes(avl_node_t *first, avl_node_t *second);
 static avl_node_t *AVLRotateLeft(avl_node_t *node);
 static avl_node_t *AVLRotateRight(avl_node_t *node);
 static avl_node_t *AVLFixBalance(avl_node_t *root, int balance);
-
+static int CalculateBalance(avl_node_t *node);
 
 
 avl_t *AVLCreate(avl_compare_func_t cmp_func)
@@ -68,37 +72,37 @@ void AVLDestroy(avl_t *tree)
 {
 	assert(tree);
 	
-	AVLDestroyHelper(tree->root);
+	AVLDestroyHelper(tree->root, tree->compare_func);
 	
 	free(tree);
 }
 
 
 
-static void AVLDestroyHelper(avl_node_t *node)
+static void AVLDestroyHelper(avl_node_t *node, avl_compare_func_t compare_func)
 {
 	if (node == NULL)
 	{
 		return;
 	}
 	
-	AVLDestroyHelper(node->left);
-	AVLDestroyHelper(node->right);
+	printf("destroying: %d\n", *(int *)node->data);
+	AVLDestroyHelper(node->left, compare_func);
+	AVLDestroyHelper(node->right, compare_func);
 	
-	AVLRemoveHelper(node, node->data);
+	AVLRemoveHelper(node, compare_func, node->data);
 }
 
 void AVLRemove(avl_t *tree, void *data)	/* TODO */
 {
 	assert(tree);
 	
-	tree->root = AVLRemoveHelper(tree->root, data);
+	tree->root = AVLRemoveHelper(tree->root, tree->compare_func, data);
 }
 
-static void AVLRemoveHelper(avl_node_t *node_to_remove, void *data)	/* TODO */
+static avl_node_t *AVLRemoveHelper(avl_node_t *node_to_remove, avl_compare_func_t compare_func, void *data)
 {
 	int compare_result = 0;
-	void *data = node_to_remove->data;
 	int current_balance = 0;
 	
 	if (node_to_remove == NULL)
@@ -110,28 +114,81 @@ static void AVLRemoveHelper(avl_node_t *node_to_remove, void *data)	/* TODO */
 	compare_result = (compare_func)(data, node_to_remove->data);
 	if (compare_result > 0)
 	{
-		node_to_remove->right = AVLRemoveHelper(node_to_remove->right, node_to_remove, compare_func);
+		node_to_remove->right = AVLRemoveHelper(node_to_remove->right, compare_func, data);
 		
 	}
 	else if (compare_result < 0)
 	{
-		node_to_remove->left = AVLRemoveHelper(node_to_remove->left, node_to_remove, compare_func);
+		node_to_remove->left = AVLRemoveHelper(node_to_remove->left, compare_func, data);
 	}
 	else /* found */
 	{
 		node_to_remove = AVLRemoveNode(node_to_remove);
 	}
 	
+	
+	if (NULL != node_to_remove)
+	{
+		node_to_remove->height = 1 + MaxHeightOfTwoNodes(node_to_remove->left, node_to_remove->right);
+		current_balance = AVLGetNodeHeight(node_to_remove->left) - AVLGetNodeHeight(node_to_remove->right);	
+		node_to_remove = AVLFixBalance(node_to_remove, current_balance);
+	}
+	
+	return node_to_remove;
 
 
 }
 
 
 
+static avl_node_t *AVLRemoveNode(avl_node_t *node_to_remove)
+{
+	if(node_to_remove->left == NULL && node_to_remove->right == NULL)
+	{
+		free(node_to_remove);
+		return NULL;
+	}
+	/* if the node to remove only has a left child */
+	else if (NULL == node_to_remove->right)
+	{
+		avl_node_t *left_sub_tree = node_to_remove->left;
+		free(node_to_remove);
+		return left_sub_tree;
+	}
+	else if (NULL == node_to_remove->left)
+	{
+		avl_node_t *right_sub_tree = node_to_remove->right;
+		free(node_to_remove);
+		return right_sub_tree;
+	}
+	else	/* node to remove has 2 children */
+	{
+		avl_node_t *new_root = FindInOrderSuccessor(node_to_remove);
+		new_root->right = node_to_remove->right;
+		new_root->left = node_to_remove->left;
+		new_root->data = node_to_remove->data;
+		free(node_to_remove);
+		return new_root;
+	}
+}
+
+
+static avl_node_t *FindInOrderSuccessor(avl_node_t *node_to_remove)
+{
+	avl_node_t *runner = node_to_remove->right;
+	
+	while (NULL != runner->left)
+	{
+		runner = runner->left;
+	}
+	
+	return runner;
+}
+
+
 int AVLInsert(avl_t *tree, void *data)
 {
 	struct avl_node_t *new_node = NULL;
-	struct avl_node_t *location_of_new_node = NULL;
 	
 	assert(tree);
 	
@@ -181,13 +238,22 @@ static avl_node_t *AVLInsertNode(avl_node_t *runner, avl_node_t *new_node, avl_c
 	
 	runner->height = 1 + MaxHeightOfTwoNodes(runner->left, runner->right);
 	
-	current_balance = AVLGetNodeHeight(runner->left) - AVLGetNodeHeight(runner->right);
+	current_balance = CalculateBalance(runner);
 	
 	runner = AVLFixBalance(runner, current_balance);
 	
 	return runner;
 }
 
+static int CalculateBalance(avl_node_t *node)
+{
+	if (node == NULL)
+	{
+		printf("CalculateBalance error");	/* shouldnt ever happen, debug only, delete this */
+	}
+	
+	return (AVLGetNodeHeight(node->left) - AVLGetNodeHeight(node->right));
+}
 
 static avl_node_t *AVLFixBalance(avl_node_t *root, int balance)
 {
@@ -199,7 +265,7 @@ static avl_node_t *AVLFixBalance(avl_node_t *root, int balance)
 	
 	if (balance >= 2)
 	{
-		if (root->left->left != NULL)
+		if (CalculateBalance(root->left) >= 1)			/* if (root->left->left != NULL) */	
 		{
 			/* left left */
 			root = AVLRotateRight(root);
@@ -215,7 +281,7 @@ static avl_node_t *AVLFixBalance(avl_node_t *root, int balance)
 	}
 	else
 	{
-		if (root->right->right != NULL)
+		if (CalculateBalance(root->right) <= -1)		/*  if (root->right->right != NULL) */
 		{
 			/* right right */
 			root = AVLRotateLeft(root);
