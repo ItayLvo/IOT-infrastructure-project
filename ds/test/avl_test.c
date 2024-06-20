@@ -29,7 +29,7 @@ int main()
 	Test();
 	*/
 	
-	int x1 = 1, x2 = 2, x3 = 3, x4 = 4, x5 =5, x6 = 6, x7 = 7, x10 = 10, x15 = 15;
+	int x1 = 1, x2 = 2, x3 = 3, x4 = 4, x5 =5, x6 = 6, x7 = 7, x10 = 10, x15 = 15, x11 = 11, x12 = 12, x13 = 13;
 	int status = 0;
 	
 	avl_t *avl = AVLCreate(CompareInt);
@@ -57,6 +57,12 @@ int main()
 	status = AVLInsert(avl, &x15);
 	printf("tree size = %lu\n", AVLCount(avl));
 	status = AVLInsert(avl, &x10);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x13);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x12);
+	printf("tree size = %lu\n", AVLCount(avl));
+	status = AVLInsert(avl, &x11);
 	printf("tree size = %lu\n", AVLCount(avl));
 	
 	

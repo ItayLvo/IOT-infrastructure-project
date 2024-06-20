@@ -90,12 +90,40 @@ static void AVLDestroyHelper(avl_node_t *node)
 
 void AVLRemove(avl_t *tree, void *data)	/* TODO */
 {
-	return;
+	assert(tree);
+	
+	tree->root = AVLRemoveHelper(tree->root, data);
 }
 
-static void AVLRemoveHelper(avl_node_t *node, void *data)	/* TODO */
+static void AVLRemoveHelper(avl_node_t *node_to_remove, void *data)	/* TODO */
 {
-	return;
+	int compare_result = 0;
+	void *data = node_to_remove->data;
+	int current_balance = 0;
+	
+	if (node_to_remove == NULL)
+	{
+		return;
+	}
+	
+
+	compare_result = (compare_func)(data, node_to_remove->data);
+	if (compare_result > 0)
+	{
+		node_to_remove->right = AVLRemoveHelper(node_to_remove->right, node_to_remove, compare_func);
+		
+	}
+	else if (compare_result < 0)
+	{
+		node_to_remove->left = AVLRemoveHelper(node_to_remove->left, node_to_remove, compare_func);
+	}
+	else /* found */
+	{
+		node_to_remove = AVLRemoveNode(node_to_remove);
+	}
+	
+
+
 }
 
 
