@@ -1,5 +1,5 @@
 #include <stdio.h>	/* printf */
-
+#include <stdlib.h>	/* free */
 #include "avl.h"
 
 static int CompareInt(const void *item, const void *data_to_compare);
@@ -28,11 +28,23 @@ int main()
 	printf("searching: %d\n", *(int *)AVLFind(avl, &x4));
 	printf("root height: %lu\n", AVLHeight(avl));
 	
-	AVLDestroy(avl);
-	/*
-	
 	AVLRemove(avl, &x8);
 	AVLRemove(avl, &x1);
+	AVLRemove(avl, &x5);
+	/*
+	AVLRemove(avl, &x4);
+	AVLRemove(avl, &x7);
+	AVLRemove(avl, &x6);
+	AVLRemove(avl, &x2);
+	*/
+	AVLRemove(avl, &x3);
+	
+
+	AVLDestroy(avl);
+	
+	/*
+	
+	free(avl);
 	printf("tree size = %lu\n", AVLCount(avl));
 	printf("root height: %lu\n", AVLHeight(avl));
 	AVLRemove(avl, &x7);
