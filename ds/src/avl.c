@@ -228,14 +228,12 @@ static avl_node_t *AVLFixBalance(avl_node_t *root, int balance)
 		{
 			/* left left */
 			root = AVLRotateRight(root);
-			printf("\nleft left\n");
 		}
 		else
 		{
 			/* left right*/
 			root->left = AVLRotateLeft(root->left);
 			root = AVLRotateRight(root);
-			printf("\nleft right\n");
 		}
 	}
 	else
@@ -244,14 +242,12 @@ static avl_node_t *AVLFixBalance(avl_node_t *root, int balance)
 		{
 			/* right right */
 			root = AVLRotateLeft(root);
-			printf("\nright right\n");
 		}
 		else
 		{
 			/* right left */
 			root->right = AVLRotateRight(root->right);
 			root = AVLRotateLeft(root);
-			printf("\nright left\n");
 		}
 	}
 	

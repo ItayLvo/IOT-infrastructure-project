@@ -3,6 +3,8 @@
 #include "avl.h"
 
 static int CompareInt(const void *item, const void *data_to_compare);
+static int PrintNodes(void *data, void *params);
+
 
 int main()
 {
@@ -26,7 +28,12 @@ int main()
 	printf("is empty? %d\n", AVLIsEmpty(avl));
 	printf("tree size = %lu\n", AVLCount(avl));
 	printf("searching: %d\n", *(int *)AVLFind(avl, &x4));
-	printf("root height: %lu\n", AVLHeight(avl));
+	printf("root height: %lu\n\n", AVLHeight(avl));
+	
+	
+	AVLForEach(avl, PrintNodes, NULL);
+	printf("\n");
+	
 	
 	AVLRemove(avl, &x8);
 	AVLRemove(avl, &x1);
@@ -65,5 +72,18 @@ p AVLHeight(avl)
 static int CompareInt(const void *item, const void *data_to_compare)
 {
  	return (*(int *)item - *(int *)data_to_compare);
+}
+
+
+
+
+static int PrintNodes(void *data, void *params)
+{
+	int *num_ptr = (int *)data;
+	(void)params;
+	
+	printf("%d, ", *num_ptr);
+	
+	return 0;
 }
 
