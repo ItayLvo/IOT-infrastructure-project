@@ -10,9 +10,11 @@
 #include "calculator.h"		/* calculator functions */
 #include "stack.h"		/* stack data structure and functions */
 
-
+#define UNUSED(x) (void)(x)
 #define NUMBER_OF_STATES 2
-#define NUMBER_OF_INPUT_TYPES 7
+#define NUMBER_OF_INPUT_TYPES 8
+
+typedef enum handler_function_status_t {HANDLER_SUCCESS = 0, HANDLER_MATH_FALIURE = 1, HANDLER_SYNTAX_FALIURE = 1} e_handler_function_status_t;
 
 static int count_parenthesis_open = 0;
 
@@ -27,7 +29,6 @@ static double Subtract(double a, double b);
 static double Multiply(double a, double b);
 static double Divide(double a, double b);
 static double Power(double a, double b);
-static double Parenthesis(double a, double b);
 
 static int HandleNumber(const char **);
 static int HandleOperator(const char **);
@@ -53,6 +54,7 @@ typedef enum
 {
 	CHAR_NUMBER,
 	CHAR_OPERATOR,
+	CHAR_UNARY_OPERATOR,
 	CHAR_INVALID,
 	CHAR_WHITESPACE,
 	CHAR_END,
@@ -89,6 +91,7 @@ transition_t transition_table[NUMBER_OF_STATES][NUMBER_OF_INPUT_TYPES] =
 	{
 		{STATE_WAIT_FOR_NUMBER, CHAR_NUMBER, STATE_WAIT_FOR_OPERATOR, HandleNumber},
 		{STATE_WAIT_FOR_NUMBER, CHAR_OPERATOR, STATE_ERROR, HandleError},
+		{STATE_WAIT_FOR_NUMBER, CHAR_UNARY_OPERATOR, STATE_WAIT_FOR_OPERATOR, HandleNumber},
 		{STATE_WAIT_FOR_NUMBER, CHAR_INVALID, STATE_ERROR, HandleError},
 		{STATE_WAIT_FOR_NUMBER, CHAR_WHITESPACE, STATE_WAIT_FOR_NUMBER,HandleWhitespace},
 		{STATE_WAIT_FOR_NUMBER, CHAR_END, STATE_ERROR, HandleError},
@@ -98,6 +101,7 @@ transition_t transition_table[NUMBER_OF_STATES][NUMBER_OF_INPUT_TYPES] =
 	{
 		{STATE_WAIT_FOR_OPERATOR, CHAR_NUMBER, STATE_ERROR, HandleError},
 		{STATE_WAIT_FOR_OPERATOR, CHAR_OPERATOR, STATE_WAIT_FOR_NUMBER, HandleOperator},
+		{STATE_WAIT_FOR_OPERATOR, CHAR_UNARY_OPERATOR, STATE_WAIT_FOR_NUMBER, HandleOperator},
 		{STATE_WAIT_FOR_OPERATOR, CHAR_INVALID, STATE_ERROR, HandleError},
 		{STATE_WAIT_FOR_OPERATOR, CHAR_WHITESPACE, STATE_WAIT_FOR_OPERATOR,HandleWhitespace},
 		{STATE_WAIT_FOR_OPERATOR, CHAR_END, STATE_SUCCESS, HandleEnd},
@@ -162,8 +166,9 @@ static void InitializeCharLUT(void)
 	}
 
 	
-	char_lut['+'] = CHAR_OPERATOR;
-	char_lut['-'] = CHAR_OPERATOR;
+	char_lut['+'] = CHAR_UNARY_OPERATOR;
+	char_lut['-'] = CHAR_UNARY_OPERATOR;
+	
 	char_lut['*'] = CHAR_OPERATOR;
 	char_lut['/'] = CHAR_OPERATOR;
 	char_lut['^'] = CHAR_OPERATOR;
@@ -238,12 +243,12 @@ e_status_t Calculate(const char *input, double *result)
 		
 		if (transition_function_status)
 		{
-			return CALC_MATH_ERROR;
+			return transition_function_status;
 		}
 		
 		
 		current_state = next_state;
-		++runner;
+		/* ++runner; */
 	}
 	
 	if (current_state == STATE_SUCCESS)
@@ -260,90 +265,6 @@ e_status_t Calculate(const char *input, double *result)
 
 
 
-/*
-e_status_t Calculate(const char *input, double *result)
-{
-	char *runner = (char *)input;
-	char *end_of_current_num = NULL;
-	char *str_remainder = NULL;
-	double operand = 0.0;
-	double *p_operator = NULL;
-	double tmp_result = 0;
-	
-	
-	
-	
-	operand = strtod(runner, &str_remainder);
-	
-	while ('\0' != *runner)
-	{
-		
-		str_remainder = RemoveWhiteSpacesFromStart(str_remainder);
-		
-		
-		printf("operand = %f\n", operand);
-		printf("operator = %c\n", str_remainder[0]);
-		printf("remainder string = %s\n", str_remainder);
-		
-		StackPush(operand_stack, &operand);
-		
-		ch = str_remainder[0];
-		if (ch == '-')
-		{
-			ch = '+';
-		}
-			
-		StackPush(operator_stack, &str_remainder[0]);
-
-		if (*(str_remainder + 1) == ' ')
-		{
-			++str_remainder;
-			
-			str_remainder = RemoveWhiteSpacesFromStart(str_remainder);
-			
-		}
-		
-		
-		
-		runner = str_remainder;
-		operand = strtod(str_remainder, &str_remainder);
-	}
-
-
-
-	StackPop(operator_stack);
-	
-	while (!StackIsEmpty(operator_stack))
-	{
-
-		ch = *(char *)StackPeek(operator_stack);
-		StackPop(operator_stack);
-		
-		if (!StackIsEmpty(operand_stack))
-		static void DestroyStacks(void){
-			num1 = *(double *)StackPeek(operand_stack);
-			StackPop(operand_stack);
-		}
-		
-		tmp_result += num1;
-		
-		printf("curr sum = %f \n", tmp_result);
-	}
-	
-	if (!StackIsEmpty(operand_stack))
-	{
-		num1 = *(double *)StackPeek(operand_stack);
-		StackPop(operand_stack);
-		tmp_result += num1;
-	}
-			
-	printf("end sum = %f \n", tmp_result);
-	
-	
-	
-	return CALC_SUCCESS;
-}
-*/
 
 
 
@@ -352,8 +273,8 @@ static double Add(double a, double b) { return a + b; }
 static double Subtract(double a, double b) { return b - a; }
 static double Multiply(double a, double b) { return a * b; }
 static double Divide(double a, double b) { return b == 0 ? 0 : (b / a); }
-static double Power(double a, double b) { return pow(a, b); }
-static double Parenthesis(double a, double b) { return 0; }
+static double Power(double a, double b) { return pow(b, a); }
+
 
 
 
@@ -366,7 +287,7 @@ static int HandleNumber(const char **input)
 	operand = strtod(*input, &str_remainder);
 	StackPush(operand_stack, &operand);
 	
-	/* *input = str_remainder; */	/* no need, because im advancing runner in the Calculate() while loop */
+	*input = str_remainder;
 	
 	return 0;
 }
@@ -378,11 +299,11 @@ static int HandleOperator(const char **input)
 	char prev_char = 0;
 	operator_t prev_operator = {0};
 	operator_t new_operator = {0};
-	int i = 0;
 
 	if (StackIsEmpty(operator_stack))
 	{
 		StackPush(operator_stack, &new_char);
+		++(*input);
 		return 0;
 	}
 	
@@ -396,6 +317,9 @@ static int HandleOperator(const char **input)
 	}
 
 	StackPush(operator_stack, &new_char);
+	
+	++(*input);
+	
 	return 0;
 }
 
@@ -425,6 +349,8 @@ static void CalculateTemporary(void)
 
 static int HandleEnd(const char **input)
 {
+	UNUSED(**input);
+	
 	while (!StackIsEmpty(operator_stack))
 	{
 		CalculateTemporary();
@@ -436,28 +362,27 @@ static int HandleEnd(const char **input)
 
 static int HandleWhitespace(const char **input)
 {
-	/* ++(*input); */
+	++(*input);
 	
-	/* do nothing... /*
-	/* Calculate() while loop will advance the runner to the next char of the input */
-
 	return 0;
 }
 
 
 static int HandleError(const char **input)
 {
-	/* do nothing */
-
+	++(*input);
+	
 	return 0;
 }
 
 
 static int HandleOpenParenthesis(const char **input)
 {
+	char parenthesis = **input;
+	StackPush(operator_stack, &parenthesis);
+	
 	++count_parenthesis_open;
-	
-	
+	++(*input);
 	
 	return 0;
 }
@@ -465,13 +390,31 @@ static int HandleOpenParenthesis(const char **input)
 
 static int HandleClosedParenthesis(const char **input)
 {
+	char ch = 0;
+	
 	if (count_parenthesis_open == 0)
 	{
 		return 1;
 	}
 	
+	ch = *(char *)StackPeek(operator_stack);
+	
+	while ('(' != ch)
+	{
+		CalculateTemporary();
+		
+		if (StackIsEmpty(operator_stack))
+		{
+			return HANDLER_SYNTAX_FALIURE;
+		}
+		
+		ch = *(char *)StackPeek(operator_stack);
+	}
+	
+	StackPop(operator_stack);
 	
 	--count_parenthesis_open;
+	++(*input);
 	
 	return 0;
 }

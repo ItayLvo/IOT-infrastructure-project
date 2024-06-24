@@ -5,8 +5,7 @@
 
 int main()
 {
-	char *st = "5-3+1-4";
-	char tmp[200] = {0};
+	char *st = "- (3-2) + (3) -5";
 	double result = 1.1;
 	Calculate(st, &result);
 	
