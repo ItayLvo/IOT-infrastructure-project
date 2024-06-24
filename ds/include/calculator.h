@@ -5,7 +5,8 @@ typedef enum status
 {
 	CALC_SUCCESS,
 	CALC_MATH_ERROR,
-	CALC_SYNTAX_ERROR
+	CALC_SYNTAX_ERROR,
+	CALC_SYSTEM_ERROR
 } e_status_t;
 
 
