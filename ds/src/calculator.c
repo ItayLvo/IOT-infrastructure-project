@@ -37,6 +37,8 @@ static int HandleError(const char **);
 static int HandleOpenParenthesis(const char **);
 static int HandleClosedParenthesis(const char **);
 
+static void CalculateTemporary(void);
+
 
 /* math calculation function pointer */
 typedef double (*math_operation_t)(double, double);
@@ -49,13 +51,13 @@ typedef int (*transition_handler_t)(const char **input);
 /* typedfef for different input options */
 typedef enum
 {
-	CHAR_INVALID,
 	CHAR_NUMBER,
 	CHAR_OPERATOR,
+	CHAR_INVALID,
 	CHAR_WHITESPACE,
+	CHAR_END,
 	CHAR_PARENTHESIS_OPEN,
-	CHAR_PARENTHESIS_CLOSED,
-	CHAR_END
+	CHAR_PARENTHESIS_CLOSED
 } char_type_t;
 
 
@@ -119,6 +121,9 @@ operator_t operators_lut[126] = {0};
 
 static void InitializeOperatorsLUT(void)
 {
+	operators_lut[0].priority = 0;
+	operators_lut[0].math_function = NULL;
+	
 	operators_lut['+'].priority = 1;
 	operators_lut['+'].math_function = Add;
 	
@@ -214,6 +219,7 @@ e_status_t Calculate(const char *input, double *result)
 		return CALC_SYSTEM_ERROR;
 	}
 	
+	
 	while (current_state != STATE_ERROR && current_state != STATE_SUCCESS)
 	{
 		current_char_type = char_lut[*runner];
@@ -221,24 +227,35 @@ e_status_t Calculate(const char *input, double *result)
 		
 		if (next_state == STATE_ERROR)
 		{
+			DestroyStacks();
 			return CALC_SYNTAX_ERROR;
 		}
 		
+		/* exctract function from FSM LUT: */
 		current_handler_function = transition_table[current_state][current_char_type].transition_handler;
+		/* execute transition function: */
 		transition_function_status = current_handler_function(&runner);
 		
-		if (!transition_function_status)
+		if (transition_function_status)
 		{
 			return CALC_MATH_ERROR;
 		}
 		
 		
+		current_state = next_state;
+		++runner;
+	}
+	
+	if (current_state == STATE_SUCCESS)
+	{
+		*result = *(double *)StackPeek(operand_stack);
+		DestroyStacks();
+		return CALC_SUCCESS;
+
 	}
 	
 	
-	
-	
-	return CALC_SUCCESS;
+	return CALC_SYNTAX_ERROR;
 }
 
 
@@ -339,6 +356,7 @@ static double Power(double a, double b) { return pow(a, b); }
 static double Parenthesis(double a, double b) { return 0; }
 
 
+
 /* transition handlers implementation */
 static int HandleNumber(const char **input)
 {
@@ -348,7 +366,7 @@ static int HandleNumber(const char **input)
 	operand = strtod(*input, &str_remainder);
 	StackPush(operand_stack, &operand);
 	
-	*input = str_remainder;
+	/* *input = str_remainder; */	/* no need, because im advancing runner in the Calculate() while loop */
 	
 	return 0;
 }
@@ -356,52 +374,72 @@ static int HandleNumber(const char **input)
 
 static int HandleOperator(const char **input)
 {
-	char prev_char = *(char *)StackPeek(operator_stack);
 	const char new_char = **input;
+	char prev_char = 0;
 	operator_t prev_operator = {0};
 	operator_t new_operator = {0};
 	int i = 0;
-	
-	/* retreive the previous and new operators by searching the operators array */
-	for (i = 0; operators_arr[i].symbol != '\0'; ++i)
-	{
-		if (operators_arr[i].symbol == prev_char)
-		{
-			prev_operator = operators_arr[i];
-		}
-		
-		if (operators_arr[i].symbol == new_char)
-		{
-			new_operator = operators_arr[i];
-		}
-	}
-	
-	
-	
-	
 
-	if (new_operator.priority < prev_operator.priority)
+	if (StackIsEmpty(operator_stack))
 	{
-		/* pop operator and 2 operands, calculate, then push... */
+		StackPush(operator_stack, &new_char);
+		return 0;
 	}
 	
-	StackPush(operator_stack, &new_char);
+	prev_char = *(char *)StackPeek(operator_stack);
+	prev_operator = operators_lut[prev_char];
+	new_operator = operators_lut[new_char];
 	
+	if (new_operator.priority <= prev_operator.priority)
+	{
+		CalculateTemporary();
+	}
+
+	StackPush(operator_stack, &new_char);
 	return 0;
+}
+
+
+
+static void CalculateTemporary(void)
+{
+	char operator_symbol = *(char *)StackPeek(operator_stack);
+	operator_t operator = operators_lut[operator_symbol];
+	double num1 = 0.0;
+	double num2 = 0.0;
+	double result = 0.0;
+	
+	StackPop(operator_stack);
+	
+	num1 = *(double *)StackPeek(operand_stack);
+	StackPop(operand_stack);
+	
+	num2 = *(double *)StackPeek(operand_stack);
+	StackPop(operand_stack);
+	
+	result = operator.math_function(num1, num2);
+	
+	StackPush(operand_stack, &result);
 }
 
 
 static int HandleEnd(const char **input)
 {
+	while (!StackIsEmpty(operator_stack))
+	{
+		CalculateTemporary();
+	}
 	
-
 	return 0;
 }
 
 
 static int HandleWhitespace(const char **input)
 {
-	++(*input);
+	/* ++(*input); */
+	
+	/* do nothing... /*
+	/* Calculate() while loop will advance the runner to the next char of the input */
 
 	return 0;
 }

@@ -5,9 +5,12 @@
 
 int main()
 {
-	char *st = "   2  +  8  + 2  -   5  - 7 - 2  ";
+	char *st = "1+1*2";
 	char tmp[200] = {0};
-	Calculate(st, NULL);
+	double result = 1.1;
+	Calculate(st, &result);
+	
+	printf("result = %f\n", result);
 	
 	return 0;
 }
