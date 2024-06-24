@@ -311,11 +311,19 @@ static int HandleOperator(const char **input)
 	prev_operator = operators_lut[prev_char];
 	new_operator = operators_lut[new_char];
 	
+	/*
 	if (new_operator.priority <= prev_operator.priority)
 	{
 		CalculateTemporary();
 	}
-
+	*/
+	while (!StackIsEmpty(operator_stack) &&
+		*(char *)StackPeek(operator_stack) != '(' &&		/* TODO: try to remove this if */
+		(new_operator.priority <= prev_operator.priority))
+	{
+		CalculateTemporary();
+	}
+	
 	StackPush(operator_stack, &new_char);
 	
 	++(*input);
@@ -323,28 +331,6 @@ static int HandleOperator(const char **input)
 	return 0;
 }
 
-
-
-static void CalculateTemporary(void)
-{
-	char operator_symbol = *(char *)StackPeek(operator_stack);
-	operator_t operator = operators_lut[operator_symbol];
-	double num1 = 0.0;
-	double num2 = 0.0;
-	double result = 0.0;
-	
-	StackPop(operator_stack);
-	
-	num1 = *(double *)StackPeek(operand_stack);
-	StackPop(operand_stack);
-	
-	num2 = *(double *)StackPeek(operand_stack);
-	StackPop(operand_stack);
-	
-	result = operator.math_function(num1, num2);
-	
-	StackPush(operand_stack, &result);
-}
 
 
 static int HandleEnd(const char **input)
@@ -418,6 +404,30 @@ static int HandleClosedParenthesis(const char **input)
 	
 	return 0;
 }
+
+
+
+static void CalculateTemporary(void)
+{
+	char operator_symbol = *(char *)StackPeek(operator_stack);
+	operator_t operator = operators_lut[operator_symbol];
+	double num1 = 0.0;
+	double num2 = 0.0;
+	double result = 0.0;
+	
+	StackPop(operator_stack);
+	
+	num1 = *(double *)StackPeek(operand_stack);
+	StackPop(operand_stack);
+	
+	num2 = *(double *)StackPeek(operand_stack);
+	StackPop(operand_stack);
+	
+	result = operator.math_function(num1, num2);
+	
+	StackPush(operand_stack, &result);
+}
+
 
 
 static void DestroyStacks(void)
