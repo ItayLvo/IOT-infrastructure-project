@@ -87,19 +87,16 @@ void StackPush(stack_t *stack, const void *item)
 	++(stack->current_size);
 }
 
-void StackPeek(const stack_t *stack, void *dest)
+void *StackPeek(const stack_t *stack)
 {
-	char *ptr = NULL;
 	assert(stack);
 	
 	if (0 == stack->current_size)
 	{
-		dest = NULL;
-		return;
+		return NULL;
 	}
 	
-	ptr = (char *)(stack->buffer) + ((stack->current_size - 1) * stack->type_size);
-	dest = memcpy(dest, ptr, stack->type_size);
+	return (char *)(stack->buffer) + ((stack->current_size - 1) * stack->type_size);
 }
 
 size_t StackSize(const stack_t *stack)

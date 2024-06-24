@@ -33,6 +33,7 @@ Details:
     	char str8[100] = "4-3-2-1\n";		  Result =  -2 status = CALC_SUCCESS  
     	char str9[100] = "4^3^2^1\n";		  Result =  4096 status = CALC_SUCCESS 
 */
+
 e_status_t Calculate(const char *expresion, double *result);
 
 

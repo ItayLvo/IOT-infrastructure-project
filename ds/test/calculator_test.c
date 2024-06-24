@@ -5,7 +5,7 @@
 
 int main()
 {
-	char *st = "1+5/4    +1 - (  1+2)";
+	char *st = "   2  +  8  + 2  -   5  - 7 - 2  ";
 	char tmp[200] = {0};
 	Calculate(st, NULL);
 	

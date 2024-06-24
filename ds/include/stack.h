@@ -44,11 +44,11 @@ void StackPush(stack_t *stack, const void *item);
 /*
 Description: return the first item in the stack (without removing it)
 Params: stack_t
-Return Value: void *(??) to element returned
+Return Value: void * to top element of stack
 Time Complexity: O(1)
 Space: O(1)
 */
-void StackPeek(const stack_t *stack, void *dest);
+void *StackPeek(const stack_t *stack);
 
 /*
 Description: return current amount of items in stack
