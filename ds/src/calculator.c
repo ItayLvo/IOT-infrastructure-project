@@ -349,7 +349,7 @@ e_status_t Calculate(const char *input, double *result)
 
 /* operator functions */
 static double Add(double a, double b) { return a + b; }
-static double Subtract(double a, double b) { return a - b; }
+static double Subtract(double a, double b) { return b - a; }
 static double Multiply(double a, double b) { return a * b; }
 static double Divide(double a, double b) { return b == 0 ? 0 : (b / a); }
 static double Power(double a, double b) { return pow(a, b); }
