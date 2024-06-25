@@ -1,6 +1,5 @@
 #include <stddef.h>	/* size_t */
 #include <stdlib.h>	/* malloc */
-#include <stdio.h>	/* printf */
 #include <assert.h>	/* assert */
 #include <math.h>	/* pow */
 #include <stdlib.h>	/* strtod */
@@ -11,19 +10,19 @@
 #include "stack.h"		/* stack data structure and functions */
 
 #define UNUSED(x) (void)(x)
+
+/******** FSM constants macros ********/
 #define NUMBER_OF_STATES 2
 #define NUMBER_OF_INPUT_TYPES 8
 
 
-/* static global variables */
+/******** static global variables ********/
 static stack_t *operator_stack = NULL;
 static stack_t *operand_stack = NULL;
 static int count_parenthesis_open = 0;
 
 
-/* forward declerations, grouped by context */
-
-
+/******** forward declerations, grouped by context ********/
 static void InitializeCharLUT(void);
 static void InitializeOperatorsLUT(void);
 
@@ -44,21 +43,18 @@ static int HandleError(const char **);
 static int HandleOpenParenthesis(const char **);
 static int HandleClosedParenthesis(const char **);
 
-static void CalculateTemporary(void);
+static int CalculateTemporary(void);
 
 
-/* math calculation function pointer */
+/******** function pointer to math calculation function ********/
 typedef double (*math_operation_t)(double, double);
 
-/* function pointer to FSM transition handler function */
+
+/******** function pointer to FSM transition handler function ********/
 typedef int (*transition_handler_t)(const char **input);
 
 
-
-/* enums and typedefs: */
-typedef enum handler_function_status_t {HANDLER_SUCCESS = 0, HANDLER_MATH_FALIURE = 1, HANDLER_SYNTAX_FALIURE = 2} e_handler_function_status_t;
-
-/* FSM input options */
+/******** FSM input options ********/
 typedef enum
 {
 	CHAR_NUMBER,
@@ -72,7 +68,7 @@ typedef enum
 } char_type_t;
 
 
-/* FSM states */
+/******** FSM states ********/
 typedef enum
 {
 	STATE_WAIT_FOR_NUMBER,
@@ -82,7 +78,7 @@ typedef enum
 } state_t;
 
 
-/* FSM transition struct (start state -> input -> handler -> end state) */
+/******** FSM transition struct (start state -> input -> handler -> end state) ********/
 typedef struct
 {
 	state_t start_state;
@@ -92,7 +88,7 @@ typedef struct
 } transition_t;
 
 
-/* transition table */
+/******** FSM transition table ********/
 transition_t transition_table[NUMBER_OF_STATES][NUMBER_OF_INPUT_TYPES] =
 {
 	{
@@ -119,7 +115,7 @@ transition_t transition_table[NUMBER_OF_STATES][NUMBER_OF_INPUT_TYPES] =
 
 
 
-/* operator struct */
+/******** operator struct ********/
 typedef struct
 {
     int priority;
@@ -127,7 +123,7 @@ typedef struct
 } operator_t;
 
 
-/* LUT for operators */
+/******** LUT for operators ********/
 operator_t operators_lut[126] = {0};
 
 static void InitializeOperatorsLUT(void)
@@ -153,9 +149,8 @@ static void InitializeOperatorsLUT(void)
 
 
 
-/* static ASCII LUT */
+/******** static ASCII LUT ********/
 static char_type_t char_lut[128];
-
 
 static void InitializeCharLUT(void)
 {
@@ -186,6 +181,7 @@ static void InitializeCharLUT(void)
 	char_lut['.'] = CHAR_NUMBER;
 	
 	char_lut[' '] = CHAR_WHITESPACE;
+	char_lut['\n'] = CHAR_WHITESPACE;
 	
 	char_lut['\0'] = CHAR_END;
 }
@@ -198,14 +194,14 @@ static int InitializeStacks(size_t stack_size)
 	operator_stack = StackCreateOneMalloc(stack_size, sizeof(char));
 	if (NULL == operator_stack)
 	{
-		return 1;
+		return CALC_SYSTEM_ERROR;
 	}
 	
 	operand_stack = StackCreateOneMalloc(stack_size, sizeof(double));
 	if (NULL == operand_stack)
 	{
 		free(operator_stack);
-		return 1;
+		return CALC_SYSTEM_ERROR;
 	}
 	
 	return 0;
@@ -247,14 +243,15 @@ e_status_t Calculate(const char *input, double *result)
 		/* execute transition function: */
 		transition_function_status = current_handler_function(&runner);
 		
+		/* if transition failed - return the relevant error */
 		if (transition_function_status)
 		{
+			DestroyStacks();
 			return transition_function_status;
 		}
 		
 		
 		current_state = next_state;
-		/* ++runner; */
 	}
 	
 	if (current_state == STATE_SUCCESS)
@@ -272,15 +269,16 @@ e_status_t Calculate(const char *input, double *result)
 
 
 
-/* operator functions */
+/******** math functions ********/
 static double Add(double a, double b) { return a + b; }
 static double Subtract(double a, double b) { return b - a; }
 static double Multiply(double a, double b) { return a * b; }
-static double Divide(double a, double b) { return b == 0 ? 0 : (b / a); }
+static double Divide(double a, double b) { return a == 0 ? 0 : (b / a); }
 static double Power(double a, double b) { return pow(b, a); }
 
 
-/* transition handlers implementation */
+
+/******** transition handlers ********/
 static int HandleNumber(const char **input)
 {
 	double operand = 0.0;
@@ -314,10 +312,13 @@ static int HandleOperator(const char **input)
 	new_operator = operators_lut[new_char];
 	
 	while (!StackIsEmpty(operator_stack) &&
-		*(char *)StackPeek(operator_stack) != '(' &&		/* TODO: try to remove this if */
-		(new_operator.priority <= prev_operator.priority))
+				*(char *)StackPeek(operator_stack) != '(' &&
+				(new_operator.priority <= prev_operator.priority))
 	{
-		CalculateTemporary();
+		if(CalculateTemporary())
+		{
+			return CALC_MATH_ERROR;
+		}
 	}
 	
 	StackPush(operator_stack, &new_char);
@@ -333,9 +334,17 @@ static int HandleEnd(const char **input)
 {
 	UNUSED(**input);
 	
+	if (0 != count_parenthesis_open)
+	{
+		return CALC_SYNTAX_ERROR;
+	}
+	
 	while (!StackIsEmpty(operator_stack))
 	{
-		CalculateTemporary();
+		if(CalculateTemporary())
+		{
+			return CALC_MATH_ERROR;
+		}
 	}
 	
 	return 0;
@@ -383,11 +392,14 @@ static int HandleClosedParenthesis(const char **input)
 	
 	while ('(' != ch)
 	{
-		CalculateTemporary();
+		if(CalculateTemporary())
+		{
+			return CALC_MATH_ERROR;
+		}
 		
 		if (StackIsEmpty(operator_stack))
 		{
-			return HANDLER_SYNTAX_FALIURE;
+			return CALC_SYNTAX_ERROR;
 		}
 		
 		ch = *(char *)StackPeek(operator_stack);
@@ -403,7 +415,7 @@ static int HandleClosedParenthesis(const char **input)
 
 
 
-static void CalculateTemporary(void)
+static int CalculateTemporary(void)
 {
 	char operator_symbol = *(char *)StackPeek(operator_stack);
 	operator_t operator = operators_lut[operator_symbol];
@@ -419,9 +431,16 @@ static void CalculateTemporary(void)
 	num2 = *(double *)StackPeek(operand_stack);
 	StackPop(operand_stack);
 	
+	if ('/' == operator_symbol && 0 == num1)
+	{
+		return 1;
+	}
+	
 	result = operator.math_function(num1, num2);
 	
 	StackPush(operand_stack, &result);
+	
+	return 0;
 }
 
 
