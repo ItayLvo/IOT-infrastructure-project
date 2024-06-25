@@ -5,17 +5,18 @@
 
 int main()
 {
-	char *st = "-(3-2*5-2)+(3)-5*(2-3*4)";
+	char *st = "  ( 5 +(2-3   ) )";
 	double result = 1.1;
-	Calculate(st, &result);
+	e_status_t status = Calculate(st, &result);
 	
-	printf("result = %f\n", result);
+	if (status == CALC_SUCCESS)
+	{
+		printf("result = %f\n", result);
+	}
+	else
+	{
+		printf("failed: %d\n", status);
+	}
 	
 	return 0;
 }
-
-
-/*
-p *(double *)StackPeek(operand_stack)
-p *(char *)StackPeek(operator_stack)
-*/

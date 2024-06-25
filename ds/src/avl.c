@@ -193,11 +193,11 @@ static avl_node_t *AVLInsertNode(avl_node_t *runner, avl_node_t *new_node, avl_c
 		runner = new_node;
 	}
 	
-	
+	/* update current node height with the max of the two sub-trees */
 	runner->height = 1 + MaxHeightOfTwoNodes(runner->left, runner->right);
-	
+	/* update current node balance */
 	current_balance = CalculateBalance(runner);
-	
+	/* perform rotations if needed */
 	runner = AVLFixBalance(runner, current_balance);
 	
 	return runner;
@@ -309,8 +309,7 @@ static avl_node_t *AVLCreateNode(void *data)
 }
 
 
-
-
+/* post-order traversal and freeing */
 static void AVLDestroyHelper(avl_node_t *node, avl_compare_func_t compare_func)
 {
 	if (node == NULL)
@@ -403,7 +402,7 @@ static avl_node_t *AVLRemoveNode(avl_node_t *node_to_remove, avl_compare_func_t 
 
 
 
-
+/* in order traversal */
 static int AVLForEachHelper(avl_node_t *node, avl_action_func_t action_func, void *params)
 {
 	int action_status = 0;
@@ -451,7 +450,7 @@ static void *AVLFindNode(avl_node_t *node, avl_compare_func_t compare_func, void
 }
 
 
-
+/* pre-order traversal */
 static size_t AVLCountNodes(avl_node_t *node)
 {
 	if (NULL == node)
