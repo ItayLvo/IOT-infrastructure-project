@@ -112,7 +112,7 @@ int HashTableInsert(hash_table_t *table, const void *key, void *data)
 	}
 	
 	/* insert the element (key-data pair) to the relevant bucket */
-	insert_status = DLListInsert(current_bucket, DLListEnd(current_bucket), new_element);
+	insert_status = DLListInsert(current_bucket, DLListBegin(current_bucket), new_element);
 	
 	/* check DLL insert validity */
 	if (DLListIsEqualIter(insert_status, DLListEnd(current_bucket)))
@@ -142,7 +142,32 @@ void HashTableRemove(hash_table_t *table, const void *key)
 
 
 
-size_t HashTableSize(const hash_table_t *table) /* TODO: code resuse with foreach */
+void *HashTableFind(const hash_table_t *table, const void *key)
+{
+	dll_iterator_t iterator_to_find = HashTableFindElementInBucket((hash_table_t *)table, key);
+	element_t *element_to_find = NULL;
+	void *data_to_find = NULL;
+	
+	if (NULL == iterator_to_find)
+	{
+		return NULL;
+	}
+	
+	element_to_find = DLListGetData(iterator_to_find);
+	data_to_find = element_to_find->data;
+	
+	HashTableRemove((hash_table_t *)table, key);
+	if (HashTableInsert((hash_table_t *)table, key, data_to_find))
+	{
+		return NULL;
+	}
+	
+	return data_to_find;
+}
+
+
+
+size_t HashTableSize(const hash_table_t *table)
 {
 	size_t i = 0;
 	size_t size_sum = 0;
