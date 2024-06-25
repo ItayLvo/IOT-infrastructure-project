@@ -6,7 +6,7 @@ typedef struct hash_table hash_table_t;
 /*
 Description: Hash function that recieves a key and returns the index of the bucket it should be inserted into.
 */
-typedef size_t (*hash_func_t)(void *key);
+typedef size_t (*hash_func_t)(const void *key);
 
 /*
 Description: Action function that recieves the data of an element and params and does some action on the data.
@@ -114,6 +114,7 @@ double HashTableLoad(const hash_table_t *table);
 
 double HashTableStandardDeviation(const hash_table_t *table);
 
-
+/* print helper funcion */
+void HashTablePrint(hash_table_t *table);
 
 #endif /*__HASHTABLE_H__*/

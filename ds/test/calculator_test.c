@@ -5,7 +5,7 @@
 
 int main()
 {
-	char *st = "((1/8))";
+	char *st = "2*(-8)";
 	double result = 1.1;
 	e_status_t status = Calculate(st, &result);
 	
@@ -34,4 +34,6 @@ int main()
     	char str7[100] = "(3-2)*5+ 5*(4+4+4"; Result =  0 status = CALC_SYNTAX_ERROR 
     	char str8[100] = "4-3-2-1\n";		  Result =  -2 status = CALC_SUCCESS  
     	char str9[100] = "4^3^2^1\n";		  Result =  4096 status = CALC_SUCCESS 
+    	
+    	char str9[100] = " 2 * - 8 "		  result = -16	status = CALC_SUCCESS
 */
