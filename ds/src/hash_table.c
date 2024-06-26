@@ -7,14 +7,6 @@
 #include "dllist.h"	/* doubley linked list data structure and functions */
 
 
-
-/* TODO:
-	asserts
-	conventions
-	macros for code-reuse
-*/
-
-
 struct hash_table
 {
 	dll_t **buckets;
