@@ -1,12 +1,14 @@
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
-#include <stdlib.h>	/* malloc */
+#include <stdlib.h>	/* malloc, free */
+#include <math.h>	/* pow, sqrt */
 
 #include <stdio.h>	/* printf ---------------------------------------------- remove me! */
 
-#include "hash_table.h"
+#include "hash_table.h"	/* hash table function declerations */
 #include "dllist.h"	/* doubley linked list data structure and functions */
 
+/* TODO: asserts *//***********************************/
 
 struct hash_table
 {
@@ -17,6 +19,7 @@ struct hash_table
 };
 
 
+/* wrapper to client's key+data pair */
 typedef struct
 {
 	const void *key;
@@ -29,6 +32,9 @@ static dll_iterator_t HashTableFindElementInBucket(hash_table_t *table, const vo
 
 static int HashTablePrintHelper(void *data, void *params);
 
+
+
+/**** API functions ****/
 
 hash_table_t *HashTableCreate(hash_func_t hash_func, hash_cmp_func_t cmp_func, size_t hash_table_size)
 {
@@ -156,6 +162,7 @@ void *HashTableFind(const hash_table_t *table, const void *key)
 	element_to_find = DLListGetData(iterator_to_find);
 	data_to_find = element_to_find->data;
 	
+	
 	HashTableRemove((hash_table_t *)table, key);
 	if (HashTableInsert((hash_table_t *)table, key, data_to_find))
 	{
@@ -183,7 +190,7 @@ size_t HashTableSize(const hash_table_t *table)
 }
 
 
-int HashTableIsEmpty(const hash_table_t *table)	/* TODO: code resuse with foreach */
+int HashTableIsEmpty(const hash_table_t *table)
 {
 	size_t i = 0;
 	dll_t *current_bucket = NULL;
@@ -223,6 +230,41 @@ int HashTableForEach(hash_table_t *table, hash_action_func_t action_func, void *
 }
 
 
+
+double HashTableLoad(const hash_table_t *table)
+{
+	double num_of_elements_in_table = (double)HashTableSize(table);
+	double num_of_buckets = (double)table->hash_table_size;
+	
+	return num_of_elements_in_table / num_of_buckets;
+}
+
+
+
+double HashTableStandardDeviation(const hash_table_t *table)
+{
+	size_t i = 0;
+	double variance = 0;
+	double standard_deviation = 0;
+	dll_t *current_bucket = NULL;
+	double avg_element_per_bucket = HashTableLoad(table);
+	
+	for (i = 0; i < table->hash_table_size; ++i)
+	{
+		current_bucket = *(table->buckets + i);
+		variance += pow((DLListCount(current_bucket) - avg_element_per_bucket), 2);
+	}
+	
+	variance /= table->hash_table_size;
+	standard_deviation = sqrt(variance);
+	
+	return standard_deviation;
+}
+
+
+
+
+/**** static helper functions ****/
 
 static dll_iterator_t HashTableFindElementInBucket(hash_table_t *table, const void *key)
 {
@@ -272,6 +314,8 @@ void HashTablePrint(hash_table_t *table)
 {
 	HashTableForEach(table, HashTablePrintHelper, NULL);
 }
+
+/* assuming client data is a string */
 static int HashTablePrintHelper(void *data, void *params)
 {
 	element_t *current_element = (element_t *)data;
@@ -284,6 +328,7 @@ static int HashTablePrintHelper(void *data, void *params)
 	
 	return 0;
 }
+
 
 
 

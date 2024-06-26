@@ -1,16 +1,29 @@
 #include <stdio.h>	/* printf */
-
-#include <stdlib.h>	/* malloc ---------------------------------------------- remove me! */
+#include <stdlib.h>	/* malloc */
 
 #include "hash_table.h"
 #include "dllist.h"	/* doubley linked list data structure and functions */
 
 
-static size_t HashFunction(const void *key);
+static size_t HashFunctionModulu5(const void *key);
 static int MatchInt(const void *item, const void *data_to_compare);
+
+int Test1(void);
+
+
 
 
 int main()
+{
+	Test1();
+	
+	return 0;
+}
+
+
+
+
+int Test1(void)
 {
 	int key1 = 5;
 	char *data1= "itay";
@@ -29,7 +42,7 @@ int main()
 	
 	char *temp_string = NULL;
 	
-	hash_table_t *table = HashTableCreate(HashFunction, MatchInt, 10);
+	hash_table_t *table = HashTableCreate(HashFunctionModulu5, MatchInt, 10);
 	
 	
 	printf("Table size: %lu\n", HashTableSize(table));
@@ -55,6 +68,8 @@ int main()
 	
 	HashTablePrint(table);
 	
+	printf("\n\nLoad factor = %f, Standard deviation = %f\n\n", HashTableLoad(table), HashTableStandardDeviation(table));
+	
 	HashTableDestroy(table);
 	
 	
@@ -64,17 +79,13 @@ int main()
 
 
 
+static size_t HashFunctionModulu5(const void *key)
+{
+	return (*(int *)key % 5);
+}
 
 
 static int MatchInt(const void *item, const void *data_to_compare)
 {
  	return (*(int *)item == *(int *)data_to_compare);
 }
-
-
-static size_t HashFunction(const void *key)
-{
-	return (*(int *)key % 5);
-}
-
-
