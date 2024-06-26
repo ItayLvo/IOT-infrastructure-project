@@ -12,7 +12,7 @@
 #define VALID_WORD_SIZE 128
 #define NUM_WORDS_TO_LOAD 20000
 
-int TestDictionary(void);
+int SpellChecker(void)
 int LoadDictionary(hash_table_t *table, const char *filename, char **loaded_words);
 
 static size_t HashFunctionModulu44(const void *key);
@@ -24,14 +24,14 @@ char *strdup(const char *c);
 int main()
 {
 	
-	TestDictionary();
+	SpellChecker();
 	
 	return 0;
 }
 
 
 
-int TestDictionary(void)
+int SpellChecker(void)
 {
 	char *loaded_words[NUM_WORDS_TO_LOAD] = {0};
 	char user_input[VALID_WORD_SIZE] = {0};
