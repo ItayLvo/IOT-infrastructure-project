@@ -8,14 +8,14 @@
 
 
 #define DICTIONARY_FILE_PATH "/usr/share/dict/words"
-#define HASH_TABLE_SIZE 44
+#define HASH_TABLE_SIZE 57
 #define VALID_WORD_SIZE 128
 #define NUM_WORDS_TO_LOAD 20000
 
-int SpellChecker(void)
+int SpellChecker(void);
 int LoadDictionary(hash_table_t *table, const char *filename, char **loaded_words);
 
-static size_t HashFunctionModulu44(const void *key);
+static size_t HashFunctionModuluString(const void *key);
 static int MatchWords(const void *item, const void *data_to_compare);
 static void FreeWords(char **loaded_words);
 char *strdup(const char *c);
@@ -36,7 +36,7 @@ int SpellChecker(void)
 	char *loaded_words[NUM_WORDS_TO_LOAD] = {0};
 	char user_input[VALID_WORD_SIZE] = {0};
 	char *search_result = NULL;
-	hash_table_t *table = HashTableCreate(HashFunctionModulu44, MatchWords, HASH_TABLE_SIZE);
+	hash_table_t *table = HashTableCreate(HashFunctionModuluString, MatchWords, HASH_TABLE_SIZE);
 	
 	if (table == NULL)
 	{
@@ -129,7 +129,7 @@ int LoadDictionary(hash_table_t *table, const char *filename, char **loaded_word
 
 
 
-static size_t HashFunctionModulu44(const void *key)
+static size_t HashFunctionModuluString(const void *key)
 {
 	char *word = (char *)key;
 	return (word[0] % HASH_TABLE_SIZE);
