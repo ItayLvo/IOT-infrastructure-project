@@ -8,7 +8,12 @@
 #include "hash_table.h"	/* hash table function declerations */
 #include "dllist.h"	/* doubley linked list data structure and functions */
 
-/* TODO: asserts *//***********************************/
+/* TODO:
+	asserts
+	conventions
+	macros for code-reuse
+*/
+
 
 struct hash_table
 {
@@ -153,6 +158,8 @@ void *HashTableFind(const hash_table_t *table, const void *key)
 	dll_iterator_t iterator_to_find = HashTableFindElementInBucket((hash_table_t *)table, key);
 	element_t *element_to_find = NULL;
 	void *data_to_find = NULL;
+	size_t hash_result = (table->hash_func)(key);
+	dll_t *current_bucket = (table->buckets)[hash_result];
 	
 	if (NULL == iterator_to_find)
 	{
@@ -162,12 +169,9 @@ void *HashTableFind(const hash_table_t *table, const void *key)
 	element_to_find = DLListGetData(iterator_to_find);
 	data_to_find = element_to_find->data;
 	
-	
-	HashTableRemove((hash_table_t *)table, key);
-	if (HashTableInsert((hash_table_t *)table, key, data_to_find))
-	{
-		return NULL;
-	}
+	/* caching the element: re-inserting it to the start of the bucket */
+	DLListRemove(iterator_to_find);
+	DLListInsert(current_bucket, DLListBegin(current_bucket), element_to_find);
 	
 	return data_to_find;
 }
