@@ -28,7 +28,7 @@ typedef struct avl_node_t
 
 
 /* helper functions related to remove/destroy */
-static void AVLDestroyHelper(avl_node_t *node, avl_compare_func_t compare_func);
+static void AVLDestroyHelper(avl_node_t *node);
 static avl_node_t *AVLRemoveHelper(avl_node_t *node_to_remove, avl_compare_func_t compare_func, void *data);
 static avl_node_t *AVLRemoveNode(avl_node_t *node_to_remove, avl_compare_func_t compare_func);
 static avl_node_t *FindInOrderSuccessor(avl_node_t *node_to_remove);
@@ -48,7 +48,7 @@ static void *AVLFindNode(avl_node_t *node, avl_compare_func_t compare_func, void
 static int AVLForEachHelper(avl_node_t *node, avl_action_func_t action_func, void *params);
 static avl_node_t *AVLCreateNode(void *data);
 static size_t AVLGetNodeHeight(const avl_node_t *node);
-
+static size_t UpdateNodeHeight(avl_node_t *node);
 
 /******** API functions ********/
 
@@ -77,7 +77,7 @@ void AVLDestroy(avl_t *tree)
 {
 	assert(tree);
 	
-	AVLDestroyHelper(tree->root, tree->compare_func);
+	AVLDestroyHelper(tree->root);
 	
 	free(tree);
 }
@@ -126,10 +126,11 @@ size_t AVLHeight(const avl_t *tree)
 {
 	assert(tree);
 	
-	if (NULL == tree->root)
+	if(AVLIsEmpty(tree))
 	{
 		return 0;
 	}
+
 	
 	return tree->root->height;
 }
@@ -138,6 +139,8 @@ size_t AVLHeight(const avl_t *tree)
 
 size_t AVLCount(const avl_t *tree)
 {
+	assert(tree);
+	
 	return AVLCountNodes(tree->root);
 }
 
@@ -152,6 +155,8 @@ void *AVLFind(const avl_t *tree, const void *data)
 
 int AVLIsEmpty(const avl_t *tree)
 {
+	assert(tree);
+	
 	return (tree->root == NULL);
 }
 
@@ -159,6 +164,8 @@ int AVLIsEmpty(const avl_t *tree)
 
 int AVLForEach(avl_t *tree, avl_action_func_t action_func, void* params)
 {
+	assert(tree);
+	
 	return AVLForEachHelper(tree->root, action_func, params);
 }
 
@@ -194,7 +201,7 @@ static avl_node_t *AVLInsertNode(avl_node_t *runner, avl_node_t *new_node, avl_c
 	}
 	
 	/* update current node height with the max of the two sub-trees */
-	runner->height = 1 + MaxHeightOfTwoNodes(runner->left, runner->right);
+	runner->height = UpdateNodeHeight(runner);
 	/* update current node balance */
 	current_balance = CalculateBalance(runner);
 	/* perform rotations if needed */
@@ -204,6 +211,11 @@ static avl_node_t *AVLInsertNode(avl_node_t *runner, avl_node_t *new_node, avl_c
 }
 
 
+
+static size_t UpdateNodeHeight(avl_node_t *node)
+{
+	return 1 + MaxHeightOfTwoNodes(node->left, node->right);
+}
 
 
 static int CalculateBalance(avl_node_t *node)
@@ -267,8 +279,8 @@ static avl_node_t *AVLRotateRight(avl_node_t *node)
 	root->left = pivot->right;
 	pivot->right = root;
 	
-	root->height = 1 + MaxHeightOfTwoNodes(root->left, root->right);
-	pivot->height = 1 + MaxHeightOfTwoNodes(pivot->left, pivot->right);
+	root->height = UpdateNodeHeight(root);
+	pivot->height = UpdateNodeHeight(pivot);
 	
 	return pivot;
 }
@@ -284,8 +296,8 @@ static avl_node_t *AVLRotateLeft(avl_node_t *node)
 	root->right = pivot->left;
 	pivot->left = root;
 	
-	root->height = 1 + MaxHeightOfTwoNodes(root->left, root->right);
-	pivot->height = 1 + MaxHeightOfTwoNodes(pivot->left, pivot->right);
+	root->height = UpdateNodeHeight(root);
+	pivot->height = UpdateNodeHeight(pivot);
 	
 	return pivot;
 }
@@ -310,15 +322,15 @@ static avl_node_t *AVLCreateNode(void *data)
 
 
 /* post-order traversal and freeing */
-static void AVLDestroyHelper(avl_node_t *node, avl_compare_func_t compare_func)
+static void AVLDestroyHelper(avl_node_t *node)
 {
 	if (node == NULL)
 	{
 		return;
 	}
 	
-	AVLDestroyHelper(node->left, compare_func);
-	AVLDestroyHelper(node->right, compare_func);
+	AVLDestroyHelper(node->left);
+	AVLDestroyHelper(node->right);
 	free(node);
 }
 
@@ -354,7 +366,7 @@ static avl_node_t *AVLRemoveHelper(avl_node_t *node_to_remove, avl_compare_func_
 	
 	if (NULL != node_to_remove)	/* if current node is not NULL, update height and balance, then fix balance (if needed) */
 	{
-		node_to_remove->height = 1 + MaxHeightOfTwoNodes(node_to_remove->left, node_to_remove->right);
+		node_to_remove->height = UpdateNodeHeight(node_to_remove);
 		current_balance = AVLGetNodeHeight(node_to_remove->left) - AVLGetNodeHeight(node_to_remove->right);	
 		node_to_remove = AVLFixBalance(node_to_remove, current_balance);
 	}
