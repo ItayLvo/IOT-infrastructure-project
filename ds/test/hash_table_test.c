@@ -8,9 +8,8 @@
 static size_t HashFunctionModulu5(const void *key);
 static int MatchInt(const void *item, const void *data_to_compare);
 
+
 int Test1(void);
-
-
 
 
 int main()
@@ -61,12 +60,8 @@ int Test1(void)
 	HashTableRemove(table, &key3);
 	printf("Table size (after removing 1 key): %lu\n\n", HashTableSize(table));
 	
-	HashTablePrint(table);
-	
 	temp_string = *(char **)HashTableFind(table, &key1);
 	printf("\nSearch result: %s\n\n", temp_string);
-	
-	HashTablePrint(table);
 	
 	printf("\n\nLoad factor = %f, Standard deviation = %f\n\n", HashTableLoad(table), HashTableStandardDeviation(table));
 	
@@ -89,3 +84,5 @@ static int MatchInt(const void *item, const void *data_to_compare)
 {
  	return (*(int *)item == *(int *)data_to_compare);
 }
+
+

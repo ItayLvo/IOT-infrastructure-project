@@ -10,7 +10,7 @@
 #define DICTIONARY_FILE_PATH "/usr/share/dict/words"
 #define HASH_TABLE_SIZE 44
 #define VALID_WORD_SIZE 128
-#define NUM_WORDS_TO_LOAD 2000
+#define NUM_WORDS_TO_LOAD 20000
 
 int TestDictionary(void);
 int LoadDictionary(hash_table_t *table, const char *filename, char **loaded_words);
@@ -46,8 +46,8 @@ int TestDictionary(void)
 	
 	LoadDictionary(table, DICTIONARY_FILE_PATH, loaded_words);
 	
-	printf("\n\nLoad factor = %f, Standard deviation = %f\n\n", HashTableLoad(table), HashTableStandardDeviation(table));
-	
+	printf("\n\nLoad factor = %f, Standard deviation = %f\n", HashTableLoad(table), HashTableStandardDeviation(table));
+	printf("Table size after loading dictionary: %lu\n\n", HashTableSize(table));
 	
 	printf("Enter word to look in the dictionary. Enter 0 to end.\n");
 	if (fgets(user_input, sizeof(user_input), stdin) == NULL)
@@ -67,7 +67,7 @@ int TestDictionary(void)
 		}
 		else
 		{
-			printf("\nSearch result: %s\n\n", search_result);
+			printf("\nFound. Search result: %s\n\n", search_result);
 		}
 		
 		printf("Enter key to look in the dictionary.\nEnter 0 to end.\n\n");

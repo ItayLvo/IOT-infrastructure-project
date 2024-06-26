@@ -3,10 +3,10 @@
 #include <stdlib.h>	/* malloc, free */
 #include <math.h>	/* pow, sqrt */
 
-#include <stdio.h>	/* printf ---------------------------------------------- remove me! */
-
 #include "hash_table.h"	/* hash table function declerations */
 #include "dllist.h"	/* doubley linked list data structure and functions */
+
+
 
 /* TODO:
 	asserts
@@ -32,19 +32,24 @@ typedef struct
 } element_t;
 
 
+/* static functions forward declerations */
 static element_t *CreateHashTableElement(const void *key, void *data);
 static dll_iterator_t HashTableFindElementInBucket(hash_table_t *table, const void *key);
-
-static int HashTablePrintHelper(void *data, void *params);
-
+static dll_t *GetBucketByKey(hash_table_t *table, const void *key);
 
 
 /**** API functions ****/
 
 hash_table_t *HashTableCreate(hash_func_t hash_func, hash_cmp_func_t cmp_func, size_t hash_table_size)
 {
-	hash_table_t *table = (hash_table_t*)malloc(sizeof(hash_table_t));
 	size_t i = 0;
+	hash_table_t *table = NULL;
+	
+	assert(hash_table_size);
+	assert(hash_func);
+	assert(cmp_func);
+	
+	table = (hash_table_t*)malloc(sizeof(hash_table_t));
 	
 	if (NULL == table)
 	{
@@ -87,6 +92,7 @@ void HashTableDestroy(hash_table_t *table)
 	dll_iterator_t list_runner = {0};
 	element_t *current_element = NULL;
 	
+	assert(table);
 	
 	for (i = 0; i < table->hash_table_size; ++i)
 	{
@@ -111,12 +117,16 @@ void HashTableDestroy(hash_table_t *table)
 
 int HashTableInsert(hash_table_t *table, const void *key, void *data)
 {
-	size_t hash_result = (table->hash_func)(key);
-	dll_t *current_bucket = (table->buckets)[hash_result];
+	dll_t *current_bucket;
 	dll_iterator_t insert_status;
+	element_t *new_element = NULL;
 	
+	assert(table);
+	
+	current_bucket = GetBucketByKey(table, key);
+
 	/* create element struct to wrap key-data pair */
-	element_t *new_element = CreateHashTableElement(key, data);
+	new_element = CreateHashTableElement(key, data);
 	if (NULL == new_element)
 	{
 		return 1;
@@ -137,11 +147,14 @@ int HashTableInsert(hash_table_t *table, const void *key, void *data)
 
 
 
-
 void HashTableRemove(hash_table_t *table, const void *key)
 {
 	element_t *element_to_remove = NULL;
-	dll_iterator_t iterator_to_remove = HashTableFindElementInBucket(table, key);
+	dll_iterator_t iterator_to_remove;
+	
+	assert(table);
+	
+	iterator_to_remove = HashTableFindElementInBucket(table, key);
 	
 	if (NULL != iterator_to_remove)
 	{
@@ -156,10 +169,9 @@ void HashTableRemove(hash_table_t *table, const void *key)
 void *HashTableFind(const hash_table_t *table, const void *key)
 {
 	dll_iterator_t iterator_to_find = HashTableFindElementInBucket((hash_table_t *)table, key);
+	dll_t *current_bucket = GetBucketByKey((hash_table_t *)table, key);
 	element_t *element_to_find = NULL;
 	void *data_to_find = NULL;
-	size_t hash_result = (table->hash_func)(key);
-	dll_t *current_bucket = (table->buckets)[hash_result];
 	
 	if (NULL == iterator_to_find)
 	{
@@ -169,7 +181,7 @@ void *HashTableFind(const hash_table_t *table, const void *key)
 	element_to_find = DLListGetData(iterator_to_find);
 	data_to_find = element_to_find->data;
 	
-	/* caching the element: re-inserting it to the start of the bucket */
+	/* caching the found element: re-inserting it to the start of the bucket */
 	DLListRemove(iterator_to_find);
 	DLListInsert(current_bucket, DLListBegin(current_bucket), element_to_find);
 	
@@ -183,6 +195,8 @@ size_t HashTableSize(const hash_table_t *table)
 	size_t i = 0;
 	size_t size_sum = 0;
 	dll_t *current_bucket = NULL;
+	
+	assert(table);
 	
 	for (i = 0; i < table->hash_table_size; ++i)
 	{
@@ -198,6 +212,8 @@ int HashTableIsEmpty(const hash_table_t *table)
 {
 	size_t i = 0;
 	dll_t *current_bucket = NULL;
+	
+	assert(table);
 	
 	for (i = 0; i < table->hash_table_size; ++i)
 	{
@@ -219,6 +235,9 @@ int HashTableForEach(hash_table_t *table, hash_action_func_t action_func, void *
 	dll_t *current_bucket = NULL;
 	dll_iterator_t current_element;
 	
+	assert(table);
+	assert(action_func);
+	
 	for (i = 0; i < table->hash_table_size; ++i)
 	{
 		current_bucket = *(table->buckets + i);
@@ -237,8 +256,13 @@ int HashTableForEach(hash_table_t *table, hash_action_func_t action_func, void *
 
 double HashTableLoad(const hash_table_t *table)
 {
-	double num_of_elements_in_table = (double)HashTableSize(table);
-	double num_of_buckets = (double)table->hash_table_size;
+	double num_of_elements_in_table = 0;
+	double num_of_buckets = 0;
+	
+	assert(table);
+	
+	num_of_elements_in_table = (double)HashTableSize(table);
+	num_of_buckets = (double)table->hash_table_size;
 	
 	return num_of_elements_in_table / num_of_buckets;
 }
@@ -313,26 +337,10 @@ static element_t *CreateHashTableElement(const void *key, void *data)
 
 
 
-
-void HashTablePrint(hash_table_t *table)
+static dll_t *GetBucketByKey(hash_table_t *table, const void *key)
 {
-	HashTableForEach(table, HashTablePrintHelper, NULL);
+	size_t hash_result = (table->hash_func)(key);
+	return (table->buckets)[hash_result];
 }
-
-/* assuming client data is a string */
-static int HashTablePrintHelper(void *data, void *params)
-{
-	element_t *current_element = (element_t *)data;
-	int key = *(int *)current_element->key;
-	char *string = *(char **)current_element->data;
-	
-	(void)params;
-	
-	printf("Key = %d\t\tData = %s\n", key, string);
-	
-	return 0;
-}
-
-
 
 

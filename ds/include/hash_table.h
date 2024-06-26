@@ -114,7 +114,5 @@ double HashTableLoad(const hash_table_t *table);
 
 double HashTableStandardDeviation(const hash_table_t *table);
 
-/* print helper funcion */
-void HashTablePrint(hash_table_t *table);
 
 #endif /*__HASHTABLE_H__*/
