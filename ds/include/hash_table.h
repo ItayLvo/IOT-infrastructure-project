@@ -95,7 +95,7 @@ void *HashTableFind(const hash_table_t *table, const void *key);
 HashTableForEach
 Descripion: Apply hash_action_func_t func for each element in the table. Stops when done or when action function return something other than 0(Failure).
 Input: hash table, an action func and params
-return: last status from action finction
+return: last status from action function
 time complexity: O(n)
 space complexity: O(1)
 */

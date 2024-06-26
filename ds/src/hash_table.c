@@ -49,18 +49,24 @@ hash_table_t *HashTableCreate(hash_func_t hash_func, hash_cmp_func_t cmp_func, s
 	}
 	
 	table->buckets = (dll_t **)malloc(hash_table_size * sizeof(dll_t *));
+	if (NULL == table->buckets)
+	{
+		free(table);
+		return NULL;
+	}
+	
 	
 	/* create a DLL for each "bucket" */
 	for (i = 0; i < hash_table_size; ++i)
 	{
-		*(table->buckets + i) = DLListCreate();
+		table->buckets[i] = DLListCreate();
 		/* check if bucket successfully created. if not, free the table and all buckets allocated so far */
 		if (NULL == *(table->buckets + i))
 		{
 			size_t j = 0;
 			for (j = 0; j < i; ++j)
 			{
-				free(*(table->buckets + i));
+				DLListDestroy(table->buckets[j]);
 			}
 			free(table);
 			return NULL;
@@ -88,7 +94,7 @@ void HashTableDestroy(hash_table_t *table)
 	
 	for (i = 0; i < table->hash_table_size; ++i)
 	{
-		current_bucket = *((table->buckets) + i);
+		current_bucket = table->buckets[i];
 		list_runner = DLListBegin(current_bucket);
 		
 		while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)))
@@ -109,8 +115,8 @@ void HashTableDestroy(hash_table_t *table)
 
 int HashTableInsert(hash_table_t *table, const void *key, void *data)
 {
-	dll_t *current_bucket;
-	dll_iterator_t insert_status;
+	dll_t *current_bucket = NULL;
+	dll_iterator_t insert_status = {0};
 	element_t *new_element = NULL;
 	
 	assert(table);
@@ -142,13 +148,15 @@ int HashTableInsert(hash_table_t *table, const void *key, void *data)
 void HashTableRemove(hash_table_t *table, const void *key)
 {
 	element_t *element_to_remove = NULL;
-	dll_iterator_t iterator_to_remove;
+	dll_iterator_t iterator_to_remove = {0};
+	dll_t *current_bucket = NULL;
 	
 	assert(table);
 	
+	current_bucket = GetBucketByKey(table, key);
 	iterator_to_remove = HashTableFindElementInBucket(table, key);
 	
-	if (NULL != iterator_to_remove)
+	if (DLListIsEqualIter(iterator_to_remove, DLListEnd(current_bucket)))
 	{
 		element_to_remove = DLListGetData(iterator_to_remove);
 		free(element_to_remove);
@@ -160,12 +168,13 @@ void HashTableRemove(hash_table_t *table, const void *key)
 
 void *HashTableFind(const hash_table_t *table, const void *key)
 {
-	dll_iterator_t iterator_to_find = HashTableFindElementInBucket((hash_table_t *)table, key);
+	dll_iterator_t iterator_to_find = HashTableFindElementInBucket((hash_table_t *)table, key);		/* check if need to remove const or not */
 	dll_t *current_bucket = GetBucketByKey((hash_table_t *)table, key);
 	element_t *element_to_find = NULL;
 	void *data_to_find = NULL;
+	dll_iterator_t insert_status = {0};
 	
-	if (NULL == iterator_to_find)
+	if (NULL == iterator_to_find || DLListIsEqualIter(iterator_to_find, DLListEnd(current_bucket)))
 	{
 		return NULL;
 	}
@@ -175,7 +184,11 @@ void *HashTableFind(const hash_table_t *table, const void *key)
 	
 	/* caching the found element: re-inserting it to the start of the bucket */
 	DLListRemove(iterator_to_find);
-	DLListInsert(current_bucket, DLListBegin(current_bucket), element_to_find);
+	insert_status = DLListInsert(current_bucket, DLListBegin(current_bucket), element_to_find);
+	if (DLListIsEqualIter(insert_status, DLListEnd(current_bucket)))
+	{
+		return NULL;
+	}
 	
 	return data_to_find;
 }
@@ -192,7 +205,7 @@ size_t HashTableSize(const hash_table_t *table)
 	
 	for (i = 0; i < table->hash_table_size; ++i)
 	{
-		current_bucket = *(table->buckets + i);
+		current_bucket = table->buckets[i];
 		size_sum += DLListCount(current_bucket);
 	}
 	
@@ -225,14 +238,14 @@ int HashTableForEach(hash_table_t *table, hash_action_func_t action_func, void *
 {
 	size_t i = 0;
 	dll_t *current_bucket = NULL;
-	dll_iterator_t current_element;
+	dll_iterator_t current_element = {0};
 	
 	assert(table);
 	assert(action_func);
 	
 	for (i = 0; i < table->hash_table_size; ++i)
 	{
-		current_bucket = *(table->buckets + i);
+		current_bucket =table->buckets[i];
 		current_element = DLListForeach(DLListBegin(current_bucket), DLListEnd(current_bucket), params, action_func);
 		
 		if (!DLListIsEqualIter(current_element, DLListEnd(current_bucket)))
@@ -288,27 +301,21 @@ double HashTableStandardDeviation(const hash_table_t *table)
 
 static dll_iterator_t HashTableFindElementInBucket(hash_table_t *table, const void *key)
 {
-	size_t hash_result = (table->hash_func)(key);
-	dll_t *current_bucket = (table->buckets)[hash_result];
+	dll_t *current_bucket = GetBucketByKey(table, key);
 	
 	hash_cmp_func_t client_compare_func = table->compare_func;
 	int match_result = 0;
 	dll_iterator_t list_runner = DLListBegin(current_bucket);
 	element_t *current_element = NULL;
 	
-	while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)))
+	while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)) && 0 != match_result)
 	{
 		current_element = (element_t *)DLListGetData(list_runner);
 		match_result = client_compare_func(current_element->key, key);
-		if (match_result)
-		{
-			return list_runner;
-		}
-		
 		list_runner = DLListNext(list_runner);
 	}
 	
-	return NULL;
+	return match_result;
 }
 
 
@@ -332,7 +339,7 @@ static element_t *CreateHashTableElement(const void *key, void *data)
 static dll_t *GetBucketByKey(hash_table_t *table, const void *key)
 {
 	size_t hash_result = (table->hash_func)(key);
-	return (table->buckets)[hash_result];
+	return (table->buckets)[hash_result] /*TODO*/;
 }
 
 
