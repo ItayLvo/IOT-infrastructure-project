@@ -14,13 +14,19 @@
 /******** FSM constants macros ********/
 #define NUMBER_OF_STATES 2
 #define NUMBER_OF_INPUT_TYPES 8
-
+#define STACK_SIZE 20
 
 /******** static global variables ********/
 static stack_t *operator_stack = NULL;
 static stack_t *operand_stack = NULL;
 static int count_parenthesis_open = 0;
+static int is_lut_init = 0;
 
+enum lut_init_status
+{
+	LUT_NOT_INITIALIZED,
+	LUT_INITIALIZED
+};
 
 /******** forward declerations, grouped by context ********/
 static void InitializeCharLUT(void);
@@ -89,7 +95,7 @@ typedef struct
 
 
 /******** FSM transition table ********/
-transition_t transition_table[NUMBER_OF_STATES][NUMBER_OF_INPUT_TYPES] =
+static transition_t transition_table[NUMBER_OF_STATES][NUMBER_OF_INPUT_TYPES] =
 {
 	{
 		{STATE_WAIT_FOR_NUMBER, CHAR_NUMBER, STATE_WAIT_FOR_OPERATOR, HandleNumber},
@@ -124,7 +130,7 @@ typedef struct
 
 
 /******** LUT for operators ********/
-operator_t operators_lut[126] = {0};
+static operator_t operators_lut[126] = {0};
 
 static void InitializeOperatorsLUT(void)
 {
@@ -200,7 +206,7 @@ static int InitializeStacks(size_t stack_size)
 	operand_stack = StackCreateOneMalloc(stack_size, sizeof(double));
 	if (NULL == operand_stack)
 	{
-		free(operator_stack);
+		StackDestroy(operator_stack);
 		return CALC_SYSTEM_ERROR;
 	}
 	
@@ -218,10 +224,15 @@ e_status_t Calculate(const char *input, double *result)
 	int transition_function_status = 0;
 	
 	count_parenthesis_open = 0;
-	InitializeCharLUT();
-	InitializeOperatorsLUT();
 	
-	if (0 != InitializeStacks(strlen(input)))
+	if (is_lut_init == LUT_NOT_INITIALIZED)
+	{
+		InitializeCharLUT();
+		InitializeOperatorsLUT();
+		is_lut_init = LUT_INITIALIZED;
+	}
+	
+	if (0 != InitializeStacks(STACK_SIZE))
 	{
 		return CALC_SYSTEM_ERROR;
 	}
