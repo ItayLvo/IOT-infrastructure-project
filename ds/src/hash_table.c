@@ -253,26 +253,37 @@ int HashTableIsEmpty(const hash_table_t *table)
 int HashTableForEach(hash_table_t *table, hash_action_func_t action_func, void *params)
 {
 	size_t i = 0;
+	int action_func_status = 0;
 	dll_t *current_bucket = NULL;
-	dll_iterator_t current_element = {0};
 	dll_t **bucket_runner = NULL;
+	dll_iterator_t list_runner = {0};
+	element_t *element = NULL;
 	
 	assert(table);
 	assert(action_func);
 	
 	bucket_runner = table->buckets;
+	
 	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
 	{
 		current_bucket = *bucket_runner;
-		current_element = DLListForeach(DLListBegin(current_bucket), DLListEnd(current_bucket), params, action_func);
+		list_runner = DLListBegin(current_bucket);
 		
-		if (!DLListIsEqualIter(current_element, DLListEnd(current_bucket)))
+		while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)))
 		{
-			return 1;
+			element = ((element_t *)DLListGetData(list_runner));
+			action_func_status = (action_func)(element->data, params);
+			
+			if (0 != action_func_status)
+			{
+				return action_func_status;
+			}
+			
+			list_runner = DLListNext(list_runner);
 		}
 	}
 	
-	return 0;
+	return action_func_status;
 }
 
 

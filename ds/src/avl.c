@@ -1,7 +1,7 @@
 /*
-date: 
-reviewer: 
-status: 
+date: 26/6
+reviewer: Or
+status: Fixed CR comments. TODO: code re-use in Rotate => Merge RotateLeft() and RotateRight() using children[] array
 */
 
 #include <stdlib.h>	/* malloc, free */
@@ -10,6 +10,10 @@ status:
 
 #include "avl.h"
 
+#define NUM_OF_CHILDREN 2
+#define left children[0]
+#define right children[1]
+#define CONVERT_COMPARE_TO_CHILD_INDEX(cmp_result) ((cmp_result) > 0 ? 1 : 0)
 
 struct avl
 {
@@ -20,14 +24,13 @@ struct avl
 
 typedef struct avl_node_t
 {
+    struct avl_node_t *children[NUM_OF_CHILDREN];		/*children[0] = left child, children[1] = right child */
     void *data;
-    struct avl_node_t *left;
-    struct avl_node_t *right;
     size_t height;
 } avl_node_t;
 
 
-/* helper functions related to remove/destroy */
+/* helper functions related to remove or destroy */
 static void AVLDestroyHelper(avl_node_t *node);
 static avl_node_t *AVLRemoveHelper(avl_node_t *node_to_remove, avl_compare_func_t compare_func, void *data);
 static avl_node_t *AVLRemoveNode(avl_node_t *node_to_remove, avl_compare_func_t compare_func);
@@ -180,20 +183,14 @@ static avl_node_t *AVLInsertNode(avl_node_t *runner, avl_node_t *new_node, avl_c
 	int compare_result = 0;
 	void *data = new_node->data;
 	int current_balance = 0;
+	int child_index = 0;
 	
 	if (NULL != runner)
 	{
 		compare_result = (compare_func)(data, runner->data);
-		if (compare_result > 0)
-		{
-			runner->right = AVLInsertNode(runner->right, new_node, compare_func);
-			
-		}
-		else
-		{
-			runner->left = AVLInsertNode(runner->left, new_node, compare_func);
-			
-		}
+		child_index = CONVERT_COMPARE_TO_CHILD_INDEX(compare_result);
+		
+		runner->children[child_index] = AVLInsertNode(runner->children[child_index], new_node, compare_func);
 	}
 	else
 	{
@@ -341,6 +338,7 @@ static avl_node_t *AVLRemoveHelper(avl_node_t *node_to_remove, avl_compare_func_
 {
 	int compare_result = 0;
 	int current_balance = 0;
+	int child_index = 0;
 	
 	if (NULL == node_to_remove)
 	{
@@ -349,15 +347,12 @@ static avl_node_t *AVLRemoveHelper(avl_node_t *node_to_remove, avl_compare_func_
 	
 	compare_result = (compare_func)(data, node_to_remove->data);
 	
-	if (compare_result > 0)
+	if (compare_result != 0)
 	{
-		node_to_remove->right = AVLRemoveHelper(node_to_remove->right, compare_func, data);
-		
+		child_index = CONVERT_COMPARE_TO_CHILD_INDEX(compare_result);
+		node_to_remove->children[child_index] = AVLRemoveHelper(node_to_remove->children[child_index], compare_func, data);
 	}
-	else if (compare_result < 0)
-	{
-		node_to_remove->left = AVLRemoveHelper(node_to_remove->left, compare_func, data);
-	}
+	
 	else	/* found the node to remove */
 	{
 		node_to_remove = AVLRemoveNode(node_to_remove, compare_func);
@@ -438,6 +433,7 @@ static int AVLForEachHelper(avl_node_t *node, avl_action_func_t action_func, voi
 static void *AVLFindNode(avl_node_t *node, avl_compare_func_t compare_func, void *data)
 {
 	int compare_result = 0;
+	int child_index = 0;
 	
 	if (NULL == node)
 	{
@@ -450,15 +446,10 @@ static void *AVLFindNode(avl_node_t *node, avl_compare_func_t compare_func, void
 	}
 	
 	compare_result = (compare_func)(data, node->data);
-	
-	if (compare_result > 0)
-	{
-		return AVLFindNode(node->right, compare_func, data);
-	}
-	else
-	{
-		return AVLFindNode(node->left, compare_func, data);
-	}
+	child_index = CONVERT_COMPARE_TO_CHILD_INDEX(compare_result);
+		
+	return AVLFindNode(node->children[child_index], compare_func, data);
+
 }
 
 
