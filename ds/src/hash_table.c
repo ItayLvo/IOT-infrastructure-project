@@ -42,6 +42,7 @@ hash_table_t *HashTableCreate(hash_func_t hash_func, hash_cmp_func_t cmp_func, s
 {
 	size_t i = 0;
 	hash_table_t *table = NULL;
+	dll_t **bucket_runner = NULL;
 	
 	assert(hash_table_size);
 	assert(hash_func);
@@ -62,17 +63,20 @@ hash_table_t *HashTableCreate(hash_func_t hash_func, hash_cmp_func_t cmp_func, s
 	}
 	
 	
+	bucket_runner = table->buckets;
 	/* create a DLL for each "bucket" */
-	for (i = 0; i < hash_table_size; ++i)
+	for (i = 0; i < hash_table_size; ++i, ++bucket_runner)
 	{
-		table->buckets[i] = DLListCreate();
+		*bucket_runner = DLListCreate();
+
 		/* check if bucket successfully created. if not, free the table and all buckets allocated so far */
-		if (NULL == *(table->buckets + i))
+		if (NULL == *bucket_runner)
 		{
 			size_t j = 0;
-			for (j = 0; j < i; ++j)
+			bucket_runner = table->buckets;
+			for (j = 0; j < i; ++j, ++bucket_runner)
 			{
-				DLListDestroy(table->buckets[j]);
+				DLListDestroy(*bucket_runner);
 			}
 			free(table);
 			return NULL;
@@ -95,12 +99,14 @@ void HashTableDestroy(hash_table_t *table)
 	dll_t *current_bucket = NULL;
 	dll_iterator_t list_runner = {0};
 	element_t *current_element = NULL;
+	dll_t **bucket_runner = NULL;
 	
 	assert(table);
 	
-	for (i = 0; i < table->hash_table_size; ++i)
+	bucket_runner = table->buckets;
+	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
 	{
-		current_bucket = table->buckets[i];
+		current_bucket = *bucket_runner;
 		list_runner = DLListBegin(current_bucket);
 		
 		while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)))
@@ -206,12 +212,14 @@ size_t HashTableSize(const hash_table_t *table)
 	size_t i = 0;
 	size_t size_sum = 0;
 	dll_t *current_bucket = NULL;
+	dll_t **bucket_runner = NULL;
 	
 	assert(table);
 	
-	for (i = 0; i < table->hash_table_size; ++i)
+	bucket_runner = table->buckets;
+	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
 	{
-		current_bucket = table->buckets[i];
+		current_bucket = *bucket_runner;
 		size_sum += DLListCount(current_bucket);
 	}
 	
@@ -223,12 +231,14 @@ int HashTableIsEmpty(const hash_table_t *table)
 {
 	size_t i = 0;
 	dll_t *current_bucket = NULL;
+	dll_t **bucket_runner = NULL;
 	
 	assert(table);
 	
-	for (i = 0; i < table->hash_table_size; ++i)
+	bucket_runner = table->buckets;
+	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
 	{
-		current_bucket = *(table->buckets + i);
+		current_bucket = *bucket_runner;
 		if (!DLListIsEmpty(current_bucket))
 		{
 			return 0;
@@ -245,13 +255,15 @@ int HashTableForEach(hash_table_t *table, hash_action_func_t action_func, void *
 	size_t i = 0;
 	dll_t *current_bucket = NULL;
 	dll_iterator_t current_element = {0};
+	dll_t **bucket_runner = NULL;
 	
 	assert(table);
 	assert(action_func);
 	
-	for (i = 0; i < table->hash_table_size; ++i)
+	bucket_runner = table->buckets;
+	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
 	{
-		current_bucket =table->buckets[i];
+		current_bucket = *bucket_runner;
 		current_element = DLListForeach(DLListBegin(current_bucket), DLListEnd(current_bucket), params, action_func);
 		
 		if (!DLListIsEqualIter(current_element, DLListEnd(current_bucket)))
@@ -287,10 +299,12 @@ double HashTableStandardDeviation(const hash_table_t *table)
 	double standard_deviation = 0;
 	dll_t *current_bucket = NULL;
 	double avg_element_per_bucket = HashTableLoad(table);
-	
-	for (i = 0; i < table->hash_table_size; ++i)
+	dll_t **bucket_runner = NULL;
+
+	bucket_runner = table->buckets;
+	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
 	{
-		current_bucket = *(table->buckets + i);
+		current_bucket = *bucket_runner;
 		variance += pow((DLListCount(current_bucket) - avg_element_per_bucket), 2);
 	}
 	
@@ -314,14 +328,14 @@ static dll_iterator_t HashTableFindElementInBucket(hash_table_t *table, const vo
 	dll_iterator_t list_runner = DLListBegin(current_bucket);
 	element_t *current_element = NULL;
 	
-	while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)) && 0 != match_result)
+	while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)) && match_result == 0)
 	{
 		current_element = (element_t *)DLListGetData(list_runner);
 		match_result = client_compare_func(current_element->key, key);
 		list_runner = DLListNext(list_runner);
 	}
 	
-	return match_result;
+	return ((match_result == 0) ? NULL : DLListPrev(list_runner));
 }
 
 
@@ -345,7 +359,7 @@ static element_t *CreateHashTableElement(const void *key, void *data)
 static dll_t *GetBucketByKey(hash_table_t *table, const void *key)
 {
 	size_t hash_result = (table->hash_func)(key);
-	return (table->buckets)[hash_result] /*TODO*/;
+	return (table->buckets)[hash_result % table->hash_table_size];
 }
 
 
