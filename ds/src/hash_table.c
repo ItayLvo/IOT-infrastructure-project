@@ -32,8 +32,8 @@ typedef struct
 
 /* static functions forward declerations */
 static element_t *CreateHashTableElement(const void *key, void *data);
-static dll_iterator_t HashTableFindElementInBucket(hash_table_t *table, const void *key);
-static dll_t *GetBucketByKey(hash_table_t *table, const void *key);
+static dll_iterator_t HashTableFindElementInBucket(const hash_table_t *table, const void *key);
+static dll_t *GetBucketByKey(const hash_table_t *table, const void *key);
 
 
 /**** API functions ****/
@@ -180,8 +180,8 @@ void HashTableRemove(hash_table_t *table, const void *key)
 
 void *HashTableFind(const hash_table_t *table, const void *key)
 {
-	dll_iterator_t iterator_to_find = HashTableFindElementInBucket((hash_table_t *)table, key);		/* check if need to remove const or not */
-	dll_t *current_bucket = GetBucketByKey((hash_table_t *)table, key);
+	dll_iterator_t iterator_to_find = HashTableFindElementInBucket(table, key);
+	dll_t *current_bucket = GetBucketByKey(table, key);
 	element_t *element_to_find = NULL;
 	void *data_to_find = NULL;
 	dll_iterator_t insert_status = {0};
@@ -319,7 +319,7 @@ double HashTableStandardDeviation(const hash_table_t *table)
 
 /**** static helper functions ****/
 
-static dll_iterator_t HashTableFindElementInBucket(hash_table_t *table, const void *key)
+static dll_iterator_t HashTableFindElementInBucket(const hash_table_t *table, const void *key)
 {
 	dll_t *current_bucket = GetBucketByKey(table, key);
 	
@@ -356,7 +356,7 @@ static element_t *CreateHashTableElement(const void *key, void *data)
 
 
 
-static dll_t *GetBucketByKey(hash_table_t *table, const void *key)
+static dll_t *GetBucketByKey(const hash_table_t *table, const void *key)
 {
 	size_t hash_result = (table->hash_func)(key);
 	return (table->buckets)[hash_result % table->hash_table_size];
