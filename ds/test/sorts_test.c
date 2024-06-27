@@ -13,6 +13,8 @@ static int Compare(const void *a, const void *b);
 
 static void TestMergeSort();
 static void TestBinarySearch();
+static void TestQuickSort();
+
 
 int main()
 {
@@ -97,6 +99,9 @@ int main()
 	
 	TestBinarySearch();
 	TestMergeSort();
+	TestQuickSort();
+	
+	
 	return 0;
 }
 
@@ -114,6 +119,23 @@ static void TestBinarySearch()
 }
 
 
+
+static void TestQuickSort()
+{
+	int arr1[9] = {15, 4, 6, -4, 11, 9, 8, 11, -10};
+	size_t i = 0;
+	
+	QuickSort(arr1, 9, 4, Compare);
+	
+	for (i = 0; i < 9; ++i)
+	{
+		printf("[%d] ", arr1[i]);
+	}
+	
+	printf("\nEnd of quick sort test.\n");
+}
+
+
 static void TestMergeSort()
 {
 	int arr1[9] = {15, 4, 6, -4, 11, 9, 8, 11, 3};
@@ -125,6 +147,7 @@ static void TestMergeSort()
 	{
 		printf("[%d] ", arr1[i]);
 	}
+	printf("\nEnd of merge sort test.\n");
 }
 
 

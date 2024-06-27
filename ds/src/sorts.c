@@ -1,18 +1,15 @@
 #include <stdio.h>	/* printf */
 #include <stdlib.h>	/* malloc */
 #include <time.h>	/* time() */
+#include <sys/types.h>	/* ssize_t */
+#include <string.h>
+
+#include "sorts.h"
 
 #define SIZE 10
 #define MIN_7_DIGIT 1000000
 #define MAX_7_DIGIT 9999999
 
-
-void InsertionSort(int *arr, int n);
-void BubbleSort(int *arr, int n);
-void SelectionSort(int *arr, int n);
-void CountingSort(int *arr, int n);
-void RadixSort(int *arr, int n);
-void CountingSortPerDigit(int *arr, int n, int curr_digit);
 
 static void Swap(int *a, int *b);
 static int FindMaxInArray(int *arr, int size);
@@ -21,6 +18,16 @@ static int FindMaxInArrayPerDigit(int *arr, int n, int digit);
 static int RecursiveBinarySearchHelper(int *arr, size_t start, size_t end, int target);
 static int MergeSortRerucrsive(int *arr, size_t start, size_t end);
 static void Merge(int *arr, size_t start, size_t mid, size_t end);
+
+/*
+static void QuickSortRecursive(int *arr, ssize_t start, ssize_t end, int (*compar)(const void *, const void *));
+static size_t Partition(int *arr, ssize_t start, ssize_t end, int (*compar)(const void *, const void*));
+*/
+
+
+static void QuickSortRecursive(void *arr, size_t element_size, ssize_t start, ssize_t end, int (*compar)(const void *, const void*));
+static size_t Partition(void *arr, size_t element_size, ssize_t start, ssize_t end, int (*compar)(const void *, const void*));
+
 
 void SelectionSort(int *arr, int n)
 {
@@ -298,7 +305,108 @@ static void Merge(int *arr, size_t start, size_t mid, size_t end)
 }
 
 
-/****** static helper functions ******/
+/*
+void QuickSort(void *base, size_t nitems, size_t size, int (*compar)(const void *, const void*))
+{
+	QuickSortRecursive(base, 0, (size - 1), compar);
+}
+
+
+static void QuickSortRecursive(int *arr, ssize_t start, ssize_t end, int (*compar)(const void *, const void*))
+{
+	ssize_t partition_index = 0;
+	
+	if (start < end)
+	{
+		partition_index = Partition (arr, start, end, compar);
+		
+		QuickSortRecursive(arr, start, partition_index - 1, compar);
+		QuickSortRecursive(arr, partition_index + 1, end, compar);
+	}
+}
+
+static size_t Partition(int *arr, ssize_t start, ssize_t end, int (*compar)(const void *, const void*))
+{
+	int pivot_value = arr[end];
+	ssize_t pivot_index = (start - 1);
+	size_t j = 0;
+	
+	for (j = start; j < end; ++j)
+	{
+		if (arr[j] < pivot_value)
+		{
+			++pivot_index;
+			Swap(&arr[pivot_index], &arr[j]);
+		}
+	}
+	
+	Swap (&arr[pivot_index + 1], &arr[end]);
+	
+	return (pivot_index + 1);
+}
+
+*/
+static void GenericSwap(void* v1, void* v2, size_t size) 
+{ 
+    char *buffer = NULL; 
+	
+	buffer = (char *)malloc(size);
+	
+	if (!buffer)
+	{
+		return;
+	}
+	
+    memcpy(buffer, v1, size);
+    memcpy(v1, v2, size);
+    memcpy(v2, buffer, size);
+    
+	free(buffer);
+} 
+
+
+void QuickSort(void *base, size_t nitems, size_t size, int (*compar)(const void *, const void*))
+{
+	QuickSortRecursive(base, size, 0, (nitems - 1), compar);
+}
+
+
+static void QuickSortRecursive(void *arr, size_t element_size, ssize_t start, ssize_t end, int (*compar)(const void *, const void*))
+{
+	ssize_t partition_index = 0;
+	
+	if (start < end)
+	{
+		partition_index = Partition(arr, element_size, start, end, compar);
+		
+		QuickSortRecursive(arr, element_size, start, partition_index - 1, compar);
+		QuickSortRecursive(arr, element_size, partition_index + 1, end, compar);
+	}
+}
+
+static size_t Partition(void *arr, size_t element_size, ssize_t start, ssize_t end, int (*compar)(const void *, const void*))
+{
+	void *pivot_value = ((char *)arr) + end * element_size;
+	int pivot_index = (start * element_size - 1 * element_size);
+	size_t j = 0;
+	
+	for (j = start * element_size; j < end * element_size; j += element_size)
+	{
+		if (compar((((char *)arr) + j), pivot_value) < 0)
+		{
+			pivot_index += element_size;
+			GenericSwap(((char *)arr) + pivot_index, ((char *)arr) + j, element_size);
+		}
+	}
+	
+	GenericSwap (((char *)arr) + pivot_index + element_size, ((char *)pivot_value), element_size);
+	
+	return (pivot_index + element_size)/element_size;
+}
+
+
+
+/********* static helper functions *********/
 
 
 static void Swap(int *a, int *b)
@@ -338,7 +446,6 @@ static int FindMinInArray(int *arr, int size)
 	
 	return min_val;
 }
-
 
 
 static int FindMaxInArrayPerDigit(int *arr, int n, int digit)
