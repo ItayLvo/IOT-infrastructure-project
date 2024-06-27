@@ -18,7 +18,9 @@ static void Swap(int *a, int *b);
 static int FindMaxInArray(int *arr, int size);
 static int FindMinInArray(int *arr, int size);
 static int FindMaxInArrayPerDigit(int *arr, int n, int digit);
-
+static int RecursiveBinarySearchHelper(int *arr, size_t start, size_t end, int target);
+static int MergeSortRerucrsive(int *arr, size_t start, size_t end);
+static void Merge(int *arr, size_t start, size_t mid, size_t end);
 
 void SelectionSort(int *arr, int n)
 {
@@ -146,6 +148,153 @@ void CountingSortPerDigit(int *arr, int n, int curr_digit)
 	
 	free(output);
 	free(count_arr);
+}
+
+
+
+int IterativeBinarySearch(int *arr, size_t size, int target)
+{
+	int start = 0;
+	int end = size - 1;
+	int mid = (start + end) / 2;
+	
+	
+	while (start <= end)
+	{
+		if (target == arr[mid])
+		{
+			return mid;
+		}
+		else if (target < arr[mid])
+		{
+			end = mid - 1;
+		}
+		else	 /* (target > arr[mid]) */
+		{
+			start = mid + 1;
+		}
+		
+		mid = (start + end) / 2;
+	}
+	
+	return -1;
+}
+
+
+int RecursiveBinarySearch(int *arr, size_t size, int target)
+{
+	return RecursiveBinarySearchHelper(arr, 0, size-1, target);
+}
+
+
+static int RecursiveBinarySearchHelper(int *arr, size_t start, size_t end, int target)
+{
+	size_t mid = (start + end) / 2;
+	
+	if (arr[mid] == target)
+	{
+		return mid;
+	}
+	
+	if (start <= end)
+	{
+		if (target < arr[mid])
+		{
+			return RecursiveBinarySearchHelper(arr, start, mid-1, target);
+		}
+		else	 /* (target > arr[mid]) */
+		{
+			return RecursiveBinarySearchHelper(arr, mid + 1, end, target);
+		}
+	}
+	
+	return -1;
+}
+
+
+int MergeSort(int *arr_to_sort, size_t num_elements)
+{
+	return MergeSortRerucrsive(arr_to_sort, 0, num_elements - 1);
+}
+
+
+static int MergeSortRerucrsive(int *arr, size_t start, size_t end)
+{
+	size_t mid = 0;
+	
+	if (start < end)
+	{
+		mid = start + (end - start) / 2;
+		
+		MergeSortRerucrsive(arr, start, mid);
+		MergeSortRerucrsive(arr, mid + 1, end);
+		
+		Merge(arr, start, mid, end);
+	}
+	
+	return 0;
+}
+
+
+
+static void Merge(int *arr, size_t start, size_t mid, size_t end)
+{
+	size_t len1 = mid - start + 1;
+	size_t len2 = end - mid;
+	
+	int arr1[len1];
+	int arr2[len2];
+	
+	size_t i = 0, j = 0, k = 0;
+
+	/* init array of first half */
+	for (i = 0; i < len1; ++i)
+	{
+		arr1[i] = arr[start + i];
+	}
+	
+	/* init array of second half */
+	for (i = 0; i < len2; ++i)
+	{
+		arr2[i] = arr[mid + i + 1];
+	}
+	
+	/* merge the two arrays into the original arr, in a sorted order */
+	i = 0;
+	j = 0;
+	k = start;
+	while (i < len1 && j < len2)
+	{
+		if (arr1[i] <= arr2[j])
+		{
+			arr[k] = arr1[i];
+			++i;
+		}
+		else
+		{
+			arr[k] = arr2[j];
+			++j;
+		}
+		
+		++k;
+	}
+	
+	/* copy the remaining elements of arr1 */
+	while (i < len1)
+	{
+		arr[k] = arr1[i];
+		++i;
+		++k;
+	}
+
+	/* copy the remaining elements of arr2 */
+	while (j < len2)
+	{
+		arr[k] = arr2[j];
+		++j;
+		++k;
+	}
+	
 }
 
 

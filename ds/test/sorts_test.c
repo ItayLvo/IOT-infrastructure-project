@@ -11,6 +11,8 @@
 static void PrintArray(int *arr, int n);
 static int Compare(const void *a, const void *b);
 
+static void TestMergeSort();
+static void TestBinarySearch();
 
 int main()
 {
@@ -91,9 +93,39 @@ int main()
 	printf("after radix sort: \n");
 	RadixSort(arr7, SIZE);
 	PrintArray(arr7, SIZE);
+	
+	
+	TestBinarySearch();
+	TestMergeSort();
 	return 0;
 }
 
+
+static void TestBinarySearch()
+{
+	int arr1[9] = {-2, 4, 6, 7, 8, 9, 9, 11, 15};
+	int arr2[9] = {-2, 4, 6, 7, 8, 9, 9, 11, 15};
+	
+	
+	
+	printf("Iterative binary search test:\nindex of target (should be 7): %d\n", IterativeBinarySearch(arr1, 9, 11));
+	printf("Recursive binary search test:\nindex of target (should be 0): %d\n\n", RecursiveBinarySearch(arr2, 9, -2));
+	
+}
+
+
+static void TestMergeSort()
+{
+	int arr1[9] = {15, 4, 6, -4, 11, 9, 8, 11, 3};
+	size_t i = 0;
+	
+	MergeSort(arr1, 9);
+	
+	for (i = 0; i < 9; ++i)
+	{
+		printf("[%d] ", arr1[i]);
+	}
+}
 
 
 
