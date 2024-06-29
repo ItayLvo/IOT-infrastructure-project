@@ -1,3 +1,9 @@
+/*
+Date: 29/6
+Status: Done, fixed after CR
+Reviwer: AMit
+*/
+
 #include <stddef.h>	/* size_t */
 #include <stdlib.h>	/* malloc */
 #include <assert.h>	/* assert */
@@ -13,8 +19,9 @@
 
 /******** FSM constants macros ********/
 #define NUMBER_OF_STATES 2
-#define NUMBER_OF_INPUT_TYPES 8
+#define NUMBER_OF_INPUT_TYPES 9
 #define STACK_SIZE 20
+#define ASCII_RANGE 128
 
 /******** static global variables ********/
 static stack_t *operator_stack = NULL;
@@ -48,6 +55,7 @@ static int HandleWhitespace(const char **);
 static int HandleError(const char **);
 static int HandleOpenParenthesis(const char **);
 static int HandleClosedParenthesis(const char **);
+static int HandlePower(const char **input);
 
 static int CalculateTemporary(void);
 
@@ -70,7 +78,8 @@ typedef enum
 	CHAR_WHITESPACE,
 	CHAR_END,
 	CHAR_PARENTHESIS_OPEN,
-	CHAR_PARENTHESIS_CLOSED
+	CHAR_PARENTHESIS_CLOSED,
+	CHAR_POWER
 } char_type_t;
 
 
@@ -87,35 +96,36 @@ typedef enum
 /******** FSM transition struct (start state -> input -> handler -> end state) ********/
 typedef struct
 {
-	state_t start_state;
-	char_type_t input;
 	state_t next_state;
 	transition_handler_t transition_handler;
 } transition_t;
+
 
 
 /******** FSM transition table ********/
 static transition_t transition_table[NUMBER_OF_STATES][NUMBER_OF_INPUT_TYPES] =
 {
 	{
-		{STATE_WAIT_FOR_NUMBER, CHAR_NUMBER, STATE_WAIT_FOR_OPERATOR, HandleNumber},
-		{STATE_WAIT_FOR_NUMBER, CHAR_OPERATOR, STATE_ERROR, HandleError},
-		{STATE_WAIT_FOR_NUMBER, CHAR_UNARY_OPERATOR, STATE_WAIT_FOR_OPERATOR, HandleNumber},
-		{STATE_WAIT_FOR_NUMBER, CHAR_INVALID, STATE_ERROR, HandleError},
-		{STATE_WAIT_FOR_NUMBER, CHAR_WHITESPACE, STATE_WAIT_FOR_NUMBER,HandleWhitespace},
-		{STATE_WAIT_FOR_NUMBER, CHAR_END, STATE_ERROR, HandleError},
-		{STATE_WAIT_FOR_NUMBER, CHAR_PARENTHESIS_OPEN, STATE_WAIT_FOR_NUMBER, HandleOpenParenthesis},
-		{STATE_WAIT_FOR_NUMBER, CHAR_PARENTHESIS_CLOSED, STATE_ERROR, HandleError}
+		{STATE_WAIT_FOR_OPERATOR,	HandleNumber},
+		{STATE_ERROR,				HandleError},
+		{STATE_WAIT_FOR_OPERATOR,	HandleNumber},
+		{STATE_ERROR,				HandleError},
+		{STATE_WAIT_FOR_NUMBER,		HandleWhitespace},
+		{STATE_ERROR,				HandleError},
+		{STATE_WAIT_FOR_NUMBER,		HandleOpenParenthesis},
+		{STATE_ERROR,				HandleError},
+		{STATE_ERROR,				HandleError}
 	},
 	{
-		{STATE_WAIT_FOR_OPERATOR, CHAR_NUMBER, STATE_ERROR, HandleError},
-		{STATE_WAIT_FOR_OPERATOR, CHAR_OPERATOR, STATE_WAIT_FOR_NUMBER, HandleOperator},
-		{STATE_WAIT_FOR_OPERATOR, CHAR_UNARY_OPERATOR, STATE_WAIT_FOR_NUMBER, HandleOperator},
-		{STATE_WAIT_FOR_OPERATOR, CHAR_INVALID, STATE_ERROR, HandleError},
-		{STATE_WAIT_FOR_OPERATOR, CHAR_WHITESPACE, STATE_WAIT_FOR_OPERATOR,HandleWhitespace},
-		{STATE_WAIT_FOR_OPERATOR, CHAR_END, STATE_SUCCESS, HandleEnd},
-		{STATE_WAIT_FOR_OPERATOR, CHAR_PARENTHESIS_OPEN, STATE_ERROR, HandleError},
-		{STATE_WAIT_FOR_OPERATOR, CHAR_PARENTHESIS_CLOSED, STATE_WAIT_FOR_OPERATOR, HandleClosedParenthesis}
+		{STATE_ERROR,				HandleError},
+		{STATE_WAIT_FOR_NUMBER,		HandleOperator},
+		{STATE_WAIT_FOR_NUMBER,		HandleOperator},
+		{STATE_ERROR,				HandleError},
+		{STATE_WAIT_FOR_OPERATOR,	HandleWhitespace},
+		{STATE_SUCCESS,				HandleEnd},
+		{STATE_ERROR,				HandleError},
+		{STATE_WAIT_FOR_OPERATOR,	HandleClosedParenthesis},
+		{STATE_WAIT_FOR_NUMBER,		HandlePower}
 	}
 };
 
@@ -130,7 +140,7 @@ typedef struct
 
 
 /******** LUT for operators ********/
-static operator_t operators_lut[126] = {0};
+static operator_t operators_lut[ASCII_RANGE] = {0};
 
 static void InitializeOperatorsLUT(void)
 {
@@ -156,13 +166,13 @@ static void InitializeOperatorsLUT(void)
 
 
 /******** static ASCII LUT ********/
-static char_type_t char_lut[128];
+static char_type_t char_lut[ASCII_RANGE];
 
 static void InitializeCharLUT(void)
 {
 	int i = 0;
 	
-	for (i = 0; i < 128; ++i)
+	for (i = 0; i < ASCII_RANGE; ++i)
 	{
 		char_lut[i] = CHAR_INVALID;
 	}
@@ -179,7 +189,8 @@ static void InitializeCharLUT(void)
 	
 	char_lut['*'] = CHAR_OPERATOR;
 	char_lut['/'] = CHAR_OPERATOR;
-	char_lut['^'] = CHAR_OPERATOR;
+	
+	char_lut['^'] = CHAR_POWER;
 	
 	char_lut['('] = CHAR_PARENTHESIS_OPEN;
 	char_lut[')'] = CHAR_PARENTHESIS_CLOSED;
@@ -341,6 +352,17 @@ static int HandleOperator(const char **input)
 
 
 
+static int HandlePower(const char **input)
+{
+	const char new_char = **input;
+
+	StackPush(operator_stack, &new_char);
+	++(*input);
+	
+	return 0;
+}
+
+
 static int HandleEnd(const char **input)
 {
 	UNUSED(**input);
@@ -396,7 +418,7 @@ static int HandleClosedParenthesis(const char **input)
 	
 	if (count_parenthesis_open == 0)
 	{
-		return 1;
+		return CALC_SYNTAX_ERROR;
 	}
 	
 	ch = *(char *)StackPeek(operator_stack);

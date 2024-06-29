@@ -5,7 +5,7 @@
 
 int main()
 {
-	char *st = "2*(-8)";
+	char *st = "6/2^2-3+4";
 	double result = 1.1;
 	e_status_t status = Calculate(st, &result);
 	
