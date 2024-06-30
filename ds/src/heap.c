@@ -73,16 +73,11 @@ int HeapPush(heap_t *heap, void *data)
 	/* get the index of the new element */
 	new_element_index = VectorElementCount(heap->dvector) - 1;
 	
-	printf("pushed data: %d in index: %lu\n", *(int *)data, new_element_index); 
-	
 	/* heapify the new element to its correct position in the heap */
 	HeapifyUp(heap, new_element_index);
 	
-	printf("81\tin index 0: %d\n", *(int *)VectorAccessVal(heap->dvector, 0));
-	
 	return push_status;
 }
-
 
 
 
@@ -94,7 +89,7 @@ void HeapPop(heap_t *heap)
 	assert(heap);
 	
 	last_element_data = VectorAccessVal(heap->dvector, VectorElementCount(heap->dvector) - 1);
-	root_data = VectorAccessVal(heap->dvector, VectorElementCount(heap->dvector) - 1);
+	root_data = VectorAccessVal(heap->dvector, 0);
 	
 	/* swap the "root" with the last element */
 	Swap(last_element_data, root_data);
@@ -138,13 +133,34 @@ int HeapIsEmpty(const heap_t *heap)
 
 void *HeapRemove(heap_t *heap, heap_match_func_t match_func, void *param)
 {
-	void *data = NULL;
+	void *data_to_return = NULL;
+	void *last_element_data = NULL;
+	void *data_runner = NULL;
+	size_t count = 0;
+	size_t i = 0;
 	
 	assert(heap);
 	
-	/* for each element, compare until find... */
+	count = VectorElementCount(heap->dvector);
 	
-	return data;
+	for (i = 0; i < count; ++i)
+	{
+		data_runner = (VectorAccessVal(heap->dvector, i));
+		
+		if (match_func(data_runner, param))
+		{
+			last_element_data = VectorAccessVal(heap->dvector, count - 1);
+			Swap(data_runner, last_element_data);
+			data_to_return = last_element_data;
+			VectorPopBack(heap->dvector);
+			HeapifyDown(heap, i);
+			
+			break;
+		}
+	}
+	
+
+	return data_to_return;
 }
 
 
@@ -164,16 +180,8 @@ static void HeapifyUp(heap_t *heap, size_t index_to_heapify)
 	
 	while (0 != index_to_heapify && cmp_fnc(current_data, parent_data) < 0)
 	{
-		printf("BEFORE swap, current index = %lu, parent index = %lu\nCurrent data = %d, Parent data = %d\n", index_to_heapify, parent_index, *(int *)current_data, *(int *)parent_data); 
-		
-		printf("99\tin index 0: %d\n", *(int *)VectorAccessVal(vector, 0));
-		
 		/* swap the parent and child data */
 		Swap(current_data, parent_data);
-		
-		printf("AFTER swap, current index = %lu, parent index = %lu\nCurrent data = %d, Parent data = %d\n", index_to_heapify, parent_index, *(int *)current_data, *(int *)parent_data); 
-		
-		printf("106\tin index 0: %d\n\n", *(int *)VectorAccessVal(vector, 0));
 		
 		/* update runners - set current index as parent index, set parent as parent's parent */
 		index_to_heapify = parent_index;
@@ -184,13 +192,14 @@ static void HeapifyUp(heap_t *heap, size_t index_to_heapify)
 	}
 }
 
-/* p *(int *)VectorAccessVal(heap->dvector,  */
+
 
 
 static void HeapifyDown(heap_t *heap, size_t index_to_heapify)
 {
 	HeapifyDownRecursiveHelper(heap->dvector, VectorElementCount(heap->dvector), index_to_heapify, heap->compare_func);
 }
+
 
 
 static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t index_to_heapify, heap_compare_func_t cmp_fnc)
@@ -202,6 +211,7 @@ static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t
 	void *left_data = NULL;
 	void *right_data = NULL;
 	
+	/* if the left child index is valid, compare it to element to heapify */
 	if (left_index < arr_size)
 	{
 		left_data = VectorAccessVal(vector, left_index);
@@ -211,7 +221,7 @@ static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t
 		}
 	}
 	
-	
+	/* if the right child index is valid, compare it to element to heapify */
 	if (right_index < arr_size)
 	{
 		right_data = VectorAccessVal(vector, right_index);
@@ -221,15 +231,14 @@ static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t
 		}
 	}
 	
-	
+	/* swap if needed, and then call HeapifyDown recursively with swapped child index */
 	if (index_to_swap != index_to_heapify)
 	{
 		Swap(VectorAccessVal(vector, index_to_swap), VectorAccessVal(vector, index_to_heapify));
 		HeapifyDownRecursiveHelper(vector, arr_size, index_to_swap, cmp_fnc);
 	}
-	
-	
 }
+
 
 static void Swap(void **a, void **b)
 {
