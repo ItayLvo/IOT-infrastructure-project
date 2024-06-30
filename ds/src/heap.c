@@ -12,11 +12,12 @@
 #define GetLeft(index)		(2*(index))+1	/* Returns the left child node */
 #define GetRight(index)		(2*(index))+2 	/* Returns the right child node */
 
+#define INITIAL_DVECTOR_SIZE 4
 
 static void HeapifyUp(heap_t *heap, size_t index_to_heapify);
 static void HeapifyDown(heap_t *heap, size_t index_to_heapify);
 static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t index_to_heapify, heap_compare_func_t cmp_fnc);
-static void Swap(void ***a, void ***b);
+static void Swap(void **a, void **b);
 
 
 struct heap
@@ -34,7 +35,7 @@ heap_t *HeapCreate(heap_compare_func_t compare_func)
 		return NULL;
 	}
 	
-	heap->dvector = VectorCreate(1, sizeof(void *));
+	heap->dvector = VectorCreate(INITIAL_DVECTOR_SIZE, sizeof(void **));
 	if (NULL == heap->dvector)
 	{
 		free(heap);
@@ -92,7 +93,7 @@ void HeapPop(heap_t *heap)
 	root_data = VectorAccessVal(heap->dvector, 0);
 	
 	/* swap the "root" with the last element */
-	Swap(&last_element_data, &root_data);
+	Swap(last_element_data, root_data);
 	
 	/* remove the old root from the dvector */
 	VectorPopBack(heap->dvector);
@@ -150,7 +151,7 @@ void *HeapRemove(heap_t *heap, heap_match_func_t match_func, void *param)
 		if (match_func(*data_runner, param))
 		{
 			last_element_data = VectorAccessVal(heap->dvector, count - 1);
-			Swap(&data_runner, &last_element_data);
+			Swap(data_runner, last_element_data);
 			data_to_return = last_element_data;
 			VectorPopBack(heap->dvector);
 			HeapifyDown(heap, i);
@@ -180,7 +181,7 @@ static void HeapifyUp(heap_t *heap, size_t index_to_heapify)
 	while (0 != index_to_heapify && cmp_fnc(*current_data, *parent_data) < 0)
 	{
 		/* swap the parent and child data */
-		Swap(&current_data, &parent_data);
+		Swap(current_data, parent_data);
 		
 		/* update runners - set current index as parent index, set parent as parent's parent */
 		index_to_heapify = parent_index;
@@ -239,9 +240,9 @@ static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t
 }
 
 
-static void Swap(void ***a, void ***b)
+static void Swap(void **a, void **b)
 {
-    void **temp = *a;
+    void *temp = *a;
     *a = *b;
     *b = temp;
 }

@@ -15,11 +15,25 @@ int main()
 	printf("IsEmpty?\t%d\n", HeapIsEmpty(heap));
 	
 	HeapPush(heap, &x6);
+	
+	printf("peek:\t%d\n", *(int *)HeapPeek(heap));
+	
 	HeapPush(heap, &x3);
+	
+	printf("peek:\t%d\n", *(int *)HeapPeek(heap));
+	
 	HeapPush(heap, &x2);
+	
+	printf("peek:\t%d\n", *(int *)HeapPeek(heap));
+	
 	HeapPush(heap, &x4);
 	
+	printf("peek:\t%d\n", *(int *)HeapPeek(heap));
+	
 	HeapPush(heap, &x1);
+	
+	printf("peek:\t%d\n", *(int *)HeapPeek(heap));
+	
 	HeapPush(heap, &x5);
 	
 	printf("IsEmpty?\t%d\n", HeapIsEmpty(heap));
