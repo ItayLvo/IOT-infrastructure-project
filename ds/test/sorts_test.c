@@ -10,6 +10,7 @@
 
 static void PrintArray(int *arr, int n);
 static int Compare(const void *a, const void *b);
+static void GenerateRandomArray(int *arr, size_t len);
 
 static void TestMergeSort();
 static void TestBinarySearch();
@@ -122,18 +123,47 @@ static void TestBinarySearch()
 
 static void TestQuickSort()
 {
-	int arr1[9] = {15, 4, 6, -4, 11, 9, 8, 11, -10};
+	int arr1[5000];
+	int arr2[5000];
+	
 	size_t i = 0;
+	clock_t start_time = 0;
+	clock_t end_time = 0;
+	size_t total_time = 0;
+
+	GenerateRandomArray(arr1, 5000);
+	GenerateRandomArray(arr2, 5000);
 	
-	QuickSort(arr1, 9, 4, Compare);
 	
-	for (i = 0; i < 9; ++i)
+	start_time = clock();
+	
+	QuickSort(arr1, 5000, sizeof(int), Compare);
+	
+	end_time = clock();
+	total_time = end_time - start_time;
+	printf("time for manual quicksort: %ld\n", total_time);
+	
+	
+	start_time = clock();
+	qsort(arr2, 5000, sizeof(int), Compare);
+	end_time= clock();
+	total_time = end_time - start_time;
+	printf("time for system qsort: %ld\n", total_time);
+	
+	for (i = 0; i < 5000; ++i)
 	{
-		printf("[%d] ", arr1[i]);
+		if (arr1[i] != arr2[i])
+		{
+			printf("Quick Sort failed at index: %ld\n", i);
+			break;
+		}
 	}
+	
 	
 	printf("\nEnd of quick sort test.\n");
 }
+
+	
 
 
 static void TestMergeSort()
@@ -167,3 +197,19 @@ static void PrintArray(int *arr, int n)
 	}
 	printf("\n");
 }
+
+
+
+
+
+static void GenerateRandomArray(int *arr, size_t len)
+{
+	size_t i = 0;
+	
+	srand(time(NULL));
+	for (i = 0; i < len; ++i)
+	{
+		arr[i] = rand() % 201 - 100;
+	}
+}
+
