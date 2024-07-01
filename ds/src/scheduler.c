@@ -118,7 +118,7 @@ int SchedulerRun(scheduler_t *scheduler)
 	{
 		task = PQDequeue(scheduler->tasks_priority_queue);
 		current_time = time(NULL);
-		if (-1 == current_time)
+		if ((time_t)-1 == current_time)
 		{
 			return RUN_FUNC_ERROR;
 		}

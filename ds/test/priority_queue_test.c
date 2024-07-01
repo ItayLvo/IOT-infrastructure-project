@@ -76,13 +76,13 @@ int PQTestPeek(void)
 	}
 	
 	PQEnqueue(p_queue, &x1);
-	if (*(int *)PQPeek(p_queue) != 1)
+	if (*(int *)PQPeek(p_queue) != 4)
 	{
 		++count_failed_peeks;
 	}
 	
 	PQEnqueue(p_queue, &x5);
-	if (*(int *)PQPeek(p_queue) != 1)
+	if (*(int *)PQPeek(p_queue) != 5)
 	{
 		++count_failed_peeks;
 	}

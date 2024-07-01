@@ -14,7 +14,7 @@ int main()
 	
 	printf("IsEmpty?\t%d\n", HeapIsEmpty(heap));
 	
-	HeapPush(heap, &x6);
+	HeapPush(heap, &x1);
 	
 	printf("peek:\t%d\n", *(int *)HeapPeek(heap));
 	
@@ -30,7 +30,7 @@ int main()
 	
 	printf("peek:\t%d\n", *(int *)HeapPeek(heap));
 	
-	HeapPush(heap, &x1);
+	HeapPush(heap, &x6);
 	
 	printf("peek:\t%d\n", *(int *)HeapPeek(heap));
 	
@@ -46,7 +46,6 @@ int main()
 	
 	
 	HeapPush(heap, &x6);
-	printf("removed: %d\n", *remove_test);
 	
 	HeapPop(heap);
 	HeapPop(heap);

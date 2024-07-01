@@ -85,13 +85,7 @@ int HeapPush(heap_t *heap, void *data)
 
 void HeapPop(heap_t *heap)
 {
-	void **last_element_data = NULL;
-	void **root_data = NULL;
-	
 	assert(heap);
-	
-	last_element_data = (void **)VectorAccessVal(heap->dvector, VectorElementCount(heap->dvector) - 1);
-	root_data = (void **)VectorAccessVal(heap->dvector, 0);
 	
 	/* swap the "root" with the last element */
 	Swap((void **)VectorAccessVal(heap->dvector, VectorElementCount(heap->dvector) - 1), (void **)VectorAccessVal(heap->dvector, 0));
@@ -175,7 +169,7 @@ static void HeapifyUp(heap_t *heap, size_t index_to_heapify)
 	void **parent_data = (void **)VectorAccessVal(vector, parent_index);
 	heap_compare_func_t cmp_fnc = heap->compare_func;
 	
-	while (0 != index_to_heapify && cmp_fnc(*current_data, *parent_data) < 0)
+	while (0 != index_to_heapify && cmp_fnc(*current_data, *parent_data) > 0)
 	{
 		/* swap the parent and child data */
 		Swap((void **)current_data, (void **)parent_data);
@@ -212,7 +206,7 @@ static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t
 	if (left_index < arr_size)
 	{
 		left_data = (void **)VectorAccessVal(vector, left_index);
-		if (cmp_fnc(*(void **)VectorAccessVal(vector, index_to_swap), *left_data) > 0)
+		if (cmp_fnc(*(void **)VectorAccessVal(vector, index_to_swap), *left_data) < 0)
 		{
 			index_to_swap = left_index;
 		}
@@ -222,7 +216,7 @@ static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t
 	if (right_index < arr_size)
 	{
 		right_data = (void **)VectorAccessVal(vector, right_index);
-		if (cmp_fnc(*(void **)VectorAccessVal(vector, index_to_swap), *right_data) > 0)
+		if (cmp_fnc(*(void **)VectorAccessVal(vector, index_to_swap), *right_data) < 0)
 		{
 			index_to_swap = right_index;
 		}
