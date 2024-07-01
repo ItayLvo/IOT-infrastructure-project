@@ -76,13 +76,13 @@ int PQTestPeek(void)
 	}
 	
 	PQEnqueue(p_queue, &x1);
-	if (*(int *)PQPeek(p_queue) != 4)
+	if (*(int *)PQPeek(p_queue) != 1)
 	{
 		++count_failed_peeks;
 	}
 	
 	PQEnqueue(p_queue, &x5);
-	if (*(int *)PQPeek(p_queue) != 5)
+	if (*(int *)PQPeek(p_queue) != 1)
 	{
 		++count_failed_peeks;
 	}
@@ -141,25 +141,30 @@ int PQTestEraseClear(void)
 {
 	pq_t *p_queue = PQCreate(CompareInt);
 	int x1 = 1, x2 = 2, x3 = 3;
-	int test_result = 0;
+	int *test_result = NULL;
 	
 	PQEnqueue(p_queue, &x3);
 	PQEnqueue(p_queue, &x1);
 	PQEnqueue(p_queue, &x2);
 
 	
-	test_result = *(int *)PQErase(p_queue, MatchInt, &x2);
-	if (test_result != 2)
+	test_result = (int *)PQErase(p_queue, MatchInt, &x3);
+	if (*test_result != 3)
 	{
 		return 1;
 	}
 	
-	test_result = *(int *)PQErase(p_queue, MatchInt, &x1);
-	if (test_result != 1)
+	test_result = (int *)PQErase(p_queue, MatchInt, &x1);
+	if (*test_result != 1)
 	{
 		return 1;
 	}
 	
+	test_result = (int *)PQErase(p_queue, MatchInt, &x2);
+	if (*test_result != 2)
+	{
+		return 1;
+	}
 	
 	if (NULL != PQErase(p_queue, MatchInt, &x2))
 	{

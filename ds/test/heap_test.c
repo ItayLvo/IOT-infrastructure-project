@@ -41,6 +41,10 @@ int main()
 	remove_test = (int *)HeapRemove(heap, MatchInt, &x4);
 	printf("removed: %d\n", *remove_test);
 	
+	remove_test = (int *)HeapRemove(heap, MatchInt, &x3);
+	printf("removed: %d\n", *remove_test);
+	
+	
 	HeapPush(heap, &x6);
 	printf("removed: %d\n", *remove_test);
 	
