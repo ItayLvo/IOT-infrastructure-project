@@ -8,15 +8,20 @@
 #include "priority_queue.h"	/* pq_t functions */
 #include "scheduler.h"		/* scheduler_t functions */
 
+
 enum scheduler_status_t {SCHEDULER_OFF, SCHEDULER_ON};
+
 enum action_func_status {ACTION_FUNC_SUCCESS, ACTION_FUNC_FAILURE, ACTION_FUNC_REMOVE_TASK_FROM_QUEUE};
+
 enum run_function_status {RUN_FUNC_ENDED = 0, RUN_FUNC_STOPPED = 1, RUN_FUNC_ERROR = 2};
+
 
 struct scheduler
 {
     pq_t *tasks_priority_queue;
     enum scheduler_status_t is_scheduler_on;
 };
+
 
 static int CompareTaskPriority(const void *item, const void *data_to_compare);
 static int MatchTask(const void *item, const void *data_to_compare);
@@ -108,9 +113,9 @@ int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t task_uid)
 int SchedulerRun(scheduler_t *scheduler)
 {
 	task_t *task = NULL;
-	size_t time_until_task = 0;
+	long time_until_task = 0;
 	int action_func_status = 0;
-	size_t current_time = 0;
+	time_t current_time = 0;
 	scheduler->is_scheduler_on = SCHEDULER_ON;
 	assert(scheduler);
 	
@@ -125,7 +130,6 @@ int SchedulerRun(scheduler_t *scheduler)
 		
 		time_until_task = TaskGetTimeToStart(task) - current_time;
 		
-		/* sleep(time_until_task) can end before time_until_task seconds! */
 		while (time_until_task > 0)
 		{
 			sleep(time_until_task);
@@ -193,13 +197,17 @@ int SchedulerIsEmpty(const scheduler_t *scheduler)
 }
 
 
+
+
+/*** static helper functions ***/
+
 static int CompareTaskPriority(const void *item, const void *data_to_compare)
 {
 	task_t *task1 = (task_t *)item;
 	task_t *task2 = (task_t *)data_to_compare;
 	
-	size_t time_of_task1 = TaskGetTimeToStart(task1);
-	size_t time_of_task2 = TaskGetTimeToStart(task2);
+	long time_of_task1 = TaskGetTimeToStart(task1);
+	long time_of_task2 = TaskGetTimeToStart(task2);
 	
 	
 	return (time_of_task2 - time_of_task1);
