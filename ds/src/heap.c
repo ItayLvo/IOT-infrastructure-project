@@ -3,17 +3,15 @@
 #include <assert.h>	/* assert */
 #include <string.h>	/* memcpy */
 
-#include <stdio.h>	/*printf - remove me............ */
-
 #include "heap.h"
 #include "dvector.h" 	/* dynamic vector data structure and functions */
 
 
-#define GetParent(index)	(((index)-1)/2)	/* Returns the parent node */
-#define GetLeft(index)		(2*(index))+1	/* Returns the left child node */
-#define GetRight(index)		(2*(index))+2 	/* Returns the right child node */
-#define PTR_SIZE	sizeof(void *)
-#define INITIAL_DVECTOR_SIZE 10
+#define GetParent(index)		(((index)-1)/2)	/* Returns the parent node index */
+#define GetLeft(index)			(2*(index))+1	/* Returns the left child node index */
+#define GetRight(index)			(2*(index))+2 	/* Returns the right child node index */
+#define PTR_SIZE				sizeof(void *)
+#define INITIAL_DVECTOR_SIZE	10
 
 static void HeapifyUp(heap_t *heap, size_t index_to_heapify);
 static void HeapifyDown(heap_t *heap, size_t index_to_heapify);
@@ -230,14 +228,7 @@ static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t
 	}
 }
 
-/*
-static void Swap(void *a, void *b)
-{
-    void *temp = a;
-    *a = *b;
-    *b = temp;
-}
-*/
+
 
 static void Swap(void* v1, void* v2) 
 { 
