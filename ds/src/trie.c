@@ -8,28 +8,44 @@ Reviewer:
 #include <assert.h>	/* assert */
 #include <stdlib.h>	/* malloc, free */
 
-#include "hash_table.h"	/* hash table function declerations */
+#include <stdio.h>
 
-#define BINARY 2
+#include "trie.h"	/* hash table function declerations */
+
+#define NUMBER_OF_CHILDREN 2
+
+#define NOT_FULL 0
+#define FULL 1
+
+#define LEFT 0
+#define RIGHT 1
+
 
 
 typedef struct trie_node_t
 {
+	struct trie_node_t *parent;
+	struct trie_node_t *children[NUMBER_OF_CHILDREN];
 	int is_full;
-	char *children[BINARY]
 } trie_node_t;
 
 
 struct trie
 {
 	trie_node_t *root;
+	size_t max_height;
 };
 
 
 
-
 /* static functions forward declerations */
-
+static trie_node_t *TrieCreateNode(trie_node_t *parent);
+static trie_node_t *GetChild(trie_node_t *parent, int side);
+static int GetBitAtIndex(unsigned int key, size_t index);
+static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requested_key, unsigned int *result_key, size_t current_level);
+static void UpdateNodeIsFull(trie_node_t *node);
+static trie_node_t *GetChild(trie_node_t *parent, int side);
+static void TrieDestroyHelper(trie_node_t *node);
 
 
 /**** API functions ****/
@@ -46,299 +62,175 @@ trie_t *TrieCreate(size_t trie_height)
 		return NULL;
 	}
 	
-	trie->root = TrieCreateNode(NULL);	/* ??? */
+	trie->root = TrieCreateNode(NULL);
 	if (NULL == trie->root)
 	{
 		free(trie);
 		return NULL;
 	}
 
-	
+	trie->max_height = trie_height;
 	
 	return trie;
 }
 
 
-
-
-void HashTableDestroy(hash_table_t *table)
+e_trie_status TrieInsert(trie_t *trie, const unsigned int requested_key, unsigned int *result_key)
 {
-	size_t i = 0;
-	dll_t *current_bucket = NULL;
-	dll_iterator_t list_runner = {0};
-	element_t *current_element = NULL;
-	dll_t **bucket_runner = NULL;
+	trie_t *runner = NULL;
+	e_trie_status insert_status = SUCCESS;
 	
-	assert(table);
+	assert(trie);
+	assert (result_key);
 	
-	bucket_runner = table->buckets;
-	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
+	*result_key = 0;
+	insert_status = TrieInsertHelper(trie->root, requested_key, result_key, trie->max_height - 1);
+	
+	
+	return insert_status;
+}
+
+
+static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requested_key, unsigned int *result_key, size_t current_level)
+{
+	e_trie_status return_status = SUCCESS;
+	unsigned int current_bit = 0;
+	trie_node_t *child = NULL;
+	
+	if (current_level == 0)
 	{
-		current_bucket = *bucket_runner;
-		list_runner = DLListBegin(current_bucket);
-		
-		while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)))
+		if (runner->is_full == FULL)
 		{
-			current_element = (element_t *)DLListGetData(list_runner);
-			free(current_element);
-			list_runner = DLListNext(list_runner);
-		}
-		
-		DLListDestroy(current_bucket);
-	}
-	
-	free(table->buckets);
-	free(table);
-}
-
-
-
-int HashTableInsert(hash_table_t *table, const void *key, void *data)
-{
-	dll_t *current_bucket = NULL;
-	dll_iterator_t insert_status = {0};
-	element_t *new_element = NULL;
-	
-	assert(table);
-	
-	current_bucket = GetBucketByKey(table, key);
-
-	/* create element struct to wrap key-data pair */
-	new_element = CreateHashTableElement(key, data);
-	if (NULL == new_element)
-	{
-		return 1;
-	}
-	
-	/* insert the element (key-data pair) to the relevant bucket */
-	insert_status = DLListInsert(current_bucket, DLListBegin(current_bucket), new_element);
-	
-	/* check DLL insert validity */
-	if (DLListIsEqualIter(insert_status, DLListEnd(current_bucket)))
-	{
-		free(new_element);
-		return 1;
-	}
-	
-	return 0;
-}
-
-
-
-void HashTableRemove(hash_table_t *table, const void *key)
-{
-	element_t *element_to_remove = NULL;
-	dll_iterator_t iterator_to_remove = {0};
-	dll_t *current_bucket = NULL;
-	
-	assert(table);
-	
-	current_bucket = GetBucketByKey(table, key);
-	iterator_to_remove = HashTableFindElementInBucket(table, key);
-	
-	if (DLListIsEqualIter(iterator_to_remove, DLListEnd(current_bucket)))
-	{
-		element_to_remove = DLListGetData(iterator_to_remove);
-		free(element_to_remove);
-		DLListRemove(iterator_to_remove);
-	}
-}
-
-
-
-void *HashTableFind(const hash_table_t *table, const void *key)
-{
-	dll_iterator_t iterator_to_find = HashTableFindElementInBucket(table, key);
-	dll_t *current_bucket = GetBucketByKey(table, key);
-	element_t *element_to_find = NULL;
-	void *data_to_find = NULL;
-	dll_iterator_t insert_status = {0};
-	
-	if (NULL == iterator_to_find || DLListIsEqualIter(iterator_to_find, DLListEnd(current_bucket)))
-	{
-		return NULL;
-	}
-	
-	element_to_find = DLListGetData(iterator_to_find);
-	data_to_find = element_to_find->data;
-	
-	/* caching the found element: re-inserting it to the start of the bucket */
-	DLListRemove(iterator_to_find);
-	insert_status = DLListInsert(current_bucket, DLListBegin(current_bucket), element_to_find);
-	if (DLListIsEqualIter(insert_status, DLListEnd(current_bucket)))
-	{
-		return NULL;
-	}
-	
-	return data_to_find;
-}
-
-
-
-size_t HashTableSize(const hash_table_t *table)
-{
-	size_t i = 0;
-	size_t size_sum = 0;
-	dll_t *current_bucket = NULL;
-	dll_t **bucket_runner = NULL;
-	
-	assert(table);
-	
-	bucket_runner = table->buckets;
-	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
-	{
-		current_bucket = *bucket_runner;
-		size_sum += DLListCount(current_bucket);
-	}
-	
-	return size_sum;
-}
-
-
-int HashTableIsEmpty(const hash_table_t *table)
-{
-	size_t i = 0;
-	dll_t *current_bucket = NULL;
-	dll_t **bucket_runner = NULL;
-	
-	assert(table);
-	
-	bucket_runner = table->buckets;
-	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
-	{
-		current_bucket = *bucket_runner;
-		if (!DLListIsEmpty(current_bucket))
-		{
-			return 0;
+			return TRIE_FULL;
 		}
 	}
 	
-	return 1;
-}
-
-
-
-int HashTableForEach(hash_table_t *table, hash_action_func_t action_func, void *params)
-{
-	size_t i = 0;
-	int action_func_status = 0;
-	dll_t *current_bucket = NULL;
-	dll_t **bucket_runner = NULL;
-	dll_iterator_t list_runner = {0};
-	element_t *element = NULL;
 	
-	assert(table);
-	assert(action_func);
+	/* set current_bit to 0 or 1 with bitwise operations on the requested_key, according to current height */
+	current_bit = GetBitAtIndex(requested_key, current_level);
+	child = GetChild(runner, current_bit);
+
+	printf("current bit: %d\n", current_bit);
 	
-	bucket_runner = table->buckets;
-	
-	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
+	/* if current node wasn't created yet - create node */
+	if (NULL == child)
 	{
-		current_bucket = *bucket_runner;
-		list_runner = DLListBegin(current_bucket);
-		
-		while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)))
+		child = TrieCreateNode(runner);
+		if (NULL == child)
 		{
-			element = ((element_t *)DLListGetData(list_runner));
-			action_func_status = (action_func)(element->data, params);
+			return MEMORY_FALIURE;
+		}
+		
+		runner->children[current_bit] = child;
+		
+		printf("before update: %d\n", *(int *)result_key);
+		*result_key <<= 1;
+		*result_key += current_bit;
+		printf("after update: %d\n\n", *(int *)result_key);
+		
+		if (0 == current_level)
+		{
+			child->is_full = FULL;
+			UpdateNodeIsFull(runner);
 			
-			if (0 != action_func_status)
-			{
-				return action_func_status;
-			}
-			
-			list_runner = DLListNext(list_runner);
+			return SUCCESS;
 		}
+		
+		return_status = TrieInsertHelper(child, requested_key, result_key, current_level - 1);
 	}
 	
-	return action_func_status;
-}
-
-
-
-double HashTableLoad(const hash_table_t *table)
-{
-	double num_of_elements_in_table = 0;
-	double num_of_buckets = 0;
-	
-	assert(table);
-	
-	num_of_elements_in_table = (double)HashTableSize(table);
-	num_of_buckets = (double)table->hash_table_size;
-	
-	return num_of_elements_in_table / num_of_buckets;
-}
-
-
-
-double HashTableStandardDeviation(const hash_table_t *table)
-{
-	size_t i = 0;
-	double variance = 0;
-	double standard_deviation = 0;
-	dll_t *current_bucket = NULL;
-	double avg_element_per_bucket = HashTableLoad(table);
-	dll_t **bucket_runner = NULL;
-
-	bucket_runner = table->buckets;
-	for (i = 0; i < table->hash_table_size; ++i, ++bucket_runner)
+	else if (child->is_full == NOT_FULL)
 	{
-		current_bucket = *bucket_runner;
-		variance += pow((DLListCount(current_bucket) - avg_element_per_bucket), 2);
+		*result_key <<= 1;
+		*result_key += current_bit;
+	
+		return_status = TrieInsertHelper(child, requested_key, result_key, current_level - 1);
 	}
 	
-	variance /= table->hash_table_size;
-	standard_deviation = sqrt(variance);
+	else	/* child node is full */
+	{
+		return TRIE_FULL;
+	}
 	
-	return standard_deviation;
+	
 }
 
+
+void TrieDestroy(trie_t *trie)
+{
+	TrieDestroyHelper(trie->root);
+	
+	free(trie);
+}
 
 
 
 /**** static helper functions ****/
 
-static dll_iterator_t HashTableFindElementInBucket(const hash_table_t *table, const void *key)
+
+static void TrieDestroyHelper(trie_node_t *node)
 {
-	dll_t *current_bucket = GetBucketByKey(table, key);
-	
-	hash_cmp_func_t client_compare_func = table->compare_func;
-	int match_result = 0;
-	dll_iterator_t list_runner = DLListBegin(current_bucket);
-	element_t *current_element = NULL;
-	
-	while (!DLListIsEqualIter(list_runner, DLListEnd(current_bucket)) && match_result == 0)
+	if (NULL == node)
 	{
-		current_element = (element_t *)DLListGetData(list_runner);
-		match_result = client_compare_func(current_element->key, key);
-		list_runner = DLListNext(list_runner);
+		return;
 	}
 	
-	return ((match_result == 0) ? NULL : DLListPrev(list_runner));
+	TrieDestroyHelper(GetChild(node, LEFT));
+	TrieDestroyHelper(GetChild(node, RIGHT));
+	
+	free(node);
+}
+
+
+static void UpdateNodeIsFull(trie_node_t *node)
+{
+	int is_full = FULL;
+	size_t i = 0;
+	
+	for (i = 0; i < NUMBER_OF_CHILDREN && is_full == FULL; ++i)
+	{
+		if (NULL == node->children[i] || NOT_FULL == node->children[i]->is_full)
+		{
+			is_full = 0;
+		}
+	}
+	
+	node->is_full = is_full; 
 }
 
 
 
-static element_t *CreateHashTableElement(const void *key, void *data)
+
+static int GetBitAtIndex(unsigned int key, size_t index)
 {
-	element_t *element = (element_t *)malloc(sizeof(element_t));
-	if (NULL == element)
+	return ((key >> index) & 1);
+}
+
+
+static trie_node_t *TrieCreateNode(trie_node_t *parent)
+{
+	trie_node_t *node = malloc(sizeof(trie_node_t));
+	size_t i = 0;
+	
+	if (NULL == node)
 	{
 		return NULL;
 	}
 	
-	element->key = key;
-	element->data = data;
+	node->parent = parent;
+	node->is_full = NOT_FULL;
 	
-	return element;
+	for (i = 0; i < NUMBER_OF_CHILDREN; ++i)
+	{
+		node->children[i] = NULL;
+	}
+	
+	return node;
 }
 
 
-
-static dll_t *GetBucketByKey(const hash_table_t *table, const void *key)
+static trie_node_t *GetChild(trie_node_t *parent, int side)
 {
-	size_t hash_result = (table->hash_func)(key);
-	return (table->buckets)[hash_result % table->hash_table_size];
+	return parent->children[side];
 }
-
 

@@ -1,23 +1,25 @@
 #include <stdio.h>	/* printf */
 
-#include "uid.h"
+#include "trie.h"
 
 
 int main()
 {
-	ilrd_uid_t uid1 = UIDCreate();
-	ilrd_uid_t uid2 = UIDCreate();
+
+	trie_t *trie = TrieCreate(8);
+	unsigned int key_request = 155;
+	unsigned int res = 0;
+	unsigned int *result = &res;
 	
-	printf("%ld\n", uid1.timestamp);
-	printf("%ld\n", uid1.counter);
-	printf("%d\n\n", uid1.pid);
+	printf("insert status = %d\n", TrieInsert(trie, key_request, result));
 	
-	printf("%ld\n", uid2.timestamp);
-	printf("%ld\n", uid2.counter);
-	printf("%d\n\n", uid2.pid);
+	printf("key recieved: %d\n", *(int *)result);
 	
-	printf("testing IsEqual with GetBad (expected result is 0): %d\n", UIDIsEqual((uid1), UIDGetBad()));
-	printf("testing IsEqual with two UID_t (expected result is 0) %d\n:", UIDIsEqual(uid1, uid2));
+	printf("insert status = %d\n", TrieInsert(trie, key_request, result));
+	
+	printf("key recieved: %d\n", *(int *)result);
+	
+	TrieDestroy(trie);
 	
 	return 0;
 }

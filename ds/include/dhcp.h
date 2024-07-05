@@ -25,7 +25,7 @@ return: a pointer to the DHCP module, NULL if failed
 time complexity: O(n)		where n is the number of bits that represent supported IPs
 space complexity: O(n)
 */
-DHCP_Server_t *DHCPCreate(unsigned char[BYTES_IN_IP] base_network_id, size_t subnet_prefix);
+DHCP_Server_t *DHCPCreate(unsigned char base_network_id[BYTES_IN_IP], size_t subnet_prefix);
 
 /*
 DHCPDestroy
@@ -45,12 +45,12 @@ return: status 0 if success, none 0 otherwise
 (received_ip = requested ip if free. if not free then next big address that is free. 
 if nothing was found that is bigger than requested then search for smaller.
 return null in recived address if nothing is found)
-time complexity: O(log n) (or de-facto o(1) because it's depth has a capacity)
+time complexity: O(log n) (or derr-facto o(1) because it's depth has a capacity)
 space complexity: O(1)
 */
 status_e DHCPAllocateIP(DHCP_Server_t *dhcp,
-                        unsigned char[BYTES_IN_IP] requested_ip,
-                        unsigned char[BYTES_IN_IP] received_ip);
+                        unsigned char requested_ip[BYTES_IN_IP],
+                        unsigned char received_ip[BYTES_IN_IP]);
 
 /*
 DHCPFreeIP
@@ -60,7 +60,7 @@ return: status_e SUCCESS / BAD_SUBNET / DOUBLE_FREE
 time complexity: O(log n) (or de-facto o(1) because it's depth has a capacity)
 space complexity: O(1)
 */
-status_e DHCPFreeIP(DHCP_Server_t *dhcp, unsigned char[BYTES_IN_IP] address);
+status_e DHCPFreeIP(DHCP_Server_t *dhcp, unsigned char address[BYTES_IN_IP]);
 
 /*
 DHCPCountFree
