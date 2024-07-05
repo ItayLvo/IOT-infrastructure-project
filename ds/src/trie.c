@@ -8,9 +8,9 @@ Reviewer:
 #include <assert.h>	/* assert */
 #include <stdlib.h>	/* malloc, free */
 
-#include <stdio.h>
+#include <stdio.h>	/* printf */
 
-#include "trie.h"	/* hash table function declerations */
+#include "trie.h"	/* trie function declerations */
 
 #define NUMBER_OF_CHILDREN 2
 
@@ -46,6 +46,8 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 static void UpdateNodeIsFull(trie_node_t *node);
 static trie_node_t *GetChild(trie_node_t *parent, int side);
 static void TrieDestroyHelper(trie_node_t *node);
+static void TrieRemoveHelper(trie_node_t *runner, unsigned int key_to_remove, size_t current_level);
+static size_t TrieSizeHelper(trie_node_t *node, size_t current_level);
 
 
 /**** API functions ****/
@@ -77,7 +79,6 @@ trie_t *TrieCreate(size_t trie_height)
 
 e_trie_status TrieInsert(trie_t *trie, const unsigned int requested_key, unsigned int *result_key)
 {
-	trie_t *runner = NULL;
 	e_trie_status insert_status = SUCCESS;
 	
 	assert(trie);
@@ -91,19 +92,89 @@ e_trie_status TrieInsert(trie_t *trie, const unsigned int requested_key, unsigne
 }
 
 
+
+void TrieRemove(trie_t *trie, unsigned int key_to_remove)
+{
+	assert(trie);	
+	
+	TrieRemoveHelper(trie->root, key_to_remove, trie->max_height - 1);
+}
+
+
+
+void TrieDestroy(trie_t *trie)
+{
+	assert(trie);
+	
+	TrieDestroyHelper(trie->root);
+	
+	free(trie);
+}
+
+
+/* counts the amount of full paths from root to leaf, where the leaf is full */
+size_t TrieSize(const trie_t *trie)
+{
+	assert (trie);
+	
+	return TrieSizeHelper(trie->root, trie->max_height - 1);
+}
+
+
+
+/**** static helper functions ****/
+
+
+static size_t TrieSizeHelper(trie_node_t *node, size_t current_level)
+{
+	if (NULL == node)
+	{
+		return 0;
+	}
+	
+	if (node->is_full == FULL)
+	{
+		return 1;
+	}
+	
+	return TrieSizeHelper(GetChild(node, LEFT), current_level - 1) +
+			TrieSizeHelper(GetChild(node, RIGHT), current_level - 1);
+	
+}
+
+
+static void TrieRemoveHelper(trie_node_t *runner, unsigned int key_to_remove, size_t current_level)
+{
+	unsigned int current_bit = 0;
+	trie_node_t *child = NULL;
+	
+	current_bit = GetBitAtIndex(key_to_remove, current_level);
+	child = GetChild(runner, current_bit);
+	
+	if (NULL == child)
+	{
+		return;
+	}
+	else
+	{
+		if (0 == current_level)
+		{
+			child->is_full = NOT_FULL;
+			UpdateNodeIsFull(runner);
+		}
+		else
+		{
+			TrieRemoveHelper(child, key_to_remove, current_level - 1);
+		}
+	}
+}
+
+
 static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requested_key, unsigned int *result_key, size_t current_level)
 {
 	e_trie_status return_status = SUCCESS;
 	unsigned int current_bit = 0;
 	trie_node_t *child = NULL;
-	
-	if (current_level == 0)
-	{
-		if (runner->is_full == FULL)
-		{
-			return TRIE_FULL;
-		}
-	}
 	
 	
 	/* set current_bit to 0 or 1 with bitwise operations on the requested_key, according to current height */
@@ -123,10 +194,10 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 		
 		runner->children[current_bit] = child;
 		
-		printf("before update: %d\n", *(int *)result_key);
+/*		printf("before update: %d\n", *(int *)result_key);*/
 		*result_key <<= 1;
 		*result_key += current_bit;
-		printf("after update: %d\n\n", *(int *)result_key);
+/*		printf("after update: %d\n\n", *(int *)result_key);*/
 		
 		if (0 == current_level)
 		{
@@ -139,33 +210,33 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 		return_status = TrieInsertHelper(child, requested_key, result_key, current_level - 1);
 	}
 	
+	/* if child was already created, and is not full */
 	else if (child->is_full == NOT_FULL)
 	{
 		*result_key <<= 1;
 		*result_key += current_bit;
-	
-		return_status = TrieInsertHelper(child, requested_key, result_key, current_level - 1);
+		
+		if (0 == current_level)
+		{
+			child->is_full = FULL;
+			UpdateNodeIsFull(runner);
+			
+			return SUCCESS;
+		}
+		else
+		{
+			return_status = TrieInsertHelper(child, requested_key, result_key, current_level - 1);		
+		}
 	}
 	
-	else	/* child node is full */
+	/* if child is full */
+	else
 	{
 		return TRIE_FULL;
 	}
 	
-	
+	return return_status;
 }
-
-
-void TrieDestroy(trie_t *trie)
-{
-	TrieDestroyHelper(trie->root);
-	
-	free(trie);
-}
-
-
-
-/**** static helper functions ****/
 
 
 static void TrieDestroyHelper(trie_node_t *node)
