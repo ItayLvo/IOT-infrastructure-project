@@ -1,3 +1,9 @@
+/*
+Status: Done
+Reviwed by: Shahar Hadad
+Date: 07/07
+*/
+
 #include <stdlib.h>	/* malloc */
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
@@ -15,7 +21,11 @@
 
 static void HeapifyUp(heap_t *heap, size_t index_to_heapify);
 static void HeapifyDown(heap_t *heap, size_t index_to_heapify);
-static void HeapifyDownRecursiveHelper(vector_t *vector, size_t arr_size, size_t index_to_heapify, heap_compare_func_t cmp_fnc);
+static void HeapifyDownRecursiveHelper(vector_t *vector, 
+										size_t arr_size, 
+										size_t index_to_heapify, 
+										heap_compare_func_t cmp_fnc);
+			
 static void Swap(void *a, void *b);
 
 
@@ -28,7 +38,11 @@ struct heap
 
 heap_t *HeapCreate(heap_compare_func_t compare_func)
 {
-	heap_t *heap = (heap_t *)malloc(sizeof(heap_t));
+	heap_t *heap = NULL;
+	
+	assert(compare_func)
+	
+	heap = (heap_t *)malloc(sizeof(heap_t));
 	if (NULL == heap)
 	{
 		return NULL;
@@ -86,7 +100,8 @@ void HeapPop(heap_t *heap)
 	assert(heap);
 	
 	/* swap the "root" with the last element */
-	Swap((void **)VectorAccessVal(heap->dvector, VectorElementCount(heap->dvector) - 1), (void **)VectorAccessVal(heap->dvector, 0));
+	Swap((void **)VectorAccessVal(heap->dvector, VectorElementCount(heap->dvector) - 1),
+		(void **)VectorAccessVal(heap->dvector, 0));
 	
 	/* remove the old root from the dvector */
 	VectorPopBack(heap->dvector);
