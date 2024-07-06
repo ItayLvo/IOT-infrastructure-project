@@ -6,13 +6,13 @@
 typedef struct trie trie_t;
 
 
-typedef enum status
+typedef enum trie_status
 {
-  SUCCESS,	
-  MEMORY_FALIURE,
+  TRIE_SUCCESS,	
+  TRIE_MEMORY_FALIURE,
   TRIE_FULL,
-  BAD_REQUEST,
-  DOUBLE_FREE
+  TRIE_BAD_REQUEST,
+  TRIE_DOUBLE_FREE
 } e_trie_status;
 
 
@@ -25,12 +25,6 @@ e_trie_status TrieInsert(trie_t *trie, const unsigned int requested_key, unsigne
 void TrieRemove(trie_t *trie, unsigned int key);
 
 size_t TrieSize(const trie_t *trie);
-
-/*int TrieIsEmpty(const trie_t *trie);*/
-
-/*void *TrieSearch(const trie_t *trie, const char *key);*/
-
-
 
 
 #endif /*__TRIE_H__*/

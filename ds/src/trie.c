@@ -10,7 +10,6 @@ Reviewer:
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
 #include <stdlib.h>	/* malloc, free */
-#include <stdio.h>	/* printf */
 
 #include "trie.h"	/* trie function declerations */
 
@@ -81,7 +80,7 @@ trie_t *TrieCreate(size_t trie_height)
 
 e_trie_status TrieInsert(trie_t *trie, const unsigned int requested_key, unsigned int *result_key)
 {
-	e_trie_status insert_status = SUCCESS;
+	e_trie_status insert_status = TRIE_SUCCESS;
 	
 	assert(trie);
 	assert (result_key);
@@ -174,7 +173,7 @@ static void TrieRemoveHelper(trie_node_t *runner, unsigned int key_to_remove, si
 
 static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requested_key, unsigned int *result_key, size_t current_level)
 {
-	e_trie_status return_status = SUCCESS;
+	e_trie_status return_status = TRIE_SUCCESS;
 	unsigned int current_bit = 0;
 	trie_node_t *child = NULL;
 	
@@ -182,8 +181,6 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 	/* set current_bit to 0 or 1 with bitwise operations on the requested_key, according to current height */
 	current_bit = GetBitAtIndex(requested_key, current_level);
 	child = GetChild(runner, current_bit);
-
-	printf("current bit: %d\n", current_bit);
 	
 	/* if current node wasn't created yet - create node */
 	if (NULL == child)
@@ -191,7 +188,7 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 		child = TrieCreateNode(runner);
 		if (NULL == child)
 		{
-			return MEMORY_FALIURE;
+			return TRIE_MEMORY_FALIURE;
 		}
 		
 		runner->children[current_bit] = child;
@@ -204,7 +201,7 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 			child->is_full = FULL;
 			UpdateNodeIsFull(runner);
 			
-			return SUCCESS;
+			return TRIE_SUCCESS;
 		}
 		
 		return_status = TrieInsertHelper(child, requested_key, result_key, current_level - 1);
@@ -221,7 +218,7 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 			child->is_full = FULL;
 			UpdateNodeIsFull(runner);
 			
-			return SUCCESS;
+			return TRIE_SUCCESS;
 		}
 		else
 		{
