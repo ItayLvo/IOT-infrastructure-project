@@ -4,10 +4,12 @@ Status:
 Reviewer: 
 */
 
+/* TODO: fix backtracking bug where 35x3 results in 35, 32, 33 but correct bit path */
+/* TODO: check if max path reached and return trie full */
+
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
 #include <stdlib.h>	/* malloc, free */
-
 #include <stdio.h>	/* printf */
 
 #include "trie.h"	/* trie function declerations */
@@ -194,10 +196,8 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 		
 		runner->children[current_bit] = child;
 		
-/*		printf("before update: %d\n", *(int *)result_key);*/
 		*result_key <<= 1;
 		*result_key += current_bit;
-/*		printf("after update: %d\n\n", *(int *)result_key);*/
 		
 		if (0 == current_level)
 		{
@@ -232,7 +232,19 @@ static e_trie_status TrieInsertHelper(trie_node_t *runner, unsigned int requeste
 	/* if child is full */
 	else
 	{
-		return TRIE_FULL;
+		if (1 == current_bit) 	/* current bit is 0, but is full => revert last bit and backtrack */
+		{
+			/* TODO check if max size reached! */
+			/* return TRIE_FULL;*/
+			*result_key >>= 1;
+			return_status = TrieInsertHelper(runner->parent, requested_key + (1 << current_level), result_key, current_level + 1);
+			
+		}
+		else	/* current bit is 0, but is full => try right brother node */
+		{
+			return_status = TrieInsertHelper(runner, requested_key + (1 << current_level), result_key, current_level);
+		}
+		
 	}
 	
 	return return_status;
