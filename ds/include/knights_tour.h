@@ -1,7 +1,7 @@
 #ifndef __KNIGHTS_TOUR_H__
 #define __KNIGHTS_TOUR_H__
 
-#define NUM_OF_ROWS 8
+#define NUM_OF_ROWS 5
 #define PATH_LENGTH NUM_OF_ROWS*NUM_OF_ROWS
 
 typedef enum knights_tour_status_e {
