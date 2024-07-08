@@ -52,9 +52,9 @@ bit_array_t SetOff(bit_array_t bit_arr, size_t index)
 bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bit_value)
 {
 	size_t bit_value_64_bit_cast = (size_t)bit_value;
-	size_t mask = 1 << index;
+	size_t mask = (size_t)1 << index;
 	size_t reversed_bit_mask = ~mask;
-	assert (index <= SIZE_T_BITS);
+	assert (index <= (size_t)SIZE_T_BITS);
 
 	bit_arr = bit_arr & reversed_bit_mask;
 	bit_arr = bit_arr | (bit_value_64_bit_cast << index);
@@ -65,7 +65,7 @@ bit_array_t SetBit(bit_array_t bit_arr, size_t index, int bit_value)
 
 int GetVal(bit_array_t bit_arr, size_t index)
 {
-	size_t mask = (1 << index);
+	size_t mask = ((size_t)1 << index);
 	
 	return !!(bit_arr & mask);
 }
