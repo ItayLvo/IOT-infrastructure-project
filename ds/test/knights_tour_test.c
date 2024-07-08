@@ -1,6 +1,4 @@
 #include <stdio.h>	/* printf */
-#include <time.h>	/* time() */
-#include <stdlib.h>	/* rand, srand, qsort */
 
 #include "knights_tour.h"
 #include "bitarray.h"
@@ -30,10 +28,11 @@ static unsigned char ParseY(position_t current_pos)
 int main()
 {
 	position_t path[PATH_LENGTH] = {0};
-	position_t starting_position1 = 36;	/* 0010 0100 */
+	position_t starting_position1 = 36;	/* 0010 0110 */
 	position_t starting_position2 = 0;	/* 0000 0000 */
-	position_t starting_position3 = 3;	/* 0000 0011 */
-/*	char new_string[100];*/
+	position_t starting_position3 = 2;	/* 0000 0010 */
+	position_t starting_position4 = 86; /* 0101 0101 */
+	position_t starting_position5 = 51; /* 0011 0011 */
 	
 	size_t i = 0;
 	

@@ -1,5 +1,10 @@
+/*
+Date: 08/07
+Status: ready for CR
+Reviwer:
+*/
+
 #include <stdio.h>	/* printf */
-#include <stdlib.h>	/* malloc */
 #include <assert.h>	/* assert */
 #include <time.h>	/* time */
 
@@ -10,33 +15,33 @@
 #define X 0
 #define Y 1
 #define INVALID_INDEX 0xff
-#define FULL_BOARD 0xffffffffffffffff  	/* 8x8 */
-/*#define FULL_BOARD 0x1FFFFFF  */	 /* 5x5 */
-/*#define FULL_BOARD 0xFFFFFFFFF*/	/* 6x6 */
-/*#define FULL_BOARD 0x1FFFFFFFFFFFF */	/* 7x7 */
+#define NOT_HEURISTIC 0
+#define HEURISTIC 1
+
+#define FULL_BOARD 0xffffffffffffffff		/* 8x8 */
+/* #define FULL_BOARD 0x1FFFFFF */		 	/* 5x5 */
+/* #define FULL_BOARD 0xFFFFFFFFF */		/* 6x6 */
+/* #define FULL_BOARD 0x1FFFFFFFFFFFF */	/* 7x7 */
 
 static int IsValidMove(int x, int y);
 static position_t NextKnightMove(position_t current_pos, size_t knight_movement);
 static unsigned char ParseX(position_t current_pos);
 static unsigned char ParseY(position_t current_pos);
 static size_t ConvertPositionToIndex(position_t pos);
+static position_t FindStepWithMinimalMoves(position_t pos);
+static size_t CountPossibleMoves(position_t pos);
 static knights_tour_status_e RunKnightsTourRecursion(position_t path[PATH_LENGTH],
 													 position_t current_pos,
 													 size_t move_number);
-static position_t FindStepWithMinimalMoves(position_t pos);
-static size_t CountPossibleMoves(position_t pos);
 
 
-static knights_tour_status_e RunKnightsTourHeuristic(position_t path[PATH_LENGTH],
-													 position_t current_pos,
-													 size_t move_number);
+/* global static variables */
+static bit_array_t g_board = 0; /* global bitarray to represent chess board
+								64 bits, represents 8x8 board */
+static time_t g_end_time = 0;
+static int g_use_heuristic = NOT_HEURISTIC;
 
-
-/* global bitarray to represent chess board: 64 bits, represents 8x8 board */
-static bit_array_t board = 0;	/*TODO: _g */
-
-static time_t end_time = 0;
-
+/* knight valid moves LUT */
 int possible_knight_moves[NUM_POSSIBLE_MOVES][2] =
 {
 	{2, 1},		/* 0 */
@@ -56,15 +61,15 @@ knights_tour_status_e RunKnightsTour(position_t path[PATH_LENGTH],
                                      int use_heuristic, 
                                      unsigned int time_limit)
 {
-	end_time = time(NULL);
-	end_time += time_limit;
+	g_end_time = time(NULL);
+	g_end_time += time_limit;
 	
+	g_use_heuristic = use_heuristic;
 	
-	(void)use_heuristic;
-	return RunKnightsTourHeuristic(path, starting_position, 0);
+	return RunKnightsTourRecursion(path, starting_position, 0);
 }
 
-/*******************************/
+
 
 static knights_tour_status_e RunKnightsTourRecursion(position_t path[PATH_LENGTH],
 													 position_t current_pos,
@@ -73,141 +78,45 @@ static knights_tour_status_e RunKnightsTourRecursion(position_t path[PATH_LENGTH
 	size_t current_index = 0;
 	position_t next_pos = 0;
 	size_t i = 0;
-	char st[100] = {0};
 	
-	printf("move number = %lu\n", move_number);
-/*	printf("%s\n", ToString(board, st));*/
-	
-	if (time(NULL) >= end_time)
+	if (time(NULL) >= g_end_time)
 	{
 		return TIME_EXCEEDED;
 	}
 	
-	if (move_number > PATH_LENGTH)
-	{
-		return BAD_PATH;
-	}
-	
 	current_index = ConvertPositionToIndex(current_pos);
-/*	printf("current index = %lu\n", current_index);*/
-	board = SetOn(board, current_index);
+	g_board = SetOn(g_board, current_index);
 	path[move_number] = current_pos;
-	printf("%s\n", ToString(board, st));
 	
-	if (board == FULL_BOARD)
+	if (g_board == FULL_BOARD)
 	{
 		return SUCCESS;
 	}
 	
-	for (i = 0; i < NUM_POSSIBLE_MOVES; ++i)
+	if (g_use_heuristic == HEURISTIC)	/* use heuristic variation */
 	{
-		next_pos = NextKnightMove(current_pos, i);
-		
-		if (next_pos != INVALID_INDEX)
+		next_pos = FindStepWithMinimalMoves(current_pos);
+		return RunKnightsTourRecursion(path, next_pos, move_number + 1);
+	}
+	else	/* use backtracking, non-heuristic variation */
+	{
+		for (i = 0; i < NUM_POSSIBLE_MOVES; ++i)
 		{
-			if (RunKnightsTourRecursion(path, next_pos, move_number + 1) == SUCCESS)
-			{
-				return SUCCESS;
-			}
-		}
-		
-	}
-	
-	board = SetOff(board, current_index);
-	return BAD_PATH;
-}
-
-
-/******************valid option above!!******************/
-
-/**********experiment option below***********************/
-static knights_tour_status_e RunKnightsTourHeuristic(position_t path[PATH_LENGTH],
-													 position_t current_pos,
-													 size_t move_number)
-{
-	size_t current_index = 0;
-	position_t next_pos = 0;
-	char st[100] = {0};
-	
-	printf("move number = %lu\n", move_number);
-/*	printf("%s\n", ToString(board, st));*/
-	
-	if (time(NULL) >= end_time)
-	{
-		return TIME_EXCEEDED;
-	}
-	
-	if (move_number > PATH_LENGTH)
-	{
-		return BAD_PATH;
-	}
-	
-	current_index = ConvertPositionToIndex(current_pos);
-/*	printf("current index = %lu\n", current_index);*/
-	board = SetOn(board, current_index);
-	path[move_number] = current_pos;
-	printf("%s\n", ToString(board, st));
-	
-	if (board == FULL_BOARD)
-	{
-		return SUCCESS;
-	}
-	
-	next_pos = FindStepWithMinimalMoves(current_pos);
-	
-	return RunKnightsTourHeuristic(path, next_pos, move_number + 1);
-}
-
-/*****************experiment option above*****************/
-
-
-static position_t FindStepWithMinimalMoves(position_t pos)
-{
-	position_t move_to_return = 0;	/* TODO: invalid move */
-	size_t current_num_possible_moves = 0;
-	size_t min_num_possible_moves = NUM_POSSIBLE_MOVES + 1;		/* init min to be larger than possible max (8) */
-	
-	size_t i = 0;							/* index of move in LUT */
-	
-	unsigned char x = ParseX(pos);
-	unsigned char y = ParseY(pos);
-	
-	position_t next_move = 0;
-	
-	for(i = 0; i < NUM_POSSIBLE_MOVES; ++i)
-	{
-		if (IsValidMove(x + possible_knight_moves[i][X], y + possible_knight_moves[i][Y]))
-		{
-			next_move = BuildPosition(x + possible_knight_moves[i][X], y + possible_knight_moves[i][Y]);
-			current_num_possible_moves = CountPossibleMoves(next_move);
+			next_pos = NextKnightMove(current_pos, i);
 			
-			if (current_num_possible_moves < min_num_possible_moves)
+			if (next_pos != INVALID_INDEX)
 			{
-				min_num_possible_moves = current_num_possible_moves;
-				move_to_return = next_move;
+				if (RunKnightsTourRecursion(path, next_pos, move_number + 1) == SUCCESS)
+				{
+					return SUCCESS;
+				}
 			}
+			
 		}
+		
+		g_board = SetOff(g_board, current_index);
+		return BAD_PATH;
 	}
-	
-	return move_to_return;
-}
-
-static size_t CountPossibleMoves(position_t pos)
-{
-	size_t count_valid_moves = 0;
-	size_t i = 0;
-	unsigned char x = ParseX(pos);
-	unsigned char y = ParseY(pos);
-	
-	for (i = 0; i < NUM_POSSIBLE_MOVES; ++i)
-	{
-		if (IsValidMove(x + possible_knight_moves[i][X], y + possible_knight_moves[i][Y]))
-		{
-			++count_valid_moves;
-		}
-	}
-	
-	return count_valid_moves;
 }
 
 
@@ -228,10 +137,71 @@ position_t BuildPosition(unsigned char row, unsigned char col)
 
 
 
-
 /*************** static helper functions ***************/
 
 
+
+static position_t FindStepWithMinimalMoves(position_t pos)
+{
+	position_t move_to_return = 0;
+	size_t current_num_possible_moves = 0;
+	size_t min_num_possible_moves = NUM_POSSIBLE_MOVES + 1;		/* init min to be larger than possible max (8) */
+	
+	size_t i = 0;	/* index of move in LUT */
+	
+	unsigned char x = ParseX(pos);
+	unsigned char y = ParseY(pos);
+	
+	unsigned char next_x = 0;
+	unsigned char next_y = 0;
+	
+	position_t next_move = 0;
+	
+	for(i = 0; i < NUM_POSSIBLE_MOVES; ++i)
+	{
+		next_x = x + possible_knight_moves[i][X];
+		next_y = y + possible_knight_moves[i][Y];
+		
+		if (IsValidMove(next_x, next_y))
+		{
+			next_move = BuildPosition(next_x, next_y);
+			current_num_possible_moves = CountPossibleMoves(next_move);
+			
+			if (current_num_possible_moves < min_num_possible_moves)
+			{
+				min_num_possible_moves = current_num_possible_moves;
+				move_to_return = next_move;
+			}
+		}
+	}
+	
+	return move_to_return;
+}
+
+
+
+static size_t CountPossibleMoves(position_t pos)
+{
+	size_t count_valid_moves = 0;
+	size_t i = 0;
+	unsigned char x = ParseX(pos);
+	unsigned char y = ParseY(pos);
+	unsigned char next_x = 0;
+	unsigned char next_y = 0;
+	
+	for (i = 0; i < NUM_POSSIBLE_MOVES; ++i)
+	{
+		next_x = x + possible_knight_moves[i][X];
+		next_y = y + possible_knight_moves[i][Y];
+		
+		if (IsValidMove(next_x, next_y))
+		{
+			++count_valid_moves;
+		}
+	}
+	
+	return count_valid_moves;
+}
 
 
 
@@ -246,12 +216,14 @@ static size_t ConvertPositionToIndex(position_t pos)
 }
 
 
+
 static int IsValidMove(int x, int y)
 {
 	return (x >= 0 && x < NUM_OF_ROWS &&
 			y >= 0 && y < NUM_OF_ROWS &&
-			GetVal(board, x * NUM_OF_ROWS + y) == 0);
+			GetVal(g_board, x * NUM_OF_ROWS + y) == 0);
 }
+
 
 
 static position_t NextKnightMove(position_t current_pos, size_t knight_movement)
@@ -259,16 +231,17 @@ static position_t NextKnightMove(position_t current_pos, size_t knight_movement)
 	unsigned char x = ParseX(current_pos);
 	unsigned char y = ParseY(current_pos);
 	
-/*	printf("current: i = %lu, x = %d, y = %d\n", knight_movement, x,y);*/
+	unsigned char next_x = x + possible_knight_moves[knight_movement][X];
+	unsigned char next_y = y + possible_knight_moves[knight_movement][Y];
 	
-	if (IsValidMove(x + possible_knight_moves[knight_movement][X], y + possible_knight_moves[knight_movement][Y]))
+	if (IsValidMove(next_x, next_y))
 	{
-		printf("SELECTED: i = %lu, x = %d, y = %d\n\n", knight_movement, x + possible_knight_moves[knight_movement][X], y + possible_knight_moves[knight_movement][Y]);
-		return BuildPosition(x + possible_knight_moves[knight_movement][X], y + possible_knight_moves[knight_movement][Y]);
+		return BuildPosition(next_x, next_y);
 	}
 	
 	return INVALID_INDEX;
 }
+
 
 
 static unsigned char ParseX(position_t current_pos)
@@ -287,7 +260,5 @@ static unsigned char ParseY(position_t current_pos)
 	
 	return y;
 }
-
-
 
 
