@@ -17,11 +17,8 @@ Reviwer:
 #define INVALID_INDEX 0xff
 #define NOT_HEURISTIC 0
 #define HEURISTIC 1
-
 #define FULL_BOARD 0xffffffffffffffff		/* 8x8 */
-/* #define FULL_BOARD 0x1FFFFFF */		 	/* 5x5 */
-/* #define FULL_BOARD 0xFFFFFFFFF */		/* 6x6 */
-/* #define FULL_BOARD 0x1FFFFFFFFFFFF */	/* 7x7 */
+
 
 static int IsValidMove(int x, int y);
 static position_t NextKnightMove(position_t current_pos, size_t knight_movement);
@@ -194,10 +191,7 @@ static size_t CountPossibleMoves(position_t pos)
 		next_x = x + possible_knight_moves[i][X];
 		next_y = y + possible_knight_moves[i][Y];
 		
-		if (IsValidMove(next_x, next_y))
-		{
-			++count_valid_moves;
-		}
+		count_valid_moves += IsValidMove(next_x, next_y);
 	}
 	
 	return count_valid_moves;
