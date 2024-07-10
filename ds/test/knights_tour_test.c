@@ -33,14 +33,14 @@ int main()
 {
 	position_t path[PATH_LENGTH] = {0};
 	/* position_t starting_position1 = 36; */	/* 0010 0110 */
-	/* position_t starting_position2 = 0; */	/* 0000 0000 */
+	 position_t starting_position2 = 0; 	/* 0000 0000 */
 	/* position_t starting_position3 = 2; */	/* 0000 0010 */
 	/* position_t starting_position4 = 86; */ /* 0101 0101 */
-	position_t starting_position5 = 51; /* 0011 0011 */
+	/* position_t starting_position5 = 51; */ /* 0011 0011 */
 	
 	size_t i = 0;
 	
-	printf("\n\nstatus = %d\n", RunKnightsTour(path, starting_position5, 1, FIVE_MINUTES));
+	printf("\n\nstatus = %d\n", RunKnightsTour(path, starting_position2, 1, FIVE_MINUTES));
 	
 	for (i = 0; i < PATH_LENGTH; ++i)
 	{
