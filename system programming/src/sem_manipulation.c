@@ -5,18 +5,23 @@ Reviwer:
 */
 
 
-/*DESCRIPTION*/
-/*       sem_open()  creates  a  new  POSIX  semaphore or opens an existing semaphore.  The semaphore is*/
-/*       identified by name.  For details of the construction of name, see sem_overview(7).*/
-
-
 #include <stdio.h>	/* printf */
 #include <stdlib.h>	/* exit */
 #include <string.h> /* strstr, atoi, strcmp */
 #include <fcntl.h> /* O_* constants (O_CREAT)*/
 #include <semaphore.h>	/* POSIX semaphore functions and definitions */
+#include <sys/stat.h>	/* permissions macros */
+
+#include "sem_manipulation.h"
 
 #define USER_INPUT_MAX_SIZE 64
+#define INITIAL_SEM_VALUE 1
+#define SEM_PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) /* 0644 in octal */
+	/*S_IRUSR: Read permission for the owner*/
+	/*S_IWUSR: Write permission for the owner*/
+	/*S_IRGRP: Read permission for the group*/
+	/*S_IROTH: Read permission for others*/
+
 
 /* forward declerations */
 static void SemInit(const char *sem_name);
@@ -30,18 +35,11 @@ static int SemExit(void);
 sem_t *g_sem;
 static int sem_action_counter = 0;
 
-typedef enum status
-{
-	SUCCESS = 0,
-	USER_EXIT = 1,
-	SEM_FAIL = 2
-} sem_status_t;
-
 
 int SemRun(const char *sem_name)
 {
 	char user_input[USER_INPUT_MAX_SIZE] = {0};
-	int return_status = 0;
+	int return_status = SUCCESS;
 	
 	SemInit(sem_name);
 	
@@ -57,17 +55,19 @@ int SemRun(const char *sem_name)
 		{	
 			return_status = SemIncrement(user_input);
 		}
-		else if (strcmp(user_input, "V"))
+/*		else if (strcmp(user_input, "V") == 0)*/
+		else if (user_input[0] == 'V')
 		{
 			return_status = SemValue();
 		}
-		else if (strcmp(user_input, "X"))
+/*		else if (strcmp(user_input, "X") == 0)*/
+		else if (user_input[0] == 'X')
 		{
 			return_status = SemExit();
 		}
 		else
 		{
-			printf("D number [undo]\nI number [undo]\nV\nX");
+			printf("\nOptions:\nD number [undo]\nI number [undo]\nV\nX\n");
 		}
 		printf("\n");
 	}
@@ -85,7 +85,7 @@ static int SemExit(void)
 	
 	while (sem_value > 0 && sem_action_counter > 0)
 	{
-		if (sem_wait(g_sem) != 0)
+		if (sem_trywait(g_sem) != 0)
 		{
 			return SEM_FAIL;
 		}
@@ -93,9 +93,10 @@ static int SemExit(void)
 		--sem_action_counter;
 	}
 	
-	
+	sem_close(g_sem);
 	return USER_EXIT;
 }
+
 
 static int SemDecrement(char *user_input)
 {
@@ -106,21 +107,17 @@ static int SemDecrement(char *user_input)
 		sem_action_counter -= num_to_change;
 	}
 	
-	
 	while (num_to_change > 0)
 	{
-		if (sem_wait(g_sem) != 0)
+		if (sem_trywait(g_sem) != 0)
 		{
 			return SEM_FAIL;
 		}
 		--num_to_change;
 	}
-	
-/*	printf("num is %d, sem_action_counter = %d\n", num_to_change, sem_action_counter);*/
 
 	return 0;
 }
-
 
 
 
@@ -143,9 +140,6 @@ static int SemIncrement(char *user_input)
 		--num_to_change;
 	}
 	
-	
-	
-/*	printf("num is %d, sem_action_counter = %d\n", num_to_change, sem_action_counter);*/
 
 	return 0;
 }
@@ -170,7 +164,7 @@ static void SemInit(const char *sem_name)
 {
 	/* 0644 = read and write permissions to owner, and read-only to others */
 	/* 1 is semaphore value */
-	g_sem = sem_open(sem_name, O_CREAT, 0644, 1);
+	g_sem = sem_open(sem_name, O_CREAT, SEM_PERMISSIONS, INITIAL_SEM_VALUE);
 	if (g_sem == SEM_FAILED)
 	{
 		printf("semaphore init failed\n");
