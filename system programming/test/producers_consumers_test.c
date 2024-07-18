@@ -8,7 +8,9 @@ int main()
 	int return_status = SUCCESS;
 	
 /*	RunSpinLock();*/
-	RunMutex();
+/*	RunMutex();*/
+/*	RunSemaphore();*/
+	RunTwoSemaphores();
 		
 	if (return_status != SUCCESS)
 	{

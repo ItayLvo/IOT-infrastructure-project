@@ -8,8 +8,10 @@ typedef enum status	/* todo: adjust */
 } prod_cons_status;
 
 
-
+int RunTwoSemaphores(void);
+int RunSemaphore(void);
 int RunMutex(void);
 int RunSpinLock(void);
+
 
 #endif /* __PRODUCERS_CONSUMERS_H__ */
