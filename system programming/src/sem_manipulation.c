@@ -15,6 +15,7 @@ Reviwer:
 #include "sem_manipulation.h"
 
 #define USER_INPUT_MAX_SIZE 64
+#define INVALID_SEM_VALUE -1
 #define INITIAL_SEM_VALUE 1
 #define SEM_PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) /* 0644 in octal */
 	/*S_IRUSR: Read permission for the owner*/
@@ -55,12 +56,10 @@ int SemRun(const char *sem_name)
 		{	
 			return_status = SemIncrement(user_input);
 		}
-/*		else if (strcmp(user_input, "V") == 0)*/
 		else if (user_input[0] == 'V')
 		{
 			return_status = SemValue();
 		}
-/*		else if (strcmp(user_input, "X") == 0)*/
 		else if (user_input[0] == 'X')
 		{
 			return_status = SemExit();
@@ -77,13 +76,13 @@ int SemRun(const char *sem_name)
 
 static int SemExit(void)
 {
-	int sem_value = -1;
+	int sem_value = INVALID_SEM_VALUE;
 	if (sem_getvalue(g_sem, &sem_value) != 0)
 	{
 		return SEM_FAIL;
 	}
 	
-	while (sem_value > 0 && sem_action_counter > 0)
+	while (sem_action_counter > 0)
 	{
 		if (sem_trywait(g_sem) != 0)
 		{
@@ -91,6 +90,17 @@ static int SemExit(void)
 		}
 		--sem_value;
 		--sem_action_counter;
+	}
+	
+	
+	while (sem_action_counter < 0)
+	{
+		if (sem_post(g_sem) != 0)
+		{
+			return SEM_FAIL;
+		}
+		++sem_value;
+		++sem_action_counter;
 	}
 	
 	sem_close(g_sem);
@@ -148,7 +158,8 @@ static int SemIncrement(char *user_input)
 
 static int SemValue(void)
 {
-	int sem_value = -1;
+	int sem_value = INVALID_SEM_VALUE;
+	
 	if (sem_getvalue(g_sem, &sem_value) != 0)
 	{
 		return SEM_FAIL;
@@ -162,12 +173,11 @@ static int SemValue(void)
 
 static void SemInit(const char *sem_name)
 {
-	/* 0644 = read and write permissions to owner, and read-only to others */
-	/* 1 is semaphore value */
 	g_sem = sem_open(sem_name, O_CREAT, SEM_PERMISSIONS, INITIAL_SEM_VALUE);
+	
 	if (g_sem == SEM_FAILED)
 	{
 		printf("semaphore init failed\n");
-		exit(1);
+		exit(SEM_FAIL);
 	}
 }
