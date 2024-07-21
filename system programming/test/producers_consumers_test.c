@@ -10,7 +10,9 @@ int main()
 /*	RunSpinLock();*/
 /*	RunMutex();*/
 /*	RunSemaphore();*/
-	RunTwoSemaphores();
+/*	RunTwoSemaphores();*/
+/*	RunThreadSafeFSQ();*/
+	RunConditionalVariable();
 		
 	if (return_status != SUCCESS)
 	{

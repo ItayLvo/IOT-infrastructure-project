@@ -7,7 +7,8 @@ typedef enum status	/* todo: adjust */
 	ERROR = 1
 } prod_cons_status;
 
-
+int RunConditionalVariable(void);
+int RunThreadSafeFSQ(void);
 int RunTwoSemaphores(void);
 int RunSemaphore(void);
 int RunMutex(void);

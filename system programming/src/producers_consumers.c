@@ -3,28 +3,27 @@ Date:
 Status: 
 Reviwer: 
 */
+
 #define _BSD_SOURCE	/* usleep */
 #define _GNU_SOURCE	/* thread id */
 
 #include <stdatomic.h>	/* for atomic_ types */
 #include <stdio.h>	/* printf */
-#include <stdlib.h>	/* exit */
-#include <string.h> /* strstr, atoi, strcmp */
-#include <fcntl.h> /* O_* constants (O_CREAT)*/
+#include <stdlib.h>	/* rand */
 #include <semaphore.h>	/* POSIX semaphore functions and definitions */
-#include <sys/stat.h>	/* permissions macros */
 #include <pthread.h>	/* threads */
-#include <unistd.h>		/* gettid */
-#include <sys/types.h>	/* thread id */
-#include <semaphore.h>	/* POSIX semaphore functions and definitions */
+#include <unistd.h>		/* gettid, usleep */
+#include <sys/types.h>	/* tid */
 
 #include "producers_consumers.h"
 #include "sllist.h"		/* singly linked list data structure */
-#include "cbuffer.h"	/* fixed size queue DS */
+
 
 #define Q_SIZE 10
 #define MAX_MESSAGES 5
 #define NUM_THREADS 3
+#define BARRIER_COUNT NUM_THREADS
+
 
 /* forward declerations */
 static void *ProduceBusyWait(void *param);
@@ -39,26 +38,39 @@ static void *ConsumeSemaphore(void *param);
 static void *ProduceTwoSemaphores(void *param);
 static void *ConsumeTwoSemaphores(void *param);
 
+static void *ProduceThreadSafeFSQ(void *queue);
+static void *ConsumeThreadSafeFSQ(void *queue);
 
-/**** exercise 4+5 fixed size queue ****/
+static void *ProduceCond(void *param);
+static void *ConsumeCond(void *param);
+
+
+
+/**** exercise 4+5 fixed size queue data structure ****/
 typedef struct fsq
 {
 	size_t capacity;
 	size_t first_elment_index;
 	size_t elements_in_queue;
 	int arr[Q_SIZE];
+	/* exercise 5 */
+	pthread_mutex_t enqueue_lock;
+	pthread_mutex_t dequeue_lock;
+	sem_t empty_sem;
+	sem_t full_sem;
 } fsq_t;
+
+
+void EnQueueThreadSafe(fsq_t *queue, int new_data);
+void DeQuqueThreadSafe(fsq_t *queue);
+
 
 void EnQueue(fsq_t *queue, int new_data);
 void DeQuque(fsq_t *queue);
 int PeekQueue(const fsq_t *queue);
-/********************************/
+/**********************************************/
 
-fsq_t buffer = {0};
-
-
-/*** global static variables ***/
-
+/******* static global variables *******/
 /* atomic counter for exercise 1 */
 static atomic_int counter = ATOMIC_VAR_INIT(0);	
 
@@ -67,9 +79,285 @@ static pthread_mutex_t job_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static linked_list_t *list = NULL;
 static sem_t g_sem;
 
-/* exercise 4 + 5 */
+/* exercise 4 */
+static fsq_t buffer = {0};
 static sem_t g_empty_sem;
 static sem_t g_full_sem;
+
+/* exercise 5 */
+static fsq_t queue = {0};
+
+/* exercise 6 */
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static int g_count_consumed = 0;
+#define NOT_CONSUMED 0
+#define CONSUMED 1
+static int g_is_consumed = CONSUMED;
+
+
+
+/******** Exercise 6: Conditional variable, 1 mutex, 1 semaphore ********/
+
+int RunConditionalVariable(void)
+{
+	pthread_t consumers[NUM_THREADS];
+	pthread_t producers[1];
+	int status = SUCCESS;
+	size_t i = 0;
+	
+	list = SLListCreate();
+	sem_init(&g_sem, 0, 0);
+	
+	/* creating and running the threads */
+	for (i = 0; i < NUM_THREADS; ++i)
+	{
+		status = pthread_create(&consumers[i], NULL, &ConsumeCond, NULL);
+		if (status != 0)
+		{
+		    fprintf(stderr, "failed to create producer thread %lu\n", i);
+		    return status;
+		}
+		status = pthread_create(&producers[i], NULL, &ProduceCond, NULL);
+		if (status != 0)
+		{
+		    fprintf(stderr, "failed to create producer thread %lu\n", i);
+		    return status;
+		}
+	}
+	
+	/* joining the threads */
+	for (i = 0; i < NUM_THREADS; ++i)
+	{
+		status = pthread_join(consumers[i], NULL);
+		if (status != 0)
+		{
+		    fprintf(stderr, "failed to join consumer thread %lu\n", i);
+		    return status;
+		}
+		status = pthread_join(producers[i], NULL);
+		if (status != 0)
+		{
+		    fprintf(stderr, "failed to join producer thread %lu\n", i);
+		    return status;
+		}
+	}
+	
+	return status;
+}
+
+
+
+static void *ProduceCond(void *param)
+{
+	pid_t tid = gettid();
+	int message = 0;
+	int sem_value = 0;
+	srand(time(NULL));	
+	message = rand() % 10;
+	
+	while(1)
+	{
+
+		pthread_mutex_lock(&job_queue_mutex);
+		
+		while (g_is_consumed == NOT_CONSUMED)
+		{
+			pthread_cond_wait(&cond, &job_queue_mutex);
+		}
+		
+		SLListInsert(list, &message, SLListGetEnd(list));
+		sem_post(&g_sem);
+		
+		sem_getvalue(&g_sem, &sem_value);
+		printf("thread: %d produced. Current semaphore value: %d\n\n", tid, sem_value);
+		
+		g_is_consumed = NOT_CONSUMED;
+		g_count_consumed = 0;
+		
+		pthread_cond_signal(&cond);
+		pthread_mutex_unlock(&job_queue_mutex);
+		
+		
+		message = rand() % 10;
+		usleep(message * 1000000);
+	}
+		
+	
+	(void)param;
+	return NULL;
+}
+
+
+static void *ConsumeCond(void *param)
+{
+	pid_t tid = gettid();
+	int *msg_ptr = NULL;
+	int sem_value = 0;
+	int sleep_time = 0;
+	srand(time(NULL));	
+	
+	while(1)
+	{
+		
+		pthread_mutex_lock(&job_queue_mutex);
+		
+		while (g_is_consumed == CONSUMED)
+		{
+			pthread_cond_wait(&cond, &job_queue_mutex);
+		}
+		
+		msg_ptr = SLListGetData(SLListGetBegin(list));
+		if (msg_ptr == NULL)
+		{
+			/* if SLListGetData() failed */
+			printf("GetData failed!\n");
+			pthread_mutex_unlock(&job_queue_mutex);
+			return NULL;
+		}
+		
+		
+		sem_getvalue(&g_sem, &sem_value);
+		printf("thread %d consumed message %d. Current semaphore value: %d\n" ,tid, *msg_ptr, sem_value);
+		
+		++g_count_consumed;
+		
+		if (g_count_consumed == BARRIER_COUNT)
+		{
+			SLListRemove(SLListGetBegin(list));
+			g_is_consumed = CONSUMED;
+			sem_wait(&g_sem);
+			pthread_cond_signal(&cond);
+		}
+		
+		pthread_mutex_unlock(&job_queue_mutex);
+		
+		
+		srand(time(NULL));
+		sleep_time = rand() % 10;
+		usleep(sleep_time * 1000000);
+	}
+		
+	
+	(void)param;
+	return NULL;
+}
+
+
+
+
+
+
+
+/******** Exercise 5: Thread-Safe Fixed size queue (+ 2 Semahpre + 2 Mutex) ********/
+
+
+int RunThreadSafeFSQ(void)
+{
+	pthread_t consumers[NUM_THREADS];
+	pthread_t producers[NUM_THREADS];
+	int status = SUCCESS;
+	size_t i = 0;
+	
+	queue.capacity = Q_SIZE;
+	/* init full and empty semaphores, and enqueue and dequeue mutex locks */
+	sem_init(&(queue.empty_sem), 0, Q_SIZE);
+	sem_init(&(queue.full_sem), 0, 0);
+	pthread_mutex_init(&(queue.enqueue_lock), NULL);
+	pthread_mutex_init(&(queue.dequeue_lock), NULL);
+	
+	
+	/* creating and running the threads */
+	for (i = 0; i < NUM_THREADS; ++i)
+	{
+		status = pthread_create(&consumers[i], NULL, &ConsumeThreadSafeFSQ, NULL);
+		if (status != 0)
+		{
+		    fprintf(stderr, "failed to create producer thread %lu\n", i);
+		    return status;
+		}
+		status = pthread_create(&producers[i], NULL, &ProduceThreadSafeFSQ, NULL);
+		if (status != 0)
+		{
+		    fprintf(stderr, "failed to create producer thread %lu\n", i);
+		    return status;
+		}
+	}
+	
+	/* joining the threads */
+	for (i = 0; i < NUM_THREADS; ++i)
+	{
+		status = pthread_join(consumers[i], NULL);
+		if (status != 0)
+		{
+		    fprintf(stderr, "failed to join consumer thread %lu\n", i);
+		    return status;
+		}
+		status = pthread_join(producers[i], NULL);
+		if (status != 0)
+		{
+		    fprintf(stderr, "failed to join producer thread %lu\n", i);
+		    return status;
+		}
+	}
+	
+	return status;
+}
+
+
+static void *ProduceThreadSafeFSQ(void *param)
+{
+	pid_t tid = gettid();
+	int message = 0;
+	int sem_value = 0;
+	srand(time(NULL));	
+	message = rand() % 10;
+	
+	while(1)
+	{
+		EnQueueThreadSafe(&queue, message);
+		
+		sem_getvalue(&(queue.full_sem), &sem_value);
+		printf("Produced. ID: %d\n", tid);
+		printf("Full semaphore value: %d\n", sem_value);
+		sem_getvalue(&(queue.empty_sem), &sem_value);
+		printf("Empty semaphore value: %d\n\n", sem_value);
+				
+		message = rand() % 10;
+		usleep(message * 1000000);
+	}
+	
+	(void)param;
+	return NULL;
+}
+
+
+
+
+static void *ConsumeThreadSafeFSQ(void *param)
+{
+	pid_t tid = gettid();
+	int message = 0;
+	int sem_value = 0;
+	
+	while(1)
+	{
+		message = PeekQueue(&queue);
+		DeQuqueThreadSafe(&queue);
+		
+		sem_getvalue(&(queue.full_sem), &sem_value);
+		printf("Consumed. ID: %d\n", tid);
+		printf("Full semaphore value: %d\n", sem_value);
+		sem_getvalue(&(queue.empty_sem), &sem_value);
+		printf("Empty semaphore value: %d\n\n", sem_value);
+		
+		usleep(message * 1000000);
+	}
+
+	(void)param;
+	return NULL;
+}
+
+
 
 
 
@@ -79,7 +367,7 @@ static sem_t g_full_sem;
 
 int RunTwoSemaphores(void)
 {
-	pthread_t consumers[NUM_THREADS - 2];
+	pthread_t consumers[NUM_THREADS];
 	pthread_t producers[NUM_THREADS];
 	int status = SUCCESS;
 	size_t i = 0;
@@ -127,7 +415,7 @@ int RunTwoSemaphores(void)
 	return status;
 }
 
-
+/*    pseudo code: */
 /*	  P(emptyCount)*/
 /*    P(useQueue)*/
 /*    putItemIntoQueue(item)*/
@@ -172,7 +460,7 @@ static void *ProduceTwoSemaphores(void *param)
 }
 
 
-
+/*	  pseudo code: */
 /*    P(fullCount)*/
 /*    P(useQueue)*/
 /*    item ← getItemFromQueue()*/
@@ -212,8 +500,6 @@ static void *ConsumeTwoSemaphores(void *param)
 	(void)param;
 	return NULL;
 }
-
-
 
 
 
@@ -607,4 +893,34 @@ int PeekQueue(const fsq_t *queue)
 {
 	return queue->arr[queue->first_elment_index];
 }
+/***************************************************/
+
+
+
+/*********** Exercise 5 - Thread safe FSQ *************/
+void EnQueueThreadSafe(fsq_t *queue, int new_data)
+{
+	sem_wait(&(queue->empty_sem));
+	pthread_mutex_lock(&(queue->enqueue_lock));
+	
+	queue->arr[(queue->first_elment_index + queue->elements_in_queue) % queue->capacity] = new_data;
+	++queue->elements_in_queue;
+	
+	pthread_mutex_unlock(&(queue->enqueue_lock));
+	sem_post(&(queue->full_sem));
+}
+
+void DeQuqueThreadSafe(fsq_t *queue)
+{
+	sem_wait(&(queue->full_sem));
+	pthread_mutex_lock(&(queue->enqueue_lock));
+	
+	queue->first_elment_index = (queue->first_elment_index + 1) % queue->capacity;
+	--queue->elements_in_queue;
+	
+	pthread_mutex_unlock(&(queue->enqueue_lock));
+	sem_post(&(queue->empty_sem));
+}
+
+
 /***************************************************/
