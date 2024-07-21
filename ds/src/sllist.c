@@ -191,6 +191,8 @@ size_t SLListCount(const linked_list_t *list)
 
 static int CountHelper(void *node_data, void *counter)
 {
+	(void)node_data;
+	
 	++*(size_t *)counter;
 
 	return 0;
@@ -263,7 +265,8 @@ int SLListIsEmpty(const linked_list_t *list)
 
 int SLListAppendLists(linked_list_t *list1, linked_list_t *list2)
 {
-	iterator_t tmp_iterator = CreateIterator(tmp_iterator);
+	iterator_t tmp_iterator = {0};
+	tmp_iterator = CreateIterator(tmp_iterator);
 	if (IsNullIterator(tmp_iterator))
 	{
 		return 1;
