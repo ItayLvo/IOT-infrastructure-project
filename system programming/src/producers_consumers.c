@@ -44,7 +44,8 @@ static void *ConsumeThreadSafeFSQ(void *queue);
 static void *ProduceCond(void *param);
 static void *ConsumeCond(void *param);
 
-
+__thread int tls_var = 42;
+__thread int tls_var2;
 
 /**** exercise 4+5 fixed size queue data structure ****/
 typedef struct fsq
