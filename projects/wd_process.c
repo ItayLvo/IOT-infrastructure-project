@@ -1,11 +1,5 @@
 #define _XOPEN_SOURCE 700		/* sigaction struct */
 
-/*
-Date: 
-Status: 
-Reviwer: 
-*/
-
 
 #include <stddef.h>	/* size_t */
 #include <assert.h>	/* assert */
@@ -17,38 +11,114 @@ Reviwer:
 
 #include "watch_dog.h"
 
-#define WATCH_DOG_PATH 
 
-static void HandlePing(int num);
+#define SEMAPHORE_NAME "/wd_sem"
 
-static pid_t g_wd_pid = 0;
+/* global static variables */
+static atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
+static pid_t g_user_pid = 0;
+static atomic_int g_mmi_active = MMI_DISABLED;
+static int g_is_wd_alive = WD_DEAD;		/* is this needed? because also using repetition_counter... */
+static sem_t *process_sem;
+static scheduler_t *scheduler;
+static char *user_exec_path;
+static size_t max_repetitions;
+static size_t interval;
+
+
+/* forward function declerations */
+static void InitSignalHandlers(void);
+static void SignalHandleReceivedLifeSign(int signum);
+static void SignalHandleReceivedDNR(int signum);
 
 
 
 
-int MMI(time_t interval_in_seconds, const char *executable_pathname, char **argv)
+
+int main(int argc, char *argv[])
 {
-	int return_status = 0;
-	char *wd_args[] = {WATCH_DOG_PATH, NULL};
-	struct sigaction sa1 = {0};
-	sa1.sa_handler = HandleReceivedLifeSign;
-    sigaction(SIGUSR1, &sa1, 0);
+	user_exec_path = argv[1];
+	interval = *(size_t *)argv[2];
+	max_repetitions = *(size_t *)argv[3];
 	
-	g_wd_pid = fork();
+	InitSignalHandlers();
 	
-	if (g_child_pid != 0)		/* in parent process */
+	if (InitScheduler() != 0)
 	{
-		
+		return 1;
 	}
 	
 	
-	else					/* in child process */
-	{
-		return_status = execvp(wd_args[0], wd_args);
-		printf("Exec failed. return status = %d\n", return_status);
-	}
+	/* open the existing IPC semaphore and post to it, notifying parent process that WD is ready */
+    process_sem = sem_open(SEMAPHORE_NAME, 0);
+    if (process_sem == SEM_FAILED)
+    {
+        perror("sem_open failed\n");
+		exit(EXIT_FAILURE);
+    }
+	sem_post(process_sem);
+	
+	/* run scheduler */
+	SchedulerRun(scheduler);
+	
+	/* destroy scheduler - will only reach this part after receiving SIGUSR2 (DNR) */
+	SchedulerDestroy(scheduler);
 	
 }
+
+
+
+static int InitScheduler(void)
+{
+	scheduler = SchedulerCreate();
+	ilrd_uid_t task_signal_life_sign = {0};
+	ilrd_uid_t task_watchdog_tick = {0};
+	
+	if (scheduler == NULL)
+	{
+		return 1;
+	}
+	
+	task_signal_life_sign = SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);
+	task_watchdog_tick = SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
+	
+	return 0;
+}
+
+
+static void InitSignalHandlers()
+{
+	struct sigaction sa1 = {0};
+	struct sigaction sa2 = {0};
+	
+	sa1.sa_handler = SignalHandleReceivedLifeSign;
+    sigaction(SIGUSR1, &sa1, 0);
+    sa2.sa_handler = SignalHandleReceivedDNR;
+    sigaction(SIGUSR2, &sa2, 0);
+}
+
+
+static void SignalHandleReceivedLifeSign(int signum)		/* maybe make this extern? */
+{
+	if (signum == SIGUSR1)
+	{
+/*		g_is_wd_alive = WD_ALIVE;*/
+		atomic_store(&repetition_counter, 0);
+	}
+}
+
+
+static void SignalHandleReceivedDNR(int signum)				/* maybe make this extern? */
+{
+	if (signum == SIGUSR2)
+	{
+		atomic_store(&g_mmi_active, MMI_DISABLED);
+		atomic_store(&repetition_counter, 0);
+		SchedulerStop(scheduler);
+	}
+}
+
+
 
 
 
