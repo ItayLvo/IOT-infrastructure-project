@@ -81,7 +81,13 @@ int TaskExecuteActionFunc(task_t *task)
 
 int TaskExecuteCleanFunc(task_t *task)
 {
-	int status = task->scheduler_clean_func();
+	int status = 0;
+	
+	if (task->scheduler_clean_func != NULL)
+	{
+		status = task->scheduler_clean_func();
+	}
+	
 	return status;
 }
 

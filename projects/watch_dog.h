@@ -1,7 +1,7 @@
 #ifndef __WATCH_DOG_H__
 #define __WATCH_DOG_H__
 
-int MMI(time_t interval_in_seconds, const char *executable_pathname, char **argv);
+int MMI(size_t interval_in_seconds, size_t repititions, char **argv);	/* first argument of argv is the user application path */
 
 void DNR(void);
 
