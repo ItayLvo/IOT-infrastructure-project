@@ -143,6 +143,7 @@ static void SignalHandleReceivedDNR(int signum)				/* maybe make this extern? */
 
 static int SchedulerActionSendSignal(void *param)
 {
+	printf("WD process, sending SIGUSR to client process\n");
 	kill(g_user_pid, SIGUSR1);
 	
 	(void)param;
@@ -157,7 +158,7 @@ static int SchedulerActionIncreaseCounter(void *param)
 	
 	atomic_fetch_add(&repetition_counter, 1);
 	current_count = atomic_load(&repetition_counter);
-	
+	printf("WD process, action func, sending SIGUSR1 to client process. current count = %d\n", current_count);
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
         printf("Repetition counter reached max! = %d\n", current_count);

@@ -16,7 +16,7 @@
 #include "scheduler.h"
 #include "uid.h"
 
-#define WATCH_DOG_PATH "/home/itay/git/projects/wd_process"
+#define WATCH_DOG_PATH "/home/itay/git/projects/watchdog_exec.out"
 #define MMI_ACTIVE 1
 #define MMI_DISABLED 0
 #define WD_ALIVE 1
@@ -87,6 +87,11 @@ static void *ThreadCommunicateWithWD(void *param)
 
 
 
+
+/*
+gd ./projects/watch_dog.c ./ds/src/priority_queue.c ./projects/client_app.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include -I ./projects/ -lpthread
+gd ./projects/watch_dog.c ./projects/wd_process.c ./ds/src/priority_queue.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include -I ./projects/ -lpthread
+*/
 
 int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 {
@@ -254,7 +259,7 @@ static int SchedulerActionIncreaseCounter(void *param)
 	
 	atomic_fetch_add(&repetition_counter, 1);
 	current_count = atomic_load(&repetition_counter);
-	printf("client process, acting func, sending SIGUSR1 to WD process\n");
+	printf("client process, action func, sending SIGUSR1 to WD process. current count = %d\n", current_count);
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
         printf("Repetition counter reached max! = %d\n", current_count);
