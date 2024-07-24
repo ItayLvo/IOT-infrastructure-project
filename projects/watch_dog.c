@@ -11,6 +11,7 @@
 #include <semaphore.h>	/* POSIX semaphore functions and definitions */
 #include <pthread.h>	/* POSIX pthreads */
 #include <stdatomic.h>	/* atomic types */
+#include <string.h>		/* snprintf */
 
 #include "watch_dog.h"
 #include "scheduler.h"
@@ -50,9 +51,9 @@ static int CreateWDProcess(void);
 
 
 /* global static variables */
-static atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
+static volatile atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
 static pid_t g_wd_pid = 0;
-static atomic_int g_mmi_active = MMI_DISABLED;
+static atomic_int g_mmi_active = MMI_DISABLED;	/* need this? */
 static int g_is_wd_alive = WD_DEAD;		/* is this needed? because also using repetition_counter... */
 static sem_t thread_ready_sem;
 static sem_t *process_sem;
@@ -90,6 +91,7 @@ static void *ThreadCommunicateWithWD(void *param)
 
 /*
 gd ./projects/watch_dog.c ./ds/src/priority_queue.c ./projects/client_app.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include -I ./projects/ -lpthread
+
 gd ./projects/watch_dog.c ./projects/wd_process.c ./ds/src/priority_queue.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include -I ./projects/ -lpthread
 */
 
@@ -137,12 +139,18 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 static int CreateWDProcess(void)
 {
 	int return_status = 0;
-	
+	char interval_str[16];
+    char max_repetitions_str[16];
+    
 	g_wd_pid = fork();
+	
+	/* convert integers to strings for exec argv argument */
+    snprintf(interval_str, sizeof(interval_str), "%lu", interval);
+    snprintf(max_repetitions_str, sizeof(max_repetitions_str), "%lu", max_repetitions);
 	
 	if (g_wd_pid == 0)	/* in child (WD) process */
 	{
-		return_status = execl(WATCH_DOG_PATH, WATCH_DOG_PATH, user_exec_path, &interval, &max_repetitions, NULL);
+		return_status = execl(WATCH_DOG_PATH, WATCH_DOG_PATH, user_exec_path, interval_str, max_repetitions_str, NULL);
 		printf("Exec failed. return status = %d\n", return_status);
 	}
 	else				/* in parent process */

@@ -12,7 +12,7 @@
 #include <semaphore.h>	/* POSIX semaphore functions and definitions */
 #include <pthread.h>	/* POSIX pthreads */
 #include <stdatomic.h>	/* atomic types */
-#include <stdlib.h>		/* exit */
+#include <stdlib.h>		/* exit, strtoul */
 
 #include "watch_dog.h"
 #include "scheduler.h"
@@ -23,9 +23,11 @@
 #define MMI_DISABLED 0
 #define WD_ALIVE 1
 #define WD_DEAD 0
+#define DECIMAL_BASE 10
+
 
 /* global static variables */
-static atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
+static volatile atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
 static pid_t g_user_pid = 0;
 static atomic_int g_mmi_active = MMI_DISABLED;
 static int g_is_wd_alive = WD_DEAD;		/* is this needed? because also using repetition_counter... */
@@ -53,10 +55,11 @@ static int SchedulerActionSendSignal(void *param);
 int main(int argc, char *argv[])
 {
 	user_exec_path = argv[1];
-	interval = *(size_t *)argv[2];
-	max_repetitions = *(size_t *)argv[3];
 	g_user_pid = getppid();
-	
+	/* convert strings back to size_t */
+	interval = strtoul(argv[2], NULL, DECIMAL_BASE);  
+    max_repetitions = strtoul(argv[3], NULL, DECIMAL_BASE);
+    
 	InitSignalHandlers();
 	
 	if (InitScheduler() != 0)
@@ -72,12 +75,14 @@ int main(int argc, char *argv[])
         perror("sem_open failed\n");
 		exit(EXIT_FAILURE);
     }
-    
+    printf("WD process. Data:\ninterval = %lu\nmax rep = %lu\nclient pid = %u\nuser exec path = %s\n\n", interval, max_repetitions, g_user_pid, user_exec_path);
     printf("WD process, main func, before posting to semaphore\n");
 	sem_post(process_sem);
 	printf("WD process, main func, after posting to semaphore. starting scheduler\n");
 	/* run scheduler */
 	SchedulerRun(scheduler);
+	
+	printf("WD process, after ShedulerRun...?\n");
 	
 	/* destroy scheduler - will only reach this part after receiving SIGUSR2 (DNR) */
 	SchedulerDestroy(scheduler);
@@ -101,7 +106,7 @@ static int InitScheduler(void)
 	
 	task_signal_life_sign = SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);
 	task_watchdog_tick = SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
-	
+
 	return 0;
 }
 
@@ -122,6 +127,7 @@ static void SignalHandleReceivedLifeSign(int signum)		/* maybe make this extern?
 {
 	if (signum == SIGUSR1)
 	{
+		printf("WD process, signal handler - received life sign from client. zeroing counter\n");
 /*		g_is_wd_alive = WD_ALIVE;*/
 		atomic_store(&repetition_counter, 0);
 	}
