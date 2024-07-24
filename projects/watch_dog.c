@@ -31,6 +31,8 @@
 
 
 /* forward function declerations */
+static int InitScheduler(void);
+
 static void InitSignalHandlers();
 static void SignalHandleReceivedLifeSign(int signum);
 static void SignalHandleReceivedDNR(int signum);
@@ -63,25 +65,16 @@ static size_t interval;
 /** thread function **/
 static void *ThreadCommunicateWithWD(void *param)
 {
+	printf("client process, thread func, BEFORE process loaded (sem_wait)\n");
 	/* wait for the WD process to initialize */
 	sem_wait(process_sem);
-	
+	printf("client process, thread func, AFTER process loaded (sem_wait)\n");
 	/* init scheduler and load tasks */
-	scheduler = SchedulerCreate();
-	if (scheduler == NULL)
-	{
-		return NULL;	/* how do i know it failed? */
-	}
-	
-	
-/*	ilrd_uid_t SchedulerAddTask(scheduler_t *scheduler, scheduler_action_func_t, scheduler_clean_func_t, void *action_param, size_t time_interval);*/
-	ilrd_uid_t task_signal_life_sign = SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);
-	ilrd_uid_t task_watchdog_tick = SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
-	
+	InitScheduler();	/* how do i know it failed? */
 	
 	/* update main thread that communication is ready */
 	sem_post(&thread_ready_sem);
-	
+	printf("client process, thread func, after posting to main thread, starting scheduler\n");
 	/* run scheduler */
 	SchedulerRun(scheduler);
 	
@@ -110,6 +103,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	atomic_store(&g_mmi_active, MMI_ACTIVE);
 	sem_init(&thread_ready_sem, 0, 0);
 	
+	printf("client process, MMI func, before fork+exec\n");
 	
 	/* fork + exec WD process */
 	return_status = CreateWDProcess();
@@ -118,6 +112,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 		return return_status;
 	}
 	
+	printf("client process, MMI func, after fork+exec, before thread_create\n");
 	
 	/* create communication thread */
 	return_status = CreateCommunicationThread();
@@ -126,7 +121,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 		return return_status;
 	}
 	
-
+	
 	return return_status;
 }
 
@@ -149,6 +144,8 @@ static int CreateWDProcess(void)
 	{
 		return return_status;
 	}
+	
+	return return_status;
 }
 
 
@@ -196,6 +193,7 @@ static void SignalHandleReceivedLifeSign(int signum)
 	if (signum == SIGUSR1)
 	{
 /*		g_is_wd_alive = WD_ALIVE;*/
+		printf("client process, signal handler - received life sign from WD. zeroing counter\n");
 		atomic_store(&repetition_counter, 0);
 	}
 }
@@ -213,16 +211,38 @@ static void SignalHandleReceivedDNR(int signum)
 
 
 
+static int InitScheduler(void)
+{
+	ilrd_uid_t task_signal_life_sign = {0};
+	ilrd_uid_t task_watchdog_tick = {0};
+	
+	scheduler = SchedulerCreate();
+	if (scheduler == NULL)
+	{
+		return 1;	
+	}
+	
+/*	ilrd_uid_t SchedulerAddTask(scheduler_t *scheduler, scheduler_action_func_t, scheduler_clean_func_t, void *action_param, size_t time_interval);*/
+	task_signal_life_sign = SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);	/* check for fail */
+	task_watchdog_tick = SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
+	
+	return 0;
+}
+
 
 /** scheduler action functions **/
 static int SchedulerActionReviveWD(void *param)
 {
+	(void)param;
+	
 	return CreateWDProcess();
 }
 
 
 static int SchedulerActionSendSignal(void *param)
 {
+	(void)param;
+	printf("client process, action func, sending SIGUSR1 to WD process\n");
 	kill(g_wd_pid, SIGUSR1);
 	return 0;
 }
@@ -234,13 +254,14 @@ static int SchedulerActionIncreaseCounter(void *param)
 	
 	atomic_fetch_add(&repetition_counter, 1);
 	current_count = atomic_load(&repetition_counter);
-	
+	printf("client process, acting func, sending SIGUSR1 to WD process\n");
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
-        printf("Repetition counter reached max!\n");
-        SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0);		/* finish of this part of code */
+        printf("Repetition counter reached max! = %d\n", current_count);
+/*        SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0);*/
     }
     
+    (void)param;
 	return 0;
 }
 

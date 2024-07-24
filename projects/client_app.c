@@ -4,14 +4,23 @@
 #include "watch_dog.h"
 
 #define INTERVAL 3
-#define EXEC_PATH "/home/itay/git/projects/client_app"
+#define REPETITIONS 3
+/*#define EXEC_PATH "/home/itay/git/projects/client_app"*/
 
 
 
-int main()
+int main(int argc, char *argv[])
 {
-	MMI(INTERVAL, EXEC_PATH, NULL);
+	size_t i = 0;
 	
+	int status = MMI(INTERVAL, REPETITIONS, argv);
+	printf("client process, main, after returned from MMI\n");
+	while(1)
+	{
+		printf("client process, main thread. seconds passed = %lu\n", i);
+		++i;
+		sleep(1);
+	}
 	
 	DNR();
 	
