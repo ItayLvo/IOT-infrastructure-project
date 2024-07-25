@@ -12,6 +12,7 @@
 #include <pthread.h>	/* POSIX pthreads */
 #include <stdatomic.h>	/* atomic types */
 #include <string.h>		/* snprintf */
+#include <stdlib.h>		/* getenv, atoi */
 
 #include "watch_dog.h"
 #include "scheduler.h"
@@ -76,6 +77,7 @@ static void *ThreadCommunicateWithWD(void *param)
 	/* update main thread that communication is ready */
 	sem_post(&thread_ready_sem);
 	printf("client process, thread func, after posting to main thread, starting scheduler\n");
+	
 	/* run scheduler */
 	SchedulerRun(scheduler);
 	
@@ -88,16 +90,10 @@ static void *ThreadCommunicateWithWD(void *param)
 
 
 
-
-/*
-gd ./projects/watch_dog.c ./ds/src/priority_queue.c ./projects/client_app.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include -I ./projects/ -lpthread
-
-gd ./projects/watch_dog.c ./projects/wd_process.c ./ds/src/priority_queue.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include -I ./projects/ -lpthread
-*/
-
 int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 {
 	int return_status = 0;
+	char *env_wd_running = NULL;
 	user_exec_path = argv[0];
 	max_repetitions = repetitions;
 	interval = interval_in_seconds;
@@ -112,15 +108,31 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	
 	printf("client process, MMI func, before fork+exec\n");
 	
-	/* fork + exec WD process */
-	return_status = CreateWDProcess();
-	if (return_status != 0)
+	
+	/* if envirnent variable exists - WD process is already running, don't create new one */
+	env_wd_running = getenv("WD_RUNNING");
+	if (env_wd_running != NULL)
 	{
-		return return_status;
+		printf("\tWD process alive. env var is %s\n\n", env_wd_running);
+		g_wd_pid = atoi(env_wd_running);
+		
+		/* notify WD process that client process is ready */
+		sem_post(process_sem);
+	}
+	/* else - WD process does not exist yet, create WD process */
+	else
+	{
+		/* fork + exec WD process */
+		return_status = CreateWDProcess();
+		if (return_status != 0)
+		{
+			return return_status;
+		}
+		
+		printf("client process, MMI func, after fork+exec, before thread_create\n");
 	}
 	
-	printf("client process, MMI func, after fork+exec, before thread_create\n");
-	
+
 	/* create communication thread */
 	return_status = CreateCommunicationThread();
 	if (return_status != 0)
@@ -133,7 +145,13 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 }
 
 
-
+void DNR(void)
+{
+	atomic_store(&g_mmi_active, MMI_DISABLED);	/* not sure */
+	atomic_store(&repetition_counter, 0);
+	kill(g_wd_pid, SIGUSR2);
+	SchedulerStop(scheduler);
+}
 
 
 static int CreateWDProcess(void)
@@ -142,11 +160,11 @@ static int CreateWDProcess(void)
 	char interval_str[16];
     char max_repetitions_str[16];
     
-	g_wd_pid = fork();
-	
 	/* convert integers to strings for exec argv argument */
     snprintf(interval_str, sizeof(interval_str), "%lu", interval);
     snprintf(max_repetitions_str, sizeof(max_repetitions_str), "%lu", max_repetitions);
+    
+	g_wd_pid = fork();
 	
 	if (g_wd_pid == 0)	/* in child (WD) process */
 	{
@@ -235,6 +253,7 @@ static int InitScheduler(void)
 		return 1;	
 	}
 	
+	/* scheduler add task signature: */
 /*	ilrd_uid_t SchedulerAddTask(scheduler_t *scheduler, scheduler_action_func_t, scheduler_clean_func_t, void *action_param, size_t time_interval);*/
 	task_signal_life_sign = SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);	/* check for fail */
 	task_watchdog_tick = SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
@@ -246,17 +265,28 @@ static int InitScheduler(void)
 /** scheduler action functions **/
 static int SchedulerActionReviveWD(void *param)
 {
-	(void)param;
+	/* reset counter and scheduler and wait for new WD process */
+	SchedulerStop(scheduler);
+	atomic_store(&repetition_counter, 0);
 	
-	return CreateWDProcess();
+	CreateWDProcess();	/* check for fail? */
+	
+	/* wait for the WD process to initialize */
+	sem_wait(process_sem);
+	
+	/* resume scheduler */
+	SchedulerRun(scheduler);
+	
+	(void)param;
+	return 0;
 }
 
 
 static int SchedulerActionSendSignal(void *param)
 {
 	(void)param;
-	printf("client process, action func, sending SIGUSR1 to WD process\n");
-	kill(g_wd_pid, SIGUSR1);
+/*	printf("client process, action func, sending SIGUSR1 to WD process\n");*/
+/*	kill(g_wd_pid, SIGUSR1);*/
 	return 0;
 }
 
@@ -267,11 +297,13 @@ static int SchedulerActionIncreaseCounter(void *param)
 	
 	atomic_fetch_add(&repetition_counter, 1);
 	current_count = atomic_load(&repetition_counter);
-	printf("client process, action func, sending SIGUSR1 to WD process. current count = %d\n", current_count);
+	printf("client process. current count = %d\n", current_count);
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
-        printf("Repetition counter reached max! = %d\n", current_count);
-/*        SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0);*/
+        printf("client - repetition counter reached max! = %d, creating new WD process\n", current_count);
+
+		SchedulerActionReviveWD(NULL);	/* scheduler function? or just regular one-time func? */
+		/* SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0); */
     }
     
     (void)param;

@@ -10,37 +10,18 @@ PROJ_DIR = /home/itay/git/projects/
 #make debug and release versions (as a client)
 #all : debug release
 
-#make shared lib only:
-all : libwatchdog.so watchdog_exec.out
-
-debug : CFLAGS =
-debug : CFLAGS += -ansi -pedantic-errors -Wall -Wextra -ggdb
-debug : $(FN)_test.o libdatastructurelib.so
-	$(CC) $(CFLAGS) -o debug.out $(FN)_test.o -L $(LIBPATH) -l watchdog
-
-release : CFLAGS =
-release : CFLAGS += -ansi -pedantic-errors -Wall -Wextra -DNDEBUG -o3
-release : $(FN)_test.o libdatastructurelib.so
-	$(CC) $(CFLAGS) -o release.out $(FN)_test.o -L $(LIBPATH) -l watchdog
-
-test :
-#####
-# Test files compiled to object files:
-
-$(FN)_test.o : $(TEST_DIR)$(FN)_test.c $(HEADER_DIR)$(FN).h
-	$(CC) $(CFLAGS) -c -o $@ $(TEST_DIR)$(FN)_test.c -I $(HEADER_DIR)
-	
+#make shared lib, watchdog executable, client (testing) executable:
+all : libwatchdog.so watchdog_exec.out user_exec.out
 	
 	
 #####
 # Shared object compiled from object files:
-
 libwatchdog.so : $(OBJS)
 	$(CC) $(CFLAGS) -shared -o $@ $(OBJS) -I $(HEADER_DIR) -I $(PROJ_DIR) -lpthread
 
 
 
-###
+####
 # seperate executable for watchdog process:
 watchdog_exec.o : $(PROJ_DIR)wd_process.c watch_dog.o scheduler.o priority_queue.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h $(PROJ_DIR)watch_dog.h
 	$(CC) $(CFLAGS) -c -o $@ $(PROJ_DIR)wd_process.c -I $(HEADER_DIR) -I $(PROJ_DIR)
@@ -48,6 +29,16 @@ watchdog_exec.o : $(PROJ_DIR)wd_process.c watch_dog.o scheduler.o priority_queue
 watchdog_exec.out : watchdog_exec.o $(PROJ_DIR)watch_dog.h
 	$(CC) $(CFLAGS) $(PROJ_DIR)watchdog_exec.o $(OBJS) -o $@ -lpthread
 	
+	
+	
+####
+# user executable for testing:
+user_exec.o : $(PROJ_DIR)client_app.c $(PROJ_DIR)watch_dog.o $(PROJ_DIR)watch_dog.h
+	$(CC) $(CFLAGS) -c -o $@ $(PROJ_DIR)client_app.c -I $(PROJ_DIR)
+	
+user_exec.out : user_exec.o watchdog_exec.o libwatchdog.so $(PROJ_DIR)watch_dog.o $(PROJ_DIR)watch_dog.h
+	$(CC) $(CFLAGS) $(PROJ_DIR)user_exec.o -o $@ -lwatchdog -L$(PROJ_DIR)
+
 
 
 #####
@@ -92,5 +83,34 @@ sllist.o : $(SRC_DIR)sllist.c $(HEADER_DIR)sllist.h
 
 .PHONY : clean
 clean :
-	rm ./$(OBJS) $(PROJ_DIR)watchdog_exec.o
+	rm ./$(OBJS) $(PROJ_DIR)watchdog_exec.o $(PROJ_DIR)user_exec.o
 #	rm ./*.o
+
+
+
+
+#/* gd ./projects/watch_dog.c ./ds/src/priority_queue.c ./projects/client_app.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include -I ./projects/ -lpthread */
+
+#*/ gd ./projects/watch_dog.c ./projects/wd_process.c ./ds/src/priority_queue.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include -I ./projects/ -lpthread */
+
+
+
+
+# fix this later:
+
+debug : CFLAGS =
+debug : CFLAGS += -ansi -pedantic-errors -Wall -Wextra -ggdb
+debug : $(FN)_test.o libdatastructurelib.so
+	$(CC) $(CFLAGS) -o debug.out $(FN)_test.o -L $(LIBPATH) -l watchdog
+
+release : CFLAGS =
+release : CFLAGS += -ansi -pedantic-errors -Wall -Wextra -DNDEBUG -o3
+release : $(FN)_test.o libdatastructurelib.so
+	$(CC) $(CFLAGS) -o release.out $(FN)_test.o -L $(LIBPATH) -l watchdog
+
+test :
+#####
+# Test files compiled to object files:
+
+$(FN)_test.o : $(TEST_DIR)$(FN)_test.c $(HEADER_DIR)$(FN).h
+	$(CC) $(CFLAGS) -c -o $@ $(TEST_DIR)$(FN)_test.c -I $(HEADER_DIR)

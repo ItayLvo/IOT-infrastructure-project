@@ -3,7 +3,7 @@
 
 #include "watch_dog.h"
 
-#define INTERVAL 1
+#define INTERVAL 3
 #define REPETITIONS 3
 /*#define EXEC_PATH "/home/itay/git/projects/client_app"*/
 
@@ -15,10 +15,11 @@ int main(int argc, char *argv[])
 	
 	int status = MMI(INTERVAL, REPETITIONS, argv);
 	printf("client process, main, after returned from MMI\n");
-	while(1)
+	while(1)	/* infinite loop inside MMI section */
 	{
 /*		printf("client process, main thread. seconds passed = %lu\n", i);*/
 		++i;
+		printf("\t%lu\n", i);
 		sleep(1);
 	}
 	
