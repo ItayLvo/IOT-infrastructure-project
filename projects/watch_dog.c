@@ -19,17 +19,13 @@
 #include "uid.h"
 
 #define WATCH_DOG_PATH "/home/itay/git/projects/watchdog_exec.out"
-#define MMI_ACTIVE 1
-#define MMI_DISABLED 0
-#define WD_ALIVE 1
-#define WD_DEAD 0
 #define SEMAPHORE_NAME "/wd_sem"
 #define SEM_PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) /* 0644 in octal */
 	/*S_IRUSR: Read permission for the owner*/
 	/*S_IWUSR: Write permission for the owner*/
 	/*S_IRGRP: Read permission for the group*/
 	/*S_IROTH: Read permission for others*/
-	
+#define ENVIRONMENT_VAR "WD_RUNNING"
 
 
 /* forward function declerations */
@@ -54,8 +50,6 @@ static int CreateWDProcess(void);
 /* global static variables */
 static volatile atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
 static pid_t g_wd_pid = 0;
-static atomic_int g_mmi_active = MMI_DISABLED;	/* need this? */
-static int g_is_wd_alive = WD_DEAD;		/* is this needed? because also using repetition_counter... */
 static sem_t thread_ready_sem;
 static sem_t *process_sem;
 static scheduler_t *scheduler;
@@ -78,9 +72,7 @@ static void *ThreadCommunicateWithWD(void *param)
 	/* run scheduler */
 	SchedulerRun(scheduler);
 	
-	/* destroy scheduler - will only reach this part after receiving SIGUSR2 (DNR) */
-	SchedulerDestroy(scheduler);
-
+	/* will only reach this part after receiving DNR */
 	(void)param;
 	return NULL;
 }
@@ -100,14 +92,13 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	
 	InitSignalHandlers();
     
-	atomic_store(&g_mmi_active, MMI_ACTIVE);
 	sem_init(&thread_ready_sem, 0, 0);
 	
 	printf("client process, MMI func, before fork+exec\n");
 	
 	
 	/* if envirnent variable exists - WD process is already running, don't create new one */
-	env_wd_running = getenv("WD_RUNNING");
+	env_wd_running = getenv(ENVIRONMENT_VAR);
 	if (env_wd_running != NULL)
 	{
 		printf("****WD process alive. env var is %s\n", env_wd_running);
@@ -149,10 +140,18 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 
 void DNR(void)
 {
-	atomic_store(&g_mmi_active, MMI_DISABLED);	/* not sure */
-	atomic_store(&repetition_counter, 0);
+	/* signal WD process to stop and die */
 	kill(g_wd_pid, SIGUSR2);
+	/* cleanup scheduler */
 	SchedulerStop(scheduler);
+	SchedulerDestroy(scheduler);
+	/* cleanup semaphores */
+	sem_destroy(&thread_ready_sem);
+	sem_unlink(SEMAPHORE_NAME);
+	/* cleanup WD environment var */
+	unsetenv(ENVIRONMENT_VAR);
+	/* reset global repetition counter */
+	atomic_store(&repetition_counter, 0);
 }
 
 
@@ -236,7 +235,6 @@ static void SignalHandleReceivedDNR(int signum)
 {
 	if (signum == SIGUSR2)
 	{
-		atomic_store(&g_mmi_active, MMI_DISABLED);
 		atomic_store(&repetition_counter, 0);
 		SchedulerStop(scheduler);
 	}

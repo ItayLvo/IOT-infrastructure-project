@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	
 	int status = MMI(INTERVAL, REPETITIONS, argv);
 	printf("client process, main, after returned from MMI\n");
-	while(1)	/* infinite loop inside MMI section */
+	while(i < 15)
 	{
 /*		printf("client process, main thread. seconds passed = %lu\n", i);*/
 		++i;

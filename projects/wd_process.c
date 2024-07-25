@@ -20,18 +20,12 @@
 #include "uid.h"
 
 #define SEMAPHORE_NAME "/wd_sem"
-#define MMI_ACTIVE 1
-#define MMI_DISABLED 0
-#define WD_ALIVE 1
-#define WD_DEAD 0
 #define DECIMAL_BASE 10
 
 
 /* global static variables */
 static volatile atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
 static pid_t g_user_pid = 0;
-static atomic_int g_mmi_active = MMI_DISABLED;
-static int g_is_wd_alive = WD_DEAD;		/* is this needed? because also using repetition_counter... */
 static sem_t *process_sem;
 static scheduler_t *scheduler;
 static char *user_exec_path;
@@ -86,10 +80,10 @@ int main(int argc, char *argv[])
 	/* run scheduler */
 	SchedulerRun(scheduler);
 	
-	
-	/* destroy scheduler - will only reach this part after receiving SIGUSR2 (DNR) */
+	/* cleanup after receiving SIGUSR2 (DNR) */
 	printf("WD process, after ShedulerRun...?\n");
 	SchedulerDestroy(scheduler);
+	atomic_store(&repetition_counter, 0);
 	
 	(void)argc;
 	return 0;
@@ -155,9 +149,6 @@ static void SignalHandleReceivedDNR(int signum)				/* maybe make this extern? */
 {
 	if (signum == SIGUSR2)
 	{
-		atomic_store(&g_mmi_active, MMI_DISABLED);	/* not sure */
-		atomic_store(&repetition_counter, 0);
-/*		kill(g_user_pid, SIGUSR2);		*/
 		SchedulerStop(scheduler);
 	}
 }
