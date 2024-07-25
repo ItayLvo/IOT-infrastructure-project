@@ -86,9 +86,9 @@ int main(int argc, char *argv[])
 	/* run scheduler */
 	SchedulerRun(scheduler);
 	
-	printf("WD process, after ShedulerRun...?\n");
 	
 	/* destroy scheduler - will only reach this part after receiving SIGUSR2 (DNR) */
+	printf("WD process, after ShedulerRun...?\n");
 	SchedulerDestroy(scheduler);
 	
 	(void)argc;
@@ -144,7 +144,7 @@ static void SignalHandleReceivedLifeSign(int signum)		/* maybe make this extern?
 {
 	if (signum == SIGUSR1)
 	{
-		printf("WD process, signal handler - received life sign from client. zeroing counter\n");
+		printf("WD process\t Signal Handler\t received life sign from client. zeroing counter\n");
 /*		g_is_wd_alive = WD_ALIVE;*/
 		atomic_store(&repetition_counter, 0);
 	}
@@ -166,7 +166,7 @@ static void SignalHandleReceivedDNR(int signum)				/* maybe make this extern? */
 
 static int SchedulerActionSendSignal(void *param)
 {
-	printf("WD process, sending SIGUSR to client process\n");
+	printf("WD process\t Action Function\t sending SIGUSR to (client = %d) process\n", g_user_pid);
 	kill(g_user_pid, SIGUSR1);
 	
 	(void)param;
@@ -181,12 +181,13 @@ static int SchedulerActionIncreaseCounter(void *param)
 	
 	atomic_fetch_add(&repetition_counter, 1);
 	current_count = atomic_load(&repetition_counter);
-	printf("WD process. current count = %d\n", current_count);
+	printf("WD process\t Action Function\t increase counter func. current count = %d\n", current_count);
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
-        printf("WD process - repetition counter reached max! = %d, creating new client\n", current_count);
+        printf("****WD process\t Action Function\t repetition counter reached max! = %d, creating new client\n", current_count);
 /*        SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0);*/
 		SchedulerActionReviveClient(NULL);
+		printf("*******WD process\t Action Function\t returned from ReviveClient()\n");
     }
     
     (void)param;
@@ -205,8 +206,9 @@ static int SchedulerActionReviveClient(void *param)
 	
 	/* wait for the client process to initialize */
 	sem_wait(process_sem);
-	
+	printf("*******WD process\t Static Function\t revived client - after sem wait. resuming scheduler\n");
 	/* resume scheduler */
+	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 	SchedulerRun(scheduler);
 	
 	(void)param;

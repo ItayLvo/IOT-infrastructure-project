@@ -110,7 +110,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	env_wd_running = getenv("WD_RUNNING");
 	if (env_wd_running != NULL)
 	{
-		printf("\tWD process alive. env var is %s\n\n", env_wd_running);
+		printf("****WD process alive. env var is %s\n", env_wd_running);
 		g_wd_pid = atoi(env_wd_running);
 		
 		/* notify WD process that client process is ready */
@@ -120,7 +120,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	/* else - WD process does not exist yet, create WD process */
 	else
 	{
-		printf("\t environ var not found, creating WD process\n");
+		printf("****environ var not found, creating WD process\n");
 		/* fork + exec WD process */
 		return_status = CreateWDProcess();
 		if (return_status != 0)
@@ -226,7 +226,7 @@ static void SignalHandleReceivedLifeSign(int signum)
 	if (signum == SIGUSR1)
 	{
 /*		g_is_wd_alive = WD_ALIVE;*/
-		printf("client process, signal handler - received life sign from WD. zeroing counter\n");
+		printf("Client process\t Signal Handler\t received life sign from WD. zeroing counter\n");
 		atomic_store(&repetition_counter, 0);
 	}
 }
@@ -275,8 +275,9 @@ static int SchedulerActionReviveWD(void *param)
 	
 	/* wait for the WD process to initialize */
 	sem_wait(process_sem);
-	
+	printf("\tClient process\t received post after WD re-created. resuming scheduler\n");
 	/* resume scheduler */
+	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 	SchedulerRun(scheduler);
 	
 	(void)param;
@@ -287,7 +288,7 @@ static int SchedulerActionReviveWD(void *param)
 static int SchedulerActionSendSignal(void *param)
 {
 	(void)param;
-	printf("client process, action func, sending SIGUSR1 to WD process\n");
+	printf("Client process\t Action Function\tsending SIGUSR1 to (WD = %d) process\n", g_wd_pid);
 	kill(g_wd_pid, SIGUSR1);
 	return 0;
 }
@@ -299,10 +300,10 @@ static int SchedulerActionIncreaseCounter(void *param)
 	
 	atomic_fetch_add(&repetition_counter, 1);
 	current_count = atomic_load(&repetition_counter);
-	printf("client process. current count = %d\n", current_count);
+	printf("Client process\t Action Function\tincrease counter func. current count = %d\n", current_count);
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
-        printf("client - repetition counter reached max! = %d, creating new WD process\n", current_count);
+        printf("****Client process\t Action Function\t repetition counter reached max! = %d, creating new WD process\n", current_count);
 
 		SchedulerActionReviveWD(NULL);	/* scheduler function? or just regular one-time func? */
 		/* SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0); */

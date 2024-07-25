@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 	{
 /*		printf("client process, main thread. seconds passed = %lu\n", i);*/
 		++i;
-		printf("\t%lu\n", i);
+		printf("%lu\n", i);
 		sleep(1);
 	}
 	
