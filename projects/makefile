@@ -83,7 +83,7 @@ sllist.o : $(SRC_DIR)sllist.c $(HEADER_DIR)sllist.h
 
 .PHONY : clean
 clean :
-	rm ./$(OBJS) $(PROJ_DIR)watchdog_exec.o $(PROJ_DIR)user_exec.o
+	rm ./$(OBJS) $(PROJ_DIR)watchdog_exec.o $(PROJ_DIR)user_exec.o /dev/shm/sem.wd_sem
 #	rm ./*.o
 
 

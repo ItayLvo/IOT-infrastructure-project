@@ -67,10 +67,7 @@ static size_t interval;
 /** thread function **/
 static void *ThreadCommunicateWithWD(void *param)
 {
-	printf("client process, thread func, BEFORE process loaded (sem_wait)\n");
-	/* wait for the WD process to initialize */
-	sem_wait(process_sem);
-	printf("client process, thread func, AFTER process loaded (sem_wait)\n");
+	printf("client process, thread func start\n");
 	/* init scheduler and load tasks */
 	InitScheduler();	/* how do i know it failed? */
 	
@@ -119,9 +116,11 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 		/* notify WD process that client process is ready */
 		sem_post(process_sem);
 	}
+	
 	/* else - WD process does not exist yet, create WD process */
 	else
 	{
+		printf("\t environ var not found, creating WD process\n");
 		/* fork + exec WD process */
 		return_status = CreateWDProcess();
 		if (return_status != 0)
@@ -129,7 +128,10 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 			return return_status;
 		}
 		
-		printf("client process, MMI func, after fork+exec, before thread_create\n");
+		/* wait for the WD process to initialize */
+		sem_wait(process_sem);
+		
+		printf("client process, MMI func, after fork+exec (after WD proc initialized), before thread_create\n");
 	}
 	
 
@@ -285,8 +287,8 @@ static int SchedulerActionReviveWD(void *param)
 static int SchedulerActionSendSignal(void *param)
 {
 	(void)param;
-/*	printf("client process, action func, sending SIGUSR1 to WD process\n");*/
-/*	kill(g_wd_pid, SIGUSR1);*/
+	printf("client process, action func, sending SIGUSR1 to WD process\n");
+	kill(g_wd_pid, SIGUSR1);
 	return 0;
 }
 
