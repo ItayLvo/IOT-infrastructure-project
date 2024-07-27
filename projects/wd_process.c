@@ -2,7 +2,6 @@
 
 
 #include <stddef.h>		/* size_t */
-#include <assert.h>		/* assert */
 #include <stdio.h>		/* printf */
 #include <sys/types.h>	/* pid_t */
 #include <unistd.h>		/* waitpid, fork, write */
@@ -44,7 +43,7 @@ static void SignalHandleReceivedDNR(int signum);
 static int SchedulerActionIncreaseCounter(void *param);
 static int SchedulerActionSendSignal(void *param);
 
-static int SchedulerActionReviveClient(void *param);	/* make this non-scheduler func? */
+static int ReviveClient(void);	/* make this non-scheduler func? */
 static int CreateClientProcess(void);
 
 
@@ -177,7 +176,7 @@ static int SchedulerActionIncreaseCounter(void *param)
     {
         printf("****WD process\t Action Function\t repetition counter reached max! = %d, creating new client\n", current_count);
 /*        SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0);*/
-		SchedulerActionReviveClient(NULL);
+		ReviveClient();
 		printf("*******WD process\t Action Function\t returned from ReviveClient()\n");
     }
     
@@ -187,7 +186,7 @@ static int SchedulerActionIncreaseCounter(void *param)
 
 
 
-static int SchedulerActionReviveClient(void *param)
+static int ReviveClient(void)
 {
 	/* reset counter and scheduler and wait for new WD process */
 	SchedulerStop(scheduler);
@@ -202,7 +201,6 @@ static int SchedulerActionReviveClient(void *param)
 	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 	SchedulerRun(scheduler);
 	
-	(void)param;
 	return 0;
 }
 

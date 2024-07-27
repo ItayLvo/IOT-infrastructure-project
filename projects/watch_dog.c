@@ -1,7 +1,6 @@
 #define _XOPEN_SOURCE 700		/* sigaction struct */
 
 #include <stddef.h>		/* size_t */
-#include <assert.h>		/* assert */
 #include <stdio.h>		/* printf */
 #include <sys/types.h>	/* pid_t */
 #include <unistd.h>		/* waitpid, fork, write */
@@ -35,15 +34,14 @@ static void InitSignalHandlers();
 static void SignalHandleReceivedLifeSign(int signum);
 static void SignalHandleReceivedDNR(int signum);
 
-static void *ThreadCommunicateWithWD(void *param);
-
 static int SchedulerActionSendSignal(void *param);
 static int SchedulerActionIncreaseCounter(void *param);
-static int SchedulerActionReviveWD(void *param);
 
-static int CreateCommunicationThread(void);
+static int ReviveWD(void);
 static int CreateWDProcess(void);
 
+static int CreateCommunicationThread(void);
+static void *ThreadCommunicateWithWD(void *param);
 
 
 
@@ -142,14 +140,18 @@ void DNR(void)
 {
 	/* signal WD process to stop and die */
 	kill(g_wd_pid, SIGUSR2);
+	
 	/* cleanup scheduler */
 	SchedulerStop(scheduler);
 	SchedulerDestroy(scheduler);
+	
 	/* cleanup semaphores */
 	sem_destroy(&thread_ready_sem);
 	sem_unlink(SEMAPHORE_NAME);
+	
 	/* cleanup WD environment var */
 	unsetenv(ENVIRONMENT_VAR);
+	
 	/* reset global repetition counter */
 	atomic_store(&repetition_counter, 0);
 }
@@ -224,7 +226,6 @@ static void SignalHandleReceivedLifeSign(int signum)
 {
 	if (signum == SIGUSR1)
 	{
-/*		g_is_wd_alive = WD_ALIVE;*/
 		printf("Client process\t Signal Handler\t received life sign from WD. zeroing counter\n");
 		atomic_store(&repetition_counter, 0);
 	}
@@ -253,8 +254,6 @@ static int InitScheduler(void)
 		return 1;	
 	}
 	
-	/* scheduler add task signature: */
-/*	ilrd_uid_t SchedulerAddTask(scheduler_t *scheduler, scheduler_action_func_t, scheduler_clean_func_t, void *action_param, size_t time_interval);*/
 	task_signal_life_sign = SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);	/* check for fail */
 	task_watchdog_tick = SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 	
@@ -263,7 +262,7 @@ static int InitScheduler(void)
 
 
 /** scheduler action functions **/
-static int SchedulerActionReviveWD(void *param)
+static int ReviveWD(void)
 {
 	/* reset counter and scheduler and wait for new WD process */
 	SchedulerStop(scheduler);
@@ -278,7 +277,6 @@ static int SchedulerActionReviveWD(void *param)
 	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 	SchedulerRun(scheduler);
 	
-	(void)param;
 	return 0;
 }
 
@@ -303,7 +301,7 @@ static int SchedulerActionIncreaseCounter(void *param)
     {
         printf("****Client process\t Action Function\t repetition counter reached max! = %d, creating new WD process\n", current_count);
 
-		SchedulerActionReviveWD(NULL);	/* scheduler function? or just regular one-time func? */
+		ReviveWD();	/* scheduler function? or just regular one-time func? */
 		/* SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0); */
     }
     
