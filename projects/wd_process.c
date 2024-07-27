@@ -20,7 +20,7 @@
 
 #define SEMAPHORE_NAME "/wd_sem"
 #define DECIMAL_BASE 10
-
+#define UNUSED(var) (void)(var)
 
 /* global static variables */
 static volatile atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	SchedulerDestroy(scheduler);
 	atomic_store(&repetition_counter, 0);
 	
-	(void)argc;
+	UNUSED(argc);
 	return 0;
 }
 
@@ -96,6 +96,7 @@ static int InitEnvVar(void)
 	char string_pid[36];
 	
 	sprintf(string_pid, "%d", wd_pid);
+	
 	/* set "WD_RUNNING" environment variable to the WD PID */
     setenv("WD_RUNNING", string_pid, 1);
     
@@ -105,17 +106,14 @@ static int InitEnvVar(void)
 
 static int InitScheduler(void)
 {
-	ilrd_uid_t task_signal_life_sign = {0};
-	ilrd_uid_t task_watchdog_tick = {0};
-	
 	scheduler = SchedulerCreate();
 	if (scheduler == NULL)
 	{
 		return 1;
 	}
 	
-	task_signal_life_sign = SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);
-	task_watchdog_tick = SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
+	SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);
+	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 
 	return 0;
 }
@@ -133,23 +131,18 @@ static void InitSignalHandlers()
 }
 
 
-static void SignalHandleReceivedLifeSign(int signum)		/* maybe make this extern? */
+static void SignalHandleReceivedLifeSign(int signum)
 {
-	if (signum == SIGUSR1)
-	{
-		printf("WD process\t Signal Handler\t received life sign from client. zeroing counter\n");
-/*		g_is_wd_alive = WD_ALIVE;*/
-		atomic_store(&repetition_counter, 0);
-	}
+	printf("WD process\t Signal Handler\t received life sign from client. zeroing counter\n");
+	atomic_store(&repetition_counter, 0);
+	UNUSED(signum);
 }
 
 
-static void SignalHandleReceivedDNR(int signum)				/* maybe make this extern? */
+static void SignalHandleReceivedDNR(int signum)
 {
-	if (signum == SIGUSR2)
-	{
-		SchedulerStop(scheduler);
-	}
+	SchedulerStop(scheduler);
+	UNUSED(signum);
 }
 
 
@@ -159,7 +152,7 @@ static int SchedulerActionSendSignal(void *param)
 	printf("WD process\t Action Function\t sending SIGUSR to (client = %d) process\n", g_user_pid);
 	kill(g_user_pid, SIGUSR1);
 	
-	(void)param;
+	UNUSED(param);
 	return 0;
 }
 
@@ -180,7 +173,7 @@ static int SchedulerActionIncreaseCounter(void *param)
 		printf("*******WD process\t Action Function\t returned from ReviveClient()\n");
     }
     
-    (void)param;
+    UNUSED(param);
 	return 0;
 }
 

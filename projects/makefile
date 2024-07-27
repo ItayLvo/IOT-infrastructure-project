@@ -1,7 +1,10 @@
 CC = gcc
 CFLAGS = -ansi -pedantic-errors -Wall -Wextra -ggdb
 LIBPATH = .
-OBJS = watch_dog.o scheduler.o dllist.o sorted_list.o priority_queue.o uid.o task.o
+# sorted linked list scheduler:
+#OBJS = watch_dog.o scheduler.o dllist.o sorted_list.o priority_queue.o uid.o task.o
+# heap scheduler:
+OBJS = watch_dog.o scheduler.o heap.o heap_pq.o dvector.o uid.o task.o
 HEADER_DIR = /home/itay/git/ds/include/
 SRC_DIR = /home/itay/git/ds/src/
 TEST_DIR = /home/itay/git/ds/test/
@@ -23,7 +26,7 @@ libwatchdog.so : $(OBJS)
 
 ####
 # seperate executable for watchdog process:
-watchdog_exec.o : $(PROJ_DIR)wd_process.c watch_dog.o scheduler.o priority_queue.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h $(PROJ_DIR)watch_dog.h
+watchdog_exec.o : $(PROJ_DIR)wd_process.c watch_dog.o scheduler.o heap_pq.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h $(PROJ_DIR)watch_dog.h
 	$(CC) $(CFLAGS) -c -o $@ $(PROJ_DIR)wd_process.c -I $(HEADER_DIR) -I $(PROJ_DIR)
 	
 watchdog_exec.out : watchdog_exec.o $(PROJ_DIR)watch_dog.h
@@ -43,11 +46,11 @@ user_exec.out : user_exec.o watchdog_exec.o libwatchdog.so $(PROJ_DIR)watch_dog.
 
 #####
 # Src files compiled to object files:
-watch_dog.o : $(PROJ_DIR)watch_dog.c scheduler.o priority_queue.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h $(PROJ_DIR)watch_dog.h
+watch_dog.o : $(PROJ_DIR)watch_dog.c scheduler.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h $(PROJ_DIR)watch_dog.h
 	$(CC) $(CFLAGS) -fPIC -c -o $@ $(PROJ_DIR)watch_dog.c -I $(HEADER_DIR) -I $(PROJ_DIR) -lpthread
 
 
-scheduler.o : $(SRC_DIR)scheduler.c priority_queue.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h
+scheduler.o : $(SRC_DIR)scheduler.c heap_pq.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h
 	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)scheduler.c -I $(HEADER_DIR)
 
 
@@ -59,24 +62,30 @@ uid.o : $(SRC_DIR)uid.c $(HEADER_DIR)uid.h
 	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)uid.c -I $(HEADER_DIR)
 
 
-priority_queue.o : $(SRC_DIR)priority_queue.c sorted_list.o $(HEADER_DIR)priority_queue.h $(HEADER_DIR)sorted_list.h
-	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)priority_queue.c -I $(HEADER_DIR)
+heap.o : $(SRC_DIR)heap.c dvector.o $(HEADER_DIR)heap.h $(HEADER_DIR)dvector.h
+	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)heap.c -I $(HEADER_DIR)
+
+
+heap_pq.o : $(SRC_DIR)heap_pq.c heap.o dvector.o $(HEADER_DIR)heap.h $(HEADER_DIR)dvector.h $(HEADER_DIR)priority_queue.h
+	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)heap_pq.c -I $(HEADER_DIR)
+
+
+dvector.o : $(SRC_DIR)dvector.c $(HEADER_DIR)dvector.h
+	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)dvector.c -I $(HEADER_DIR)
+
+
+#priority_queue.o : $(SRC_DIR)priority_queue.c sorted_list.o $(HEADER_DIR)priority_queue.h $(HEADER_DIR)sorted_list.h
+#	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)priority_queue.c -I $(HEADER_DIR)
 	
 
-sorted_list.o : $(SRC_DIR)sorted_list.c dllist.o $(HEADER_DIR)sorted_list.h $(HEADER_DIR)dllist.h
-	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)sorted_list.c -I $(HEADER_DIR)
+#sorted_list.o : $(SRC_DIR)sorted_list.c dllist.o $(HEADER_DIR)sorted_list.h $(HEADER_DIR)dllist.h
+#	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)sorted_list.c -I $(HEADER_DIR)
 
 
-dllist.o : $(SRC_DIR)dllist.c $(HEADER_DIR)dllist.h
-	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)dllist.c -I $(HEADER_DIR)
+#dllist.o : $(SRC_DIR)dllist.c $(HEADER_DIR)dllist.h
+#	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)dllist.c -I $(HEADER_DIR)
 
 
-queue.o : $(SRC_DIR)queue.c $(HEADER_DIR)queue.h
-	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)queue.c -I $(HEADER_DIR)
-
-
-sllist.o : $(SRC_DIR)sllist.c $(HEADER_DIR)sllist.h
-	$(CC) $(CFLAGS) -fPIC -c -o $@ $(SRC_DIR)sllist.c -I $(HEADER_DIR)
 
 
 

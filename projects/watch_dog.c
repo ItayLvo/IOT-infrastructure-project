@@ -5,7 +5,7 @@
 #include <sys/types.h>	/* pid_t */
 #include <unistd.h>		/* waitpid, fork, write */
 #include <sys/wait.h>	/* waitpid */
-#include <signal.h>		/* sigaction */
+#include <signal.h>		/* sigaction, sigset_t */
 #include <fcntl.h>		/* O_* constants (O_CREAT)*/
 #include <semaphore.h>	/* POSIX semaphore functions and definitions */
 #include <pthread.h>	/* POSIX pthreads */
@@ -25,12 +25,15 @@
 	/*S_IRGRP: Read permission for the group*/
 	/*S_IROTH: Read permission for others*/
 #define ENVIRONMENT_VAR "WD_RUNNING"
+#define UNUSED(var) (void)(var)
 
-
-/* forward function declerations */
+/* forward function declerations (grouped by category)*/
 static int InitScheduler(void);
 
-static void InitSignalHandlers();
+static int InitSIGUSR1Handler(void);
+static int BlockSIGUSR1(void);
+static int UnblockSIGUSR1(void);
+
 static void SignalHandleReceivedLifeSign(int signum);
 static void SignalHandleReceivedDNR(int signum);
 
@@ -54,12 +57,17 @@ static scheduler_t *scheduler;
 static char *user_exec_path;
 static size_t max_repetitions;
 static size_t interval;
+struct sigaction old_sig_action;
+
 
 
 /** thread function **/
 static void *ThreadCommunicateWithWD(void *param)
 {
 	printf("client process, thread func start\n");
+	
+	InitSIGUSR1Handler();	/* error check? */
+	
 	/* init scheduler and load tasks */
 	InitScheduler();	/* how do i know it failed? */
 	
@@ -71,7 +79,7 @@ static void *ThreadCommunicateWithWD(void *param)
 	SchedulerRun(scheduler);
 	
 	/* will only reach this part after receiving DNR */
-	(void)param;
+	UNUSED(param);
 	return NULL;
 }
 
@@ -87,8 +95,6 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	
 	/* semaphore to sync between current process and WD process */
 	process_sem = sem_open(SEMAPHORE_NAME, O_CREAT, SEM_PERMISSIONS, 0);
-	
-	InitSignalHandlers();
     
 	sem_init(&thread_ready_sem, 0, 0);
 	
@@ -123,6 +129,8 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 		printf("client process, MMI func, after fork+exec (after WD proc initialized), before thread_create\n");
 	}
 	
+	/* mask SIGUSR1 on main thread. it will be un-masked in the thread function */
+    BlockSIGUSR1();
 
 	/* create communication thread */
 	return_status = CreateCommunicationThread();
@@ -154,6 +162,12 @@ void DNR(void)
 	
 	/* reset global repetition counter */
 	atomic_store(&repetition_counter, 0);
+	
+	/* un-mask SIGUSR1 in main thread */
+	UnblockSIGUSR1();
+	
+	/* wait for WD process to cleanup */
+/*	waitpid(g_wd_pid, NULL, 0);*/
 }
 
 
@@ -202,6 +216,7 @@ static int CreateCommunicationThread(void)
 	
 	/* wait for thread to set up, then return and exit function */
 	sem_wait(&thread_ready_sem);
+	pthread_attr_destroy(&attr);
 	
 	return return_status;
 }
@@ -210,35 +225,69 @@ static int CreateCommunicationThread(void)
 
 /** signal handlers **/
 
-static void InitSignalHandlers()
+
+
+static int InitSIGUSR1Handler(void)
 {
-	struct sigaction sa1 = {0};
-	struct sigaction sa2 = {0};
+    struct sigaction sa1 = {0};
+	sigset_t set;
 	
+	/* unblock SIGUSR1 in current calling thread */
+	sigemptyset(&set);
+	sigaddset(&set, SIGUSR1);
+	pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+
+	/* set signal handler for SIGUSR1 and save old handler */
 	sa1.sa_handler = SignalHandleReceivedLifeSign;
-    sigaction(SIGUSR1, &sa1, 0);
-    sa2.sa_handler = SignalHandleReceivedDNR;
-    sigaction(SIGUSR2, &sa2, 0);
+	sa1.sa_flags = 0;
+	sigemptyset(&sa1.sa_mask);
+	if (sigaction(SIGUSR1, &sa1, &old_sig_action) == -1) 
+	{
+		perror("sigaction\n");
+		return 1;
+	}
+	
+	return 0;
 }
+
+
+static int BlockSIGUSR1(void)
+{
+	sigset_t set;
+
+	/* mask SIGUSR1 in the main thread */
+	sigemptyset(&set);
+	sigaddset(&set, SIGUSR1);
+	pthread_sigmask(SIG_BLOCK, &set, NULL);
+	
+	return 0;
+}
+
+
+static int UnblockSIGUSR1(void)
+{
+	if (sigaction(SIGUSR1, &old_sig_action, NULL) == -1)
+	{
+		perror("sigaction\n");
+		return 1;
+	}
+	
+	return 0;
+}
+
 
 
 static void SignalHandleReceivedLifeSign(int signum)
 {
-	if (signum == SIGUSR1)
-	{
-		printf("Client process\t Signal Handler\t received life sign from WD. zeroing counter\n");
-		atomic_store(&repetition_counter, 0);
-	}
+	printf("Client process\t Signal Handler\t received life sign from WD. zeroing counter\n");
+	atomic_store(&repetition_counter, 0);
 }
 
 
 static void SignalHandleReceivedDNR(int signum)
 {
-	if (signum == SIGUSR2)
-	{
-		atomic_store(&repetition_counter, 0);
-		SchedulerStop(scheduler);
-	}
+	atomic_store(&repetition_counter, 0);
+	SchedulerStop(scheduler);
 }
 
 
@@ -283,9 +332,10 @@ static int ReviveWD(void)
 
 static int SchedulerActionSendSignal(void *param)
 {
-	(void)param;
 	printf("Client process\t Action Function\tsending SIGUSR1 to (WD = %d) process\n", g_wd_pid);
 	kill(g_wd_pid, SIGUSR1);
+	
+	UNUSED(param);
 	return 0;
 }
 
@@ -305,7 +355,7 @@ static int SchedulerActionIncreaseCounter(void *param)
 		/* SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0); */
     }
     
-    (void)param;
+    UNUSED(param);
 	return 0;
 }
 
