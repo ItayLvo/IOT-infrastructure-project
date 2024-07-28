@@ -58,7 +58,7 @@ static char *user_exec_path;
 static size_t max_repetitions;
 static size_t interval;
 struct sigaction old_sig_action;
-
+static pthread_t communication_thread;
 
 
 /** thread function **/
@@ -155,6 +155,7 @@ void DNR(void)
 	
 	/* cleanup semaphores */
 	sem_destroy(&thread_ready_sem);
+	sem_close(process_sem);
 	sem_unlink(SEMAPHORE_NAME);
 	
 	/* cleanup WD environment var */
@@ -165,6 +166,9 @@ void DNR(void)
 	
 	/* un-mask SIGUSR1 in main thread */
 	UnblockSIGUSR1();
+	
+	/* wait for communication thread to cleanup */
+	pthread_join(communication_thread, NULL);
 	
 	/* wait for WD process to cleanup */
 	waitpid(g_wd_pid, NULL, 0);
@@ -199,12 +203,12 @@ static int CreateWDProcess(void)
 
 static int CreateCommunicationThread(void)
 {
-	pthread_t communication_thread;
+/*	pthread_t communication_thread;*/
 	pthread_attr_t attr;
 	int return_status = 0;
 	
 	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+/*	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);*/
 	
 	return_status = pthread_create(&communication_thread, &attr, &ThreadCommunicateWithWD, NULL);
 	
@@ -281,6 +285,8 @@ static void SignalHandleReceivedLifeSign(int signum)
 {
 	printf("Client process\t Signal Handler\t received life sign from WD. zeroing counter\n");
 	atomic_store(&repetition_counter, 0);
+	
+	UNUSED(signum);
 }
 
 
@@ -288,23 +294,23 @@ static void SignalHandleReceivedDNR(int signum)
 {
 	atomic_store(&repetition_counter, 0);
 	SchedulerStop(scheduler);
+	
+	UNUSED(signum);
 }
 
 
 
 static int InitScheduler(void)
 {
-	ilrd_uid_t task_signal_life_sign = {0};
-	ilrd_uid_t task_watchdog_tick = {0};
-	
 	scheduler = SchedulerCreate();
 	if (scheduler == NULL)
 	{
 		return 1;	
 	}
 	
-	task_signal_life_sign = SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);	/* check for fail */
-	task_watchdog_tick = SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
+	/* check for fail */
+	SchedulerAddTask(scheduler, SchedulerActionSendSignal, NULL, NULL, interval);
+	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 	
 	return 0;
 }

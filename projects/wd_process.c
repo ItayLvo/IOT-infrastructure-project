@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 	SchedulerRun(scheduler);
 	
 	/* cleanup after receiving SIGUSR2 (DNR) */
-	printf("WD process, after ShedulerRun...?\n");
+	printf("WD process, after ShedulerRun stopped. cleaning up and exiting WD process");
 	SchedulerDestroy(scheduler);
 	atomic_store(&repetition_counter, 0);
 	
