@@ -21,6 +21,7 @@
 #define SEMAPHORE_NAME "/wd_sem"
 #define DECIMAL_BASE 10
 #define UNUSED(var) (void)(var)
+#define MAX_ARGV_SIZE 32
 
 /* global static variables */
 static volatile atomic_int repetition_counter = ATOMIC_VAR_INIT(0);
@@ -30,9 +31,10 @@ static scheduler_t *scheduler;
 static char *user_exec_path;
 static size_t max_repetitions;
 static size_t interval;
+static char *user_argv[MAX_ARGV_SIZE];
+static char **wd_argv;
 
-
-/* forward function declerations */
+/* forward function declerations (grouped by category) */
 static void InitSignalHandlers(void);
 static int InitScheduler(void);
 static int InitEnvVar(void);
@@ -43,20 +45,26 @@ static void SignalHandleReceivedDNR(int signum);
 static int SchedulerActionIncreaseCounter(void *param);
 static int SchedulerActionSendSignal(void *param);
 
-static int ReviveClient(void);	/* make this non-scheduler func? */
+static int ReviveClient(void);
 static int CreateClientProcess(void);
+
+static void InitClientArgv();
+
+
 
 
 int main(int argc, char *argv[])
 {
-	user_exec_path = argv[1];
 	g_user_pid = getppid();
-	/* convert argv arguments back to size_t */
-	interval = strtoul(argv[2], NULL, DECIMAL_BASE);  
-    max_repetitions = strtoul(argv[3], NULL, DECIMAL_BASE);
-    
+	
+	/* assign global vars based on client argv MMI args */
+	wd_argv = argv;
+	InitClientArgv();
+	
+	/* set up SIGUSR1 and SIGUSR2 to handle communication */
 	InitSignalHandlers();
-	/* set environment variable to indicate WD process is running */
+	
+	/* set environment variable to indicate that WD process is running */
 	InitEnvVar();
 	
 	if (InitScheduler() != 0)
@@ -80,12 +88,37 @@ int main(int argc, char *argv[])
 	SchedulerRun(scheduler);
 	
 	/* cleanup after receiving SIGUSR2 (DNR) */
-	printf("WD process, after ShedulerRun stopped. cleaning up and exiting WD process");
+	printf("WD process, after ShedulerRun stopped. cleaning up and exiting WD process\n");
 	SchedulerDestroy(scheduler);
 	atomic_store(&repetition_counter, 0);
 	
 	UNUSED(argc);
 	return 0;
+}
+
+
+
+static void InitClientArgv()
+{
+	char **dest_runner = user_argv + 1;
+	char **src_runner = wd_argv + 4;
+	
+	/* assign global variables based on MMI arguments */
+	user_exec_path = wd_argv[1];
+	/* convert argv arguments back to size_t */
+	interval = strtoul(wd_argv[2], NULL, DECIMAL_BASE);  
+    max_repetitions = strtoul(wd_argv[3], NULL, DECIMAL_BASE);
+    
+    
+    /* re-construct argv for client exec */
+    user_argv[0] = user_exec_path;
+    while (*src_runner != NULL)
+    {
+    	*dest_runner = *src_runner;
+    	++src_runner;
+    	++dest_runner;
+    }
+    
 }
 
 
@@ -97,7 +130,7 @@ static int InitEnvVar(void)
 	
 	sprintf(string_pid, "%d", wd_pid);
 	
-	/* set "WD_RUNNING" environment variable to the WD PID */
+	/* set "WD_RUNNING" environment variable as the WD PID */
     setenv("WD_RUNNING", string_pid, 1);
     
     return 0;
@@ -168,7 +201,6 @@ static int SchedulerActionIncreaseCounter(void *param)
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
         printf("****WD process\t Action Function\t repetition counter reached max! = %d, creating new client\n", current_count);
-/*        SchedulerAddTask(scheduler, SchedulerActionReviveWD, NULL, NULL, 0);*/
 		ReviveClient();
 		printf("*******WD process\t Action Function\t returned from ReviveClient()\n");
     }
@@ -185,11 +217,12 @@ static int ReviveClient(void)
 	SchedulerStop(scheduler);
 	atomic_store(&repetition_counter, 0);
 	
-	CreateClientProcess();	/* check for fail? */
+	CreateClientProcess();
 	
 	/* wait for the client process to initialize */
 	sem_wait(process_sem);
 	printf("*******WD process\t Static Function\t revived client - after sem wait. resuming scheduler\n");
+	
 	/* resume scheduler */
 	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 	SchedulerRun(scheduler);
@@ -206,7 +239,7 @@ static int CreateClientProcess(void)
 	
 	if (g_user_pid == 0)	/* in child (client) process */
 	{
-		return_status = execl(user_exec_path, user_exec_path, NULL);	/* add user argv here!!! */
+		return_status = execv(user_argv[0], user_argv);
 		printf("WD Exec (trying to create client) failed. return status = %d\n", return_status);
 	}
 	else				/* in parent process */
