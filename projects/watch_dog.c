@@ -79,6 +79,7 @@ static void *ThreadCommunicateWithWD(void *param)
 	SchedulerRun(scheduler);
 	
 	/* will only reach this part after receiving DNR */
+	SchedulerDestroy(scheduler);
 	UNUSED(param);
 	return NULL;
 }
@@ -149,9 +150,8 @@ void DNR(void)
 	/* signal WD process to stop and die */
 	kill(g_wd_pid, SIGUSR2);
 	
-	/* cleanup scheduler */
+	/* stop and cleanup scheduler (cleanup happens in communication thread) */
 	SchedulerStop(scheduler);
-	SchedulerDestroy(scheduler);
 	
 	/* cleanup semaphores */
 	sem_destroy(&thread_ready_sem);
@@ -167,7 +167,7 @@ void DNR(void)
 	UnblockSIGUSR1();
 	
 	/* wait for WD process to cleanup */
-/*	waitpid(g_wd_pid, NULL, 0);*/
+	waitpid(g_wd_pid, NULL, 0);
 }
 
 
