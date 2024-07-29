@@ -73,14 +73,14 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	process_sem = sem_open(SEMAPHORE_NAME, O_CREAT, SEM_PERMISSIONS, 0);
 	sem_init(&thread_ready_sem, 0, 0);
 	
-	printf("client process, MMI func, before fork+exec\n");
-	printf("MAIN thread = %lu\n", pthread_self());
+	printf("Client\t MMI func\t before fork+exec\n");
+	printf("Client\t MMI func\t Main thread ID = %lu\n", pthread_self());
 	
 	/* if envirnent variable exists - WD process is already running. doesn't create new one */
 	env_wd_running = getenv(ENVIRONMENT_VAR);
 	if (env_wd_running != NULL)
 	{
-		printf("****WD process alive. env var is %s\n", env_wd_running);
+		printf("Client\t MMI func\t WD process alive. environment var is %s\n", env_wd_running);
 		/* extract WD PID from envirnent var */
 		g_wd_pid = atoi(env_wd_running);
 		
@@ -91,7 +91,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	/* else - WD process does not exist yet, create WD process */
 	else
 	{
-		printf("****environ var not found, creating WD process\n");
+		printf("Client\t MMI func\t environment var not found. Creating WD process\n");
 		/* forks + execs WD process */
 		return_status = CreateWDProcess();
 		if (return_status != 0)
@@ -102,7 +102,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 		/* wait for the WD process to initialize */
 		sem_wait(process_sem);
 		
-		printf("client process, MMI func, after fork+exec (after WD proc initialized), before thread_create\n");
+		printf("Client\t MMI func\t WD process ready and posted to sem\n");
 	}
 
 	/* mask SIGUSR1 and SIGUSR2 on main thread */
@@ -127,6 +127,8 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 
 void DNR(void)
 {
+	int wait_status = 0;
+	
 	/* signal WD process to stop and cleanup */
 	kill(g_wd_pid, SIGUSR2);
 	
@@ -153,7 +155,7 @@ void DNR(void)
 	SchedulerDestroy(scheduler);
 	
 	/* wait for WD process to cleanup */
-	waitpid(g_wd_pid, NULL, 0);
+	waitpid(g_wd_pid, &wait_status, WNOHANG);
 }
 
 
@@ -161,8 +163,8 @@ void DNR(void)
 /* thread function */
 static void *ThreadCommunicateWithWD(void *param)
 {
-	printf("client process, thread func start\n");
-	printf("COMMS thread = %lu\n", pthread_self());
+	printf("Client\t Thread func\t starting thread func\n");
+	printf("Client\t Thread func\t  Comms Thread ID = %lu\n", pthread_self());
 	
 	/* initialize signal handlers for current thread */
 	InitSignalHandlers();
@@ -172,7 +174,7 @@ static void *ThreadCommunicateWithWD(void *param)
 	
 	/* update main thread that current thread is ready */
 	sem_post(&thread_ready_sem);
-	printf("client process, thread func, after posting to main thread, starting scheduler\n");
+	printf("Client\t Thread func\t After posting to main thread. starting scheduler\n");
 	
 	/* run scheduler */
 	SchedulerRun(scheduler);
@@ -260,7 +262,7 @@ static int ReviveWD(void)
 	
 	/* wait for the WD process to initialize */
 	sem_wait(process_sem);
-	printf("\tClient process\t received post after WD re-created. resuming scheduler\n");
+	printf("Client\t WD re-created, received sem post. resuming scheduler\n");
 	
 	/* resume scheduler */
 	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
@@ -346,7 +348,7 @@ static int UnblockSignals(void)
 
 static void SignalHandleReceivedLifeSign(int signum)
 {
-	printf("Client process\t Signal Handler\t received life sign from WD. zeroing counter\n");
+	printf("Client\t Signal Handler\t received life sign from WD. zeroing counter\n");
 	atomic_store(&repetition_counter, 0);
 	
 	UNUSED(signum);
@@ -356,7 +358,6 @@ static void SignalHandleReceivedLifeSign(int signum)
 static void SignalHandleReceivedDNR(int signum)
 {
 	SchedulerStop(scheduler);
-	printf("Thread %lu received SIGUSR2\n", pthread_self());
 	UNUSED(signum);
 }
 
@@ -365,7 +366,7 @@ static void SignalHandleReceivedDNR(int signum)
 /* scheduler init and action functions */
 static int SchedulerActionSendSignal(void *param)
 {
-	printf("Client process\t Action Function\tsending SIGUSR1 to (WD = %d) process\n", g_wd_pid);
+	printf("Client\t Scheduler func\t sending SIGUSR1 to (WD = %d) process\n", g_wd_pid);
 	kill(g_wd_pid, SIGUSR1);
 	
 	UNUSED(param);
@@ -379,10 +380,10 @@ static int SchedulerActionIncreaseCounter(void *param)
 	
 	atomic_fetch_add(&repetition_counter, 1);
 	current_count = atomic_load(&repetition_counter);
-	printf("Client process\t Action Function\tincrease counter func. current count = %d\n", current_count);
+	printf("Client\t Scheduler func\t Increased count. current count = %d\n", current_count);
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
-        printf("****Client process\t Action Function\t repetition counter reached max! = %d, creating new WD process\n", current_count);
+        printf("Client\t Scheduler func\t repetition counter reached max! = %d, creating new WD process\n", current_count);
 
 		ReviveWD();
     }

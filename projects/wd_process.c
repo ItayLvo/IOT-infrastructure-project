@@ -80,15 +80,15 @@ int main(int argc, char *argv[])
         perror("sem_open failed\n");
 		exit(EXIT_FAILURE);
     }
-    printf("Loading WD process. Data:\ninterval = %lu\nmax rep = %lu\nclient pid = %u\nuser exec path = %s\n\n", interval, max_repetitions, g_user_pid, user_exec_path);
-    printf("WD process, main func, before posting to semaphore\n");
+    printf("WD\t Main func\t Loading WD process.\n*interval = %lu\n*max rep = %lu\n*client pid = %u\n*user exec path = %s\n\n", interval, max_repetitions, g_user_pid, user_exec_path);
+    printf("WD\t Main func\t before posting to semaphore\n");
 	sem_post(process_sem);
-	printf("WD process, main func, after posting to semaphore. starting scheduler\n");
+	printf("WD\t Main func\t after posting to semaphore. starting scheduler\n");
 	/* run scheduler */
 	SchedulerRun(scheduler);
 	
 	/* cleanup after receiving SIGUSR2 (DNR) */
-	printf("WD process, after ShedulerRun stopped. cleaning up and exiting WD process\n");
+	printf("WD\t Main func\t Stopped scheduler. cleaning up WD process and exiting\n");
 	SchedulerDestroy(scheduler);
 	atomic_store(&repetition_counter, 0);
 	
@@ -166,7 +166,7 @@ static void InitSignalHandlers()
 
 static void SignalHandleReceivedLifeSign(int signum)
 {
-	printf("WD process\t Signal Handler\t received life sign from client. zeroing counter\n");
+	printf("WD\t Signal handler\t received life sign from client. zeroing counter\n");
 	atomic_store(&repetition_counter, 0);
 	UNUSED(signum);
 }
@@ -182,7 +182,7 @@ static void SignalHandleReceivedDNR(int signum)
 
 static int SchedulerActionSendSignal(void *param)
 {
-	printf("WD process\t Action Function\t sending SIGUSR to (client = %d) process\n", g_user_pid);
+	printf("WD\t Scheduler func\t sending SIGUSR to (client = %d) process\n", g_user_pid);
 	kill(g_user_pid, SIGUSR1);
 	
 	UNUSED(param);
@@ -197,12 +197,12 @@ static int SchedulerActionIncreaseCounter(void *param)
 	
 	atomic_fetch_add(&repetition_counter, 1);
 	current_count = atomic_load(&repetition_counter);
-	printf("WD process\t Action Function\t increase counter func. current count = %d\n", current_count);
+	printf("WD\t Scheduler func\t Increased count. current count = %d\n", current_count);
     if ((size_t)current_count == max_repetitions)		/* make this thread safe */
     {
-        printf("****WD process\t Action Function\t repetition counter reached max! = %d, creating new client\n", current_count);
+        printf("WD\t Scheduler func\t repetition counter reached max! = %d, creating new Client process\n", current_count);
 		ReviveClient();
-		printf("*******WD process\t Action Function\t returned from ReviveClient()\n");
+		printf("WD\t Scheduler func\t returned from ReviveClient()\n");
     }
     
     UNUSED(param);
@@ -221,7 +221,7 @@ static int ReviveClient(void)
 	
 	/* wait for the client process to initialize */
 	sem_wait(process_sem);
-	printf("*******WD process\t Static Function\t revived client - after sem wait. resuming scheduler\n");
+	printf("WD\t ReviveClient()\t revived client and client process is ready. resuming scheduler\n");
 	
 	/* resume scheduler */
 	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
@@ -240,7 +240,7 @@ static int CreateClientProcess(void)
 	if (g_user_pid == 0)	/* in child (client) process */
 	{
 		return_status = execv(user_argv[0], user_argv);
-		printf("WD Exec (trying to create client) failed. return status = %d\n", return_status);
+		printf("WD: execv failed. return status = %d\n", return_status);
 	}
 	else				/* in parent process */
 	{
