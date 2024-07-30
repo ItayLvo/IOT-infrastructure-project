@@ -26,7 +26,7 @@ int main()
 
 	status = MMI(INTERVAL, REPETITIONS, argv);
 	printf("Client\t Returned to main() after MMI\n");
-	while(i<30)
+	while(i<10)
 	{
 /*		printf("client process, main thread. seconds passed = %lu\n", i);*/
 		++i;

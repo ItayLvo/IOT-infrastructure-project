@@ -4,7 +4,7 @@ LIBPATH = .
 # sorted linked list scheduler:
 #OBJS = watch_dog.o scheduler.o dllist.o sorted_list.o priority_queue.o uid.o task.o
 # heap scheduler:
-OBJS = watch_dog.o scheduler.o heap.o heap_pq.o dvector.o uid.o task.o
+OBJS = watch_dog.o private_watchdog_utils.o scheduler.o heap.o heap_pq.o dvector.o uid.o task.o
 HEADER_DIR = /home/itay/git/ds/include/
 SRC_DIR = /home/itay/git/ds/src/
 TEST_DIR = /home/itay/git/ds/test/
@@ -26,16 +26,17 @@ libwatchdog.so : $(OBJS)
 
 ####
 # seperate executable for watchdog process:
-watchdog_exec.o : $(PROJ_DIR)wd_process.c watch_dog.o scheduler.o heap_pq.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h $(PROJ_DIR)watch_dog.h
+watchdog_exec.o : $(PROJ_DIR)wd_process.c $(PROJ_DIR)private_watchdog_utils.h
 	$(CC) $(CFLAGS) -c -o $@ $(PROJ_DIR)wd_process.c -I $(HEADER_DIR) -I $(PROJ_DIR)
 	
-watchdog_exec.out : watchdog_exec.o $(PROJ_DIR)watch_dog.h
-	$(CC) $(CFLAGS) $(PROJ_DIR)watchdog_exec.o $(OBJS) -o $@ -lpthread
+watchdog_exec.out : watchdog_exec.o private_watchdog_utils.o scheduler.o heap_pq.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h 
+	$(CC) $(CFLAGS) $(PROJ_DIR)watchdog_exec.o private_watchdog_utils.o scheduler.o heap.o heap_pq.o dvector.o uid.o task.o -o $@ -lpthread
+#linked with all OBJS except "watch_dog.o"!
 	
 	
 	
 ####
-# user executable for testing:
+# client executable for testing:
 user_exec.o : $(PROJ_DIR)client_app.c $(PROJ_DIR)watch_dog.o $(PROJ_DIR)watch_dog.h
 	$(CC) $(CFLAGS) -c -o $@ $(PROJ_DIR)client_app.c -I $(PROJ_DIR)
 	
@@ -46,6 +47,10 @@ user_exec.out : user_exec.o watchdog_exec.o libwatchdog.so $(PROJ_DIR)watch_dog.
 
 #####
 # Src files compiled to object files:
+private_watchdog_utils.o : $(PROJ_DIR)private_watchdog_utils.c scheduler.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h $(PROJ_DIR)private_watchdog_utils.h
+	$(CC) $(CFLAGS) -fPIC -c -o $@ $(PROJ_DIR)private_watchdog_utils.c -I $(HEADER_DIR) -I $(PROJ_DIR) -lpthread
+
+
 watch_dog.o : $(PROJ_DIR)watch_dog.c scheduler.o task.o uid.o $(HEADER_DIR)scheduler.h $(HEADER_DIR)priority_queue.h $(HEADER_DIR)task.h $(HEADER_DIR)uid.h $(PROJ_DIR)watch_dog.h
 	$(CC) $(CFLAGS) -fPIC -c -o $@ $(PROJ_DIR)watch_dog.c -I $(HEADER_DIR) -I $(PROJ_DIR) -lpthread
 

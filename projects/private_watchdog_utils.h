@@ -3,7 +3,7 @@
 
 /****************************************************
 	private_watchdog_utils is used for
-	defines, variables and functions used
+	defines, global variables and functions used
 	in both the client process (watch_dog.c) and
 	the WD process (wd_process.c)
 ****************************************************/
@@ -20,37 +20,31 @@
 
 
 
-/* function forward declerations (grouped by category) */
+/* function forward declerations */
 int InitSignalHandlers(void);
 int InitScheduler(void);
-/* this function is implemented separately in each file */
-int CreatePartnerProcess(void);
+int CreatePartnerProcess(void);		/* implemented separately in each file */
 
-/* static helper functions: */
-/*void SignalHandleReceivedLifeSign(int signum);*/
-/*void SignalHandleReceivedDNR(int signum);*/
-/*int SchedulerActionSendSignal(void *param);*/
-/*int SchedulerActionIncreaseCounter(void *param);*/
-/*int Revive(void);*/
+
+/* additional static helper functions, implemented in private_watchdog_utils.c : */
+/* void SignalHandleReceivedLifeSign(int signum);*/
+/* void SignalHandleReceivedDNR(int signum);*/
+/* int SchedulerActionSendSignal(void *param);*/
+/* int SchedulerActionIncreaseCounter(void *param);*/
+/* int Revive(void);*/
 
 
 
 /* static global vars */
 extern volatile atomic_int repetition_counter;
-
 extern pid_t g_partner_pid;
-
 extern sem_t *process_sem;
-
 extern scheduler_t *scheduler;
-
 extern char *user_exec_path;
 extern size_t max_repetitions;
 extern size_t interval;
-
 extern struct sigaction old_sig_action1;
 extern struct sigaction old_sig_action2;
-
 
 
 

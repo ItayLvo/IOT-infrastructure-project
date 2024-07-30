@@ -35,10 +35,6 @@ size_t interval;
 struct sigaction old_sig_action1;
 struct sigaction old_sig_action2;
 
-int main()
-{
-	return 0;
-}
 
 
 int InitScheduler(void)
