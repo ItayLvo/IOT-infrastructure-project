@@ -11,7 +11,7 @@ int ActionStopSchedulerFunc(void *scheduler);
 static scheduler_t *scheduler = NULL;
 
 /*
-gd ./ds/src/priority_qeueu.c ./ds/test/scheduler_test.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include
+gd ./ds/src/priority_queue.c ./ds/test/scheduler_test.c ./ds/src/sorted_list.c ./ds/src/dllist.c ./ds/src/scheduler.c ./ds/src/task.c ./ds/src/uid.c -I ./ds/include
 */
 
 int main()
@@ -28,7 +28,7 @@ int main()
 				ActionStopSchedulerFunc,
 				GenericCleanFunc,
 				scheduler,
-				interval_in_seconds + 20);
+				interval_in_seconds + 10);
 				
 	
 				
@@ -56,7 +56,7 @@ int PrintAndIncrementNumActionFunc(void *num)
 	++*(int *)num;
 	
 	
-	if (*(int *)num == 10)
+	if (*(int *)num == 5)
 	{
 		return 2;
 	}

@@ -40,7 +40,7 @@ heap_t *HeapCreate(heap_compare_func_t compare_func)
 {
 	heap_t *heap = NULL;
 	
-	assert(compare_func)
+	assert(compare_func);
 	
 	heap = (heap_t *)malloc(sizeof(heap_t));
 	if (NULL == heap)

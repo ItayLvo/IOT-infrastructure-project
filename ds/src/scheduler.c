@@ -133,6 +133,16 @@ int SchedulerRun(scheduler_t *scheduler)
 		while (time_until_task > 0)
 		{
 			sleep(time_until_task);
+			
+			/* check if scheduler_on status changed during sleeping */
+			if (scheduler->is_scheduler_on != SCHEDULER_ON)
+			{	
+				/* cleanup and exit Run funtion */	
+				TaskExecuteCleanFunc(task);
+				DestroyTask(task);
+				return RUN_FUNC_STOPPED;
+			}
+			
 			current_time = time(NULL);
 			if (-1 == current_time)
 			{
