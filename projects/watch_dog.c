@@ -1,30 +1,30 @@
-#define _XOPEN_SOURCE 700		/* sigaction, snprintf */
+#define _XOPEN_SOURCE 700	/* sigaction, snprintf */
 
-#include <stddef.h>		/* size_t */
-#include <stdio.h>		/* printf */
+#include <stddef.h>	/* size_t */
+#include <stdio.h>	/* printf */
 #include <sys/types.h>	/* pid_t */
-#include <unistd.h>		/* waitpid, fork, write */
+#include <unistd.h>	/* waitpid, fork, write */
 #include <sys/wait.h>	/* waitpid */
-#include <signal.h>		/* sigaction, sigset_t */
-#include <fcntl.h>		/* O_* constants (O_CREAT) */
+#include <signal.h>	/* sigaction, sigset_t */
+#include <fcntl.h>	/* O_* constants (O_CREAT) */
 #include <semaphore.h>	/* POSIX semaphore functions and definitions */
 #include <pthread.h>	/* POSIX pthreads */
 #include <stdatomic.h>	/* atomic types */
-#include <string.h>		/* snprintf */
-#include <stdlib.h>		/* getenv, atoi */
+#include <string.h>	/* snprintf */
+#include <stdlib.h>	/* getenv, atoi */
 
-#include "watch_dog.h"	/* MMI, DNR declerations */
+#include "watch_dog.h"			/* MMI, DNR declerations */
 #include "private_watchdog_utils.h"	/*	functions:
-												InitSignalHandlers(),
-												InitScheduler(),
-												CreatePartnerProcess()
-										global variables:
-												repetition_counter,
-												process_sem,
-												scheduler,
-												interval,
-												user_exec_path,
-												old_sig_action */
+									InitSignalHandlers(),
+									InitScheduler(),
+									CreatePartnerProcess()
+							global variables:
+									repetition_counter,
+									process_sem,
+									scheduler,
+									interval,
+									user_exec_path,
+									old_sig_action */
 												
 
 #define WATCH_DOG_PATH "/home/itay/git/projects/watchdog_exec.out"
@@ -54,14 +54,14 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	max_repetitions = repetitions;
 	interval = interval_in_seconds;
 	user_argv = argv;
-	
+
 	/* semaphore to sync between current process and WD process */
 	process_sem = sem_open(SEMAPHORE_NAME, O_CREAT, SEM_PERMISSIONS, 0);
 	sem_init(&thread_ready_sem, 0, 0);
-	
+
 	printf("Client\t MMI func\t before fork+exec\n");
 	printf("Client\t MMI func\t Main thread ID = %lu\n", pthread_self());
-	
+
 	/* if envirnent variable exists - WD process is already running. doesn't create new one */
 	env_wd_running = getenv(ENVIRONMENT_VAR);
 	if (env_wd_running != NULL)
@@ -73,7 +73,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 		/* notify WD process that client process is ready */
 		sem_post(process_sem);
 	}
-	
+
 	/* else - WD process does not exist yet, create WD process */
 	else
 	{
@@ -92,20 +92,20 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 	}
 
 	/* mask SIGUSR1 and SIGUSR2 on main thread */
-    return_status = BlockSignals();
+	return_status = BlockSignals();
 	if (return_status != 0)
 	{
 		return return_status;
 	}
-	
+
 	/* create communication thread */
 	return_status = CreateCommunicationThread();
 	if (return_status != 0)
 	{
 		return return_status;
 	}
-	
-	
+
+
 	return return_status;
 }
 
@@ -177,30 +177,30 @@ int CreatePartnerProcess(void)
 	int return_status = 0;
 	char *wd_argv[MAX_ARGV_SIZE] = {0};
 	char interval_str[16];
-    char max_repetitions_str[16];
-    char **dest_runner = wd_argv + 4;
-    char **src_runner = user_argv + 1;
-    
+	char max_repetitions_str[16];
+	char **dest_runner = wd_argv + 4;
+	char **src_runner = user_argv + 1;
+
 	/* convert integers to strings for exec argv argument */
-    snprintf(interval_str, sizeof(interval_str), "%lu", interval);
-    snprintf(max_repetitions_str, sizeof(max_repetitions_str), "%lu", max_repetitions);
-    
-    wd_argv[0] = WATCH_DOG_PATH;
-    wd_argv[1] = user_exec_path;
-    wd_argv[2] = interval_str;
-    wd_argv[3] = max_repetitions_str;
-    
-    while (*src_runner != NULL)
-    {
-    	*dest_runner = *src_runner;
-    	++src_runner;
-    	++dest_runner;
-    }
-    
-    *dest_runner = NULL;
-    
+	snprintf(interval_str, sizeof(interval_str), "%lu", interval);
+	snprintf(max_repetitions_str, sizeof(max_repetitions_str), "%lu", max_repetitions);
+
+	wd_argv[0] = WATCH_DOG_PATH;
+	wd_argv[1] = user_exec_path;
+	wd_argv[2] = interval_str;
+	wd_argv[3] = max_repetitions_str;
+
+	while (*src_runner != NULL)
+	{
+		*dest_runner = *src_runner;
+		++src_runner;
+		++dest_runner;
+	}
+
+	*dest_runner = NULL;
+
 	g_partner_pid = fork();
-	
+
 	if (g_partner_pid == 0)	/* in child (WD) process */
 	{
 		return_status = execv(wd_argv[0], wd_argv);
@@ -210,7 +210,7 @@ int CreatePartnerProcess(void)
 	{
 		return return_status;
 	}
-	
+
 	return return_status;
 }
 
