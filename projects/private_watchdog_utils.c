@@ -1,15 +1,14 @@
-#define _XOPEN_SOURCE 700		/* sigaction */
+#define _XOPEN_SOURCE 700	/* sigaction */
 
-#include <stddef.h>		/* size_t */
-#include <stdio.h>		/* printf */
+#include <stddef.h>	/* size_t */
+#include <stdio.h>	/* printf */
 #include <sys/types.h>	/* pid_t */
-#include <unistd.h>		/* waitpid, fork, write */
+#include <unistd.h>	/* waitpid, fork, write */
 #include <sys/wait.h>	/* waitpid */
-#include <signal.h>		/* sigaction */
+#include <signal.h>	/* sigaction */
 #include <semaphore.h>	/* POSIX semaphore functions and definitions */
 #include <pthread.h>	/* POSIX pthread functions */
 #include <stdatomic.h>	/* atomic types */
-/*#include <stdlib.h>	*/
 
 #include "private_watchdog_utils.h"
 #include "scheduler.h"
@@ -65,10 +64,10 @@ int InitScheduler(void)
 
 int InitSignalHandlers(void)
 {
-    struct sigaction sa1 = {0};
-    struct sigaction sa2 = {0};
+	struct sigaction sa1 = {0};
+	struct sigaction sa2 = {0};
 	sigset_t set;
-	
+
 	/* unblock SIGUSR1 and SIGUSR2 in current thread */
 	sigemptyset(&set);
 	sigaddset(&set, SIGUSR1);
@@ -78,19 +77,19 @@ int InitSignalHandlers(void)
 	/* set signal handler for SIGUSR1 and SIGUSR2, and save old handlers */
 	sa1.sa_handler = SignalHandleReceivedLifeSign;
 	sa2.sa_handler = SignalHandleReceivedDNR;
-	
+
 	if (sigaction(SIGUSR1, &sa1, &old_sig_action1) == -1) 
 	{
 		perror("sigaction sa1\n");
 		return 1;
 	}
-	
+
 	if (sigaction(SIGUSR2, &sa2, &old_sig_action2) == -1) 
 	{
 		perror("sigaction sa2\n");
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -128,18 +127,20 @@ static int SchedulerActionSendSignal(void *param)
 static int SchedulerActionIncreaseCounter(void *param)
 {
 	int current_count = 0;
-	
+
 	atomic_fetch_add(&repetition_counter, 1);
-	current_count = atomic_load(&repetition_counter);
-	printf("%d : Increasing counter to %d\n", getpid(), current_count);
 	
-    if ((size_t)current_count == max_repetitions)
-    {
-    	printf("%d : Reached max repetitions! Calling Revive()\n", getpid());
+	current_count = atomic_load(&repetition_counter);	/* redundant, just for test printing */
+	printf("%d : Increasing counter to %d\n", getpid(), current_count);
+
+	/* if number of repetition reached limit - revive the partner process */
+	if ((size_t)(atomic_load(&repetition_counter)) == max_repetitions)
+	{
+		printf("%d : Reached max repetitions! Calling Revive()\n", getpid());
 		Revive();
-    }
-    
-    UNUSED(param);
+	}
+
+	UNUSED(param);
 	return 0;
 }
 
