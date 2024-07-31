@@ -13,16 +13,21 @@
 #include <stdlib.h>	/* exit, strtoul, setenv */
 #include <string.h>	/* sprintf , snprintf */
 
-#include "private_watchdog_utils.h"	/*	functions:
-												InitSignalHandlers(),
-												InitScheduler(),
-												CreatePartnerProcess()
-										global variables:
-												repetition_counter,
-												process_sem,
-												scheduler,
-												interval,
-												user_exec_path */
+#include "private_watchdog_utils.h"
+/*	private watchdog utils:	*/
+/*
+functions:
+	InitSignalHandlers(),
+	InitScheduler(),
+	CreatePartnerProcess()
+global variables:
+	repetition_counter,
+	process_sem,
+	scheduler,
+	interval,
+	user_exec_path
+*/
+
 
 #define DECIMAL_BASE 10
 
@@ -62,7 +67,7 @@ int main(int argc, char *argv[])
 	if (process_sem == SEM_FAILED)
 	{
 		perror("sem_open failed\n");
-		exit(EXIT_FAILURE);
+		return 1;
 	}
 	printf("WD\t Main func\t Loading WD process.\n*interval = %lu\n*max rep = %lu\n*client pid = %u\n*user exec path = %s\n\n", interval, max_repetitions, g_partner_pid, user_exec_path);
 	printf("WD\t Main func\t before posting to semaphore\n");
@@ -93,11 +98,12 @@ int CreatePartnerProcess(void)
 		return_status = execv(user_argv[0], user_argv);
 		printf("WD: execv failed. return status = %d\n", return_status);
 	}
-	else				/* in parent process */
+	else if (g_partner_pid < 0)		/* if fork() failed */		
 	{
-		return return_status;
+		return_status = g_partner_pid;
 	}
 	
+	/* after fork(), in parent process */
 	return return_status;
 }
 

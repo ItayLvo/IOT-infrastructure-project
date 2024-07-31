@@ -7,7 +7,7 @@
 #include <sys/wait.h>	/* waitpid */
 #include <signal.h>	/* sigaction */
 #include <semaphore.h>	/* POSIX semaphore functions and definitions */
-#include <pthread.h>	/* POSIX pthread functions */
+#include <pthread.h>	/* sigmask */
 #include <stdatomic.h>	/* atomic types */
 
 #include "private_watchdog_utils.h"
@@ -148,16 +148,24 @@ static int SchedulerActionIncreaseCounter(void *param)
 
 static int Revive(void)
 {
+	int return_status = 0;
+	
 	/* reset counter and scheduler */
 	SchedulerStop(scheduler);
 	atomic_store(&repetition_counter, 0);
 	
 	/* create partner process with fork+exec */
-	CreatePartnerProcess();
+	return_status = CreatePartnerProcess();
+	
+	if (return_status != 0)	/* Revival failed. return without waiting & restarting scheduler */
+	{
+		perror("CreatePartnerProcess\n");
+		return return_status;
+	}
 	
 	/* wait for the partner process to initialize */
 	sem_wait(process_sem);
-	printf("%d : Revived partner process, and waiting for semaphore. Resuming scheduler\n", getpid());
+	printf("%d : Revived partner process, and finished waiting for semaphore. Resuming scheduler\n", getpid());
 	/* resume scheduler */
 	SchedulerAddTask(scheduler, SchedulerActionIncreaseCounter, NULL, NULL, interval);
 	SchedulerRun(scheduler);

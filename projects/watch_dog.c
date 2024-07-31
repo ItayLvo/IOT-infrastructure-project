@@ -14,17 +14,21 @@
 #include <stdlib.h>	/* getenv, atoi */
 
 #include "watch_dog.h"			/* MMI, DNR declerations */
-#include "private_watchdog_utils.h"	/*	functions:
-									InitSignalHandlers(),
-									InitScheduler(),
-									CreatePartnerProcess()
-							global variables:
-									repetition_counter,
-									process_sem,
-									scheduler,
-									interval,
-									user_exec_path,
-									old_sig_action */
+#include "private_watchdog_utils.h"
+/*	private watchdog utils:	*/
+/*
+functions:
+	InitSignalHandlers(),
+	InitScheduler(),
+	CreatePartnerProcess()
+global variables:
+	repetition_counter,
+	process_sem,
+	scheduler,
+	interval,
+	user_exec_path,
+	old_sig_action
+*/
 												
 
 #define WATCH_DOG_PATH "/home/itay/git/projects/watchdog_exec.out"
@@ -57,6 +61,11 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 
 	/* semaphore to sync between current process and WD process */
 	process_sem = sem_open(SEMAPHORE_NAME, O_CREAT, SEM_PERMISSIONS, 0);
+	if (process_sem == SEM_FAILED)
+	{
+		perror("sem_open failed\n");
+	}
+	
 	sem_init(&thread_ready_sem, 0, 0);
 
 	printf("Client\t MMI func\t before fork+exec\n");
@@ -206,11 +215,12 @@ int CreatePartnerProcess(void)
 		return_status = execv(wd_argv[0], wd_argv);
 		printf("Exec failed. return status = %d\n", return_status);
 	}
-	else				/* in parent process */
+	else if (g_partner_pid < 0)		/* if fork() failed */		
 	{
-		return return_status;
+		return_status = g_partner_pid;
 	}
-
+	
+	/* after fork(), in parent process */
 	return return_status;
 }
 
