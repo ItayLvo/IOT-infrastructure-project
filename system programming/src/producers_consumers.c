@@ -148,80 +148,75 @@ int RunConditionalVariable(void)
 
 
 
-static void *ProduceCond(void *param)
+#define NOT_CONSUMED 0
+#define CONSUMED 1
+#define NUM_PRODUCERS 1
+#define NUM_CONSUMERS 5
+#define BARRIER_COUNT NUM_CONSUMERS
+
+static volatile atomic_int g_count_consumed = 0;
+static volatile atomic_int g_is_consumed = CONSUMED;
+
+static void *ProducerThread(void *param)
 {
-	pid_t tid = gettid();
 	int message = 0;
 	int sem_value = 0;
 	srand(time(NULL));	
-	message = rand() % 10;
 	
 	while(1)
 	{
-
-		pthread_mutex_lock(&job_queue_mutex);
+		/* produce message */
+		message = rand() % 10;
 		
+		/* lock mutex and check conditional variable */
+		pthread_mutex_lock(&job_queue_mutex);
 		while (g_is_consumed == NOT_CONSUMED)
 		{
 			pthread_cond_wait(&cond, &job_queue_mutex);
 		}
 		
+		/* at this point product is consumed - push message to list */
 		SLListInsert(list, &message, SLListGetEnd(list));
-		sem_post(&g_sem);
 		
-		sem_getvalue(&g_sem, &sem_value);
-		printf("thread: %d produced. Current semaphore value: %d\n\n", tid, sem_value);
-		
+		/* update global vars */	
 		g_is_consumed = NOT_CONSUMED;
 		g_count_consumed = 0;
 		
+		/* signal waiting threads and unlock mutex */
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&job_queue_mutex);
 		
-		
-		message = rand() % 10;
-		usleep(message * 1000000);
+		/* post to binary semaphore */
+		sem_post(&g_sem);
 	}
 		
-	
-	(void)param;
 	return NULL;
 }
 
 
-static void *ConsumeCond(void *param)
+static void *ConsumeThread(void *param)
 {
-	pid_t tid = gettid();
 	int *msg_ptr = NULL;
-	int sem_value = 0;
-	int sleep_time = 0;
-	srand(time(NULL));	
+	int msg_value = 0;
 	
 	while(1)
 	{
 		
+		/* lock mutex and check conditional variable */
 		pthread_mutex_lock(&job_queue_mutex);
-		
 		while (g_is_consumed == CONSUMED)
 		{
 			pthread_cond_wait(&cond, &job_queue_mutex);
 		}
 		
+		/* at this point - product exists, read message (without removing it) */
 		msg_ptr = SLListGetData(SLListGetBegin(list));
-		if (msg_ptr == NULL)
-		{
-			/* if SLListGetData() failed */
-			printf("GetData failed!\n");
-			pthread_mutex_unlock(&job_queue_mutex);
-			return NULL;
-		}
+		msg_value = *msg_ptr;
 		
-		
-		sem_getvalue(&g_sem, &sem_value);
-		printf("thread %d consumed message %d. Current semaphore value: %d\n" ,tid, *msg_ptr, sem_value);
-		
+		/* update count of threads that consumed the product */
 		++g_count_consumed;
 		
+		/* if count reached barrier - remove product (remove from list, wait on binary semaphore, update global var), then signal */
 		if (g_count_consumed == BARRIER_COUNT)
 		{
 			SLListRemove(SLListGetBegin(list));
@@ -231,19 +226,15 @@ static void *ConsumeCond(void *param)
 		}
 		
 		pthread_mutex_unlock(&job_queue_mutex);
-		
-		
-		srand(time(NULL));
-		sleep_time = rand() % 10;
-		usleep(sleep_time * 1000000);
 	}
-		
 	
-	(void)param;
+	/* use product/message */
+	printf("%d\n", msg_value);
+
 	return NULL;
 }
 
-
+tal.tabib@infinitylabs.il
 
 
 
