@@ -4,6 +4,7 @@
 !*.h
 !.gitignore
 !*.sh
+!*.java
 
 !*.git
 !*.git/*
