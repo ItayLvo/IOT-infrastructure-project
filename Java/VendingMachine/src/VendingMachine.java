@@ -1,3 +1,5 @@
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class VendingMachine {
 
@@ -5,10 +7,11 @@ public class VendingMachine {
     private int credit;
     private Monitor monitor;
     private VendingSlot[] slots;
-    private static final int DEFAULT_NUM_PRODUCTS_PER_SLOT = 10;
     private Product selectedProduct;
     private VendingSlot selectedSlot;
-
+    private static final int DEFAULT_NUM_PRODUCTS_PER_SLOT = 10;
+    private static final int TIMEOUT_SECONDS = 5;
+    private Timer timer;
 
     public VendingMachine(Monitor monitor, Product[] productList) {
         this.monitor = monitor;
@@ -29,6 +32,7 @@ public class VendingMachine {
 
     public void insertCoin(Coin coin) {
         state.insertCoin(this, coin);
+        resetTimeout();
     }
 
     public void selectProduct(int slotIndex) {
@@ -37,6 +41,7 @@ public class VendingMachine {
             return;
         }
 
+        resetTimeout();
         selectedSlot = slots[slotIndex];
         state.selectProduct(this, slots[slotIndex].product);
     }
@@ -47,15 +52,18 @@ public class VendingMachine {
 
     public void turnOff() {
         state.turnOff(this);
+        cancelTimeout();
     }
 
     private void dispenseProduct() {
+        monitor.display("dispensing product: " + selectedProduct.getName() + ", price: " + selectedProduct.getPrice());
         selectedSlot.decrementAmount();
         credit -= selectedProduct.getPrice();
-
+        monitor.display("credits after purchase: " + credit);
         //reset machine after purchase
         selectedSlot = null;
         selectedProduct = null;
+        cancelTimeout();
     }
 
     private boolean hasEnoughCredits() {
@@ -107,6 +115,7 @@ public class VendingMachine {
 
             @Override
             public void turnOn(VendingMachine vm) {
+                vm.monitor.display("turning on");
                 vm.state = VendingMachineState.WAITING_FOR_SELECTION;
             }
         },
@@ -119,11 +128,13 @@ public class VendingMachine {
             @Override
             public void insertCoin(VendingMachine vm, Coin coin) {
                 vm.credit += coin.getValue();
+                vm.monitor.display("credits after insertion = " + vm.credit);
             }
 
             @Override
             public void selectProduct(VendingMachine vm, Product product) {
                 vm.selectedProduct = product;
+                vm.monitor.display("product selected: " + product.getName());
                 if (vm.hasEnoughCredits()) {
                     vm.dispenseProduct();
                     vm.state = VendingMachineState.WAITING_FOR_SELECTION;
@@ -148,18 +159,21 @@ public class VendingMachine {
         WAITING_FOR_MONEY {
             @Override
             public void cancel(VendingMachine vm) {
+                vm.monitor.display("purchase canceled");
                 vm.credit = 0;
             }
 
             @Override
             public void insertCoin(VendingMachine vm, Coin coin) {
                 vm.credit += coin.getValue();
+                vm.monitor.display("credits after insertion = " + vm.credit);
                 this.selectProduct(vm, vm.selectedProduct);
             }
 
             @Override
             public void selectProduct(VendingMachine vm, Product product) {
                 vm.selectedProduct = product;
+                vm.monitor.display("product selected: " + product.getName());
                 if (vm.hasEnoughCredits()) {
                     vm.dispenseProduct();
                     vm.state = VendingMachineState.WAITING_FOR_SELECTION;
@@ -231,4 +245,38 @@ public class VendingMachine {
             --amount;
         }
     }
+
+    /*********************** timeout methods ***********************/
+    private void resetTimeout() {
+        if (timer != null) {
+            timer.cancel();
+        }
+
+        timer = new Timer();
+
+        // schedule a new task that will call resetMachine() after the timeout period
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                resetMachine(); // This will be called if the timeout period expires
+            }
+        }, TIMEOUT_SECONDS * 1000); // Schedule the task to run after TIMEOUT_SECONDS
+    }
+
+    private void cancelTimeout() {
+        // Cancel the timer to prevent the reset task from running
+        if (timer != null) {
+            timer.cancel();
+        }
+    }
+
+    private void resetMachine() {
+        monitor.display("Timeout. refunding credit: " + credit);
+        credit = 0;
+        selectedProduct = null;
+        state = VendingMachineState.WAITING_FOR_SELECTION;
+    }
+
+
+
 }
