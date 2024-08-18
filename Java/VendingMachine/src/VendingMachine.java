@@ -70,25 +70,6 @@ public class VendingMachine {
         return credit >= selectedProduct.getPrice();
     }
 
-    /*********************** nested Class: Coin ***********************/
-    static public enum Coin {
-        TEN_AGOROT(10),
-        HEZI_SHEKEL(50),
-        SHEKEL(100),
-        SHNEKEL(200),
-        FIVE_SHEKEL(500),
-        TEN_SHEKEL(1000);
-
-        private final int value;
-
-        Coin(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
 
     /*********************** nested Enum: VendingMachineState ***********************/
     private enum VendingMachineState {
@@ -172,15 +153,7 @@ public class VendingMachine {
 
             @Override
             public void selectProduct(VendingMachine vm, Product product) {
-                vm.selectedProduct = product;
-                vm.monitor.display("product selected: " + product.getName());
-                if (vm.hasEnoughCredits()) {
-                    vm.dispenseProduct();
-                    vm.state = VendingMachineState.WAITING_FOR_SELECTION;
-                }
-                else {
-                    vm.monitor.display("Enter more credits. Current amount is " + vm.credit + ", price is " + vm.selectedProduct.getPrice());
-                }
+                VendingMachineState.WAITING_FOR_SELECTION.selectProduct(vm, product);
             }
 
             @Override
@@ -195,18 +168,11 @@ public class VendingMachine {
             } //do nothing
         };
 
-
         public abstract void cancel(VendingMachine vm);
-
         public abstract void insertCoin(VendingMachine vm, Coin coin);
-
         public abstract void selectProduct(VendingMachine vm, Product product);
-
         public abstract void turnOff(VendingMachine vm);
-
         public abstract void turnOn(VendingMachine vm);
-
-
     }
 
 /*********************** nested Class: VendingSlot ***********************/
@@ -277,6 +243,23 @@ public class VendingMachine {
         state = VendingMachineState.WAITING_FOR_SELECTION;
     }
 
+    /*********************** nested Class: Coin ***********************/
+    static public enum Coin {
+        TEN_AGOROT(10),
+        HEZI_SHEKEL(50),
+        SHEKEL(100),
+        SHNEKEL(200),
+        FIVE_SHEKEL(500),
+        TEN_SHEKEL(1000);
 
+        private final int value;
 
+        Coin(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
 }
