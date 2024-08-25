@@ -114,7 +114,6 @@ void Animal_non_static_init(Animal_t *animal);
 void Animal_instance_init_int(Animal_t *animal, int num_masters);
 void Animal_instance_init_void(Animal_t *animal);
 
-
 void Animal_static_init(void)
 {
     Object_static_init();
@@ -126,8 +125,7 @@ void Animal_static_init(void)
             (void (*)(void))Animal_toString,
             (void (*)(void))Animal_finalize,
             (void (*)(void))Animal_sayHello,
-            (void (*)(void))Animal_getNumMasters
-            };
+            (void (*)(void))Animal_getNumMasters};
 
         Animal_metadata.class_name = "Animal_t";
         Animal_metadata.object_size = sizeof(Animal_t);
@@ -177,14 +175,12 @@ void Animal_instance_init_void(Animal_t *animal)
     printf("Animal Ctor\n");
     animal->ID = ++animal_counter;
 
-    
     /* update current object's metadata only if it's NOT a child of Animal */
     /* otherwise, Animal's child classes's vtables will be overriden back to Animal_t vtable */
     if (animal->obj.metadata == NULL || animal->obj.metadata->class_name == "Object_t")
     {
         animal->obj.metadata = &Animal_metadata;
     }
-    
 
     ((sayhello_func_t)(animal->obj.metadata->vtable[SAY_HELLO_FUNC]))(animal);
 
@@ -639,10 +635,9 @@ int main()
     for (i = 0; i < 5; ++i)
     {
         ((sayhello_func_t)(array[i]->obj.metadata->vtable[SAY_HELLO_FUNC]))((Animal_t *)array[i]);
-        
+
         num_masters = ((get_num_masters_func_t)(array[i]->obj.metadata->vtable[GET_NUM_MASTERS_FUNC]))((Animal_t *)array[i]);
         printf("%d\n", num_masters);
-        
     }
 
     for (i = 0; i < 5; ++i)
