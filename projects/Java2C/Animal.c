@@ -7,26 +7,28 @@
 #define INIT 1
 #define NOT_INIT 0
 
-enum virtual_functions_enum {TO_STRING_FUNC = 0, FINALIZE_FUNC = 1, SAY_HELLO_FUNC = 2};
-
+enum virtual_functions_enum
+{
+    TO_STRING_FUNC = 0,
+    FINALIZE_FUNC = 1,
+    SAY_HELLO_FUNC = 2
+};
 
 /****** Object class ******/
 
-typedef struct Object_t {
+typedef struct Object_t
+{
     class_metadata *metadata;
 } Object_t;
 
 static int is_object_init = NOT_INIT;
 
-
 typedef void (*finalize_func_t)(Object_t *);
 typedef char *(*tostring_func_t)(Object_t *, char *);
-
 
 /* function prototypes */
 char *Object_toString(Object_t *self, char *buffer);
 void Object_finalize(Object_t *self);
-
 
 static class_metadata Object_metadata;
 
@@ -35,10 +37,9 @@ void Object_static_init()
     if (is_object_init == NOT_INIT)
     {
         static vfunc_t object_vtable[] = {
-        (void (*)(void))Object_toString,
-        (void (*)(void))Object_finalize,
+            (void (*)(void))Object_toString,
+            (void (*)(void))Object_finalize,
         };
-
 
         Object_metadata.class_name = "Object_t";
         Object_metadata.object_size = sizeof(Object_t);
@@ -49,34 +50,30 @@ void Object_static_init()
     }
 }
 
-
-void Object_instance_init_object(Object_t* obj)
+void Object_instance_init_object(Object_t *obj)
 {
-	obj->metadata = &Object_metadata;
+    obj->metadata = &Object_metadata;
 }
-
 
 Object_t *Object_new(void)
 {
     Object_static_init();
 
     Object_t *obj = (Object_t *)malloc(sizeof(Object_t));
-	if (obj == NULL)
-	{
-		return NULL;
-	}
+    if (obj == NULL)
+    {
+        return NULL;
+    }
 
-	Object_instance_init_object(obj);
+    Object_instance_init_object(obj);
 
-	return obj;
+    return obj;
 }
-
 
 char *Object_toString(Object_t *self, char *buffer)
 {
     sprintf(buffer, "%s@%lu\n", self->metadata->class_name, (size_t)self);
 }
-
 
 void Object_finalize(Object_t *self)
 {
@@ -84,20 +81,14 @@ void Object_finalize(Object_t *self)
 }
 /********* end of Object *********/
 
-
-
-
-
-
-
 /********* Animal *********/
 
-typedef struct Animal_t {
+typedef struct Animal_t
+{
     Object_t obj;
     int animal_num_legs;
     int animal_num_masters;
-	int ID;
-    
+    int ID;
 
 } Animal_t;
 
@@ -105,7 +96,6 @@ static class_metadata Animal_metadata;
 static int is_animal_init = NOT_INIT;
 
 static int animal_counter;
-
 
 /* Animal function prototypes */
 void Animal_static_init(void);
@@ -118,9 +108,7 @@ void Animal_non_static_init(Animal_t *animal);
 void Animal_instance_init_int(Animal_t *animal, int num_masters);
 void Animal_instance_init_void(Animal_t *animal);
 
-
 typedef void (*sayhello_func_t)(Animal_t *);
-
 
 void Animal_static_init(void)
 {
@@ -132,9 +120,8 @@ void Animal_static_init(void)
         static vfunc_t animal_vtable[] = {
             (void (*)(void))Animal_toString,
             (void (*)(void))Animal_finalize,
-            (void (*)(void))Animal_sayHello
-        };
-        
+            (void (*)(void))Animal_sayHello};
+
         Animal_metadata.class_name = "Animal_t";
         Animal_metadata.object_size = sizeof(Animal_t);
         Animal_metadata.super_class = &Object_metadata;
@@ -144,7 +131,6 @@ void Animal_static_init(void)
         printf("Static block Animal 1\n");
         printf("Static block Animal 2\n");
 
-
         /* static variables init */
         animal_counter = 0;
 
@@ -152,14 +138,12 @@ void Animal_static_init(void)
     }
 }
 
-
 void Animal_non_static_init(Animal_t *animal)
 {
     animal->animal_num_legs = 5;
     animal->animal_num_masters = 1;
     printf("Instance initialization block Animal\n");
 }
-
 
 void Animal_instance_init_int(Animal_t *animal, int num_masters)
 {
@@ -175,7 +159,6 @@ void Animal_instance_init_int(Animal_t *animal, int num_masters)
 
     printf("Animal Ctor int\n");
 }
-
 
 void Animal_instance_init_void(Animal_t *animal)
 {
@@ -209,12 +192,11 @@ void Animal_instance_init_void(Animal_t *animal)
     printf("%s\n", tmp_to_string2);
 }
 
-
-Animal_t* Animal_new_int(int num_masters)
+Animal_t *Animal_new_int(int num_masters)
 {
     /* ensure static initialization is done */
     Animal_static_init();
-    
+
     Animal_t *animal = (Animal_t *)malloc(sizeof(Animal_t));
     if (!animal)
     {
@@ -228,12 +210,11 @@ Animal_t* Animal_new_int(int num_masters)
     return animal;
 }
 
-
-Animal_t* Animal_new_void(void)
+Animal_t *Animal_new_void(void)
 {
     /* ensure static initialization is done */
     Animal_static_init();
-    
+
     Animal_t *animal = (Animal_t *)malloc(sizeof(Animal_t));
     if (!animal)
     {
@@ -248,17 +229,14 @@ Animal_t* Animal_new_void(void)
     return animal;
 }
 
-
-
 /* Animal function implementations */
 char *Animal_toString(Object_t *self, char *buffer)
 {
     Animal_t *animal = (Animal_t *)self;
     sprintf(buffer, "Animal with ID: %d\n", animal->ID);
-    
+
     return buffer;
 }
-
 
 void Animal_finalize(Object_t *self)
 {
@@ -268,19 +246,16 @@ void Animal_finalize(Object_t *self)
     ((finalize_func_t)(animal->obj.metadata->super_class->vtable[FINALIZE_FUNC]))((Object_t *)animal);
 }
 
-
 void Animal_sayHello(Animal_t *animal)
 {
     printf("Animal Hello!\n");
-	printf("I have %d legs\n", animal->animal_num_legs);
+    printf("I have %d legs\n", animal->animal_num_legs);
 }
-
 
 int Animal_getNumMasters(Animal_t *animal)
 {
     return animal->animal_num_masters;
 }
-
 
 void Animal_showCounter(void)
 {
@@ -289,27 +264,16 @@ void Animal_showCounter(void)
 
 /*********** end of animal class ***********/
 
-
-
-
-
-
-
-
-
-
-
-
 /*********** class Dog ***********/
 
-typedef struct Dog_t {
+typedef struct Dog_t
+{
     Animal_t animal;
     int dog_num_legs;
 } Dog_t;
 
 static class_metadata Dog_metadata;
 static int is_dog_init = NOT_INIT;
-
 
 /* Dog function prototypes */
 void Dog_static_init(void);
@@ -319,7 +283,6 @@ void Dog_sayHello(Animal_t *animal);
 void Dog_non_static_init(Dog_t *animal);
 void Dog_instance_init_void(Dog_t *animal);
 
-
 void Dog_static_init(void)
 {
     Animal_static_init();
@@ -327,12 +290,11 @@ void Dog_static_init(void)
     if (is_dog_init == NOT_INIT)
     {
         /* class initialization */
-        static vfunc_t dog_vtable[] = {  /* TODO */
-            (void (*)(void))Dog_toString,
-            (void (*)(void))Dog_finalize,
-            (void (*)(void))Dog_sayHello
-        };
-        
+        static vfunc_t dog_vtable[] = {/* TODO */
+                                       (void (*)(void))Dog_toString,
+                                       (void (*)(void))Dog_finalize,
+                                       (void (*)(void))Dog_sayHello};
+
         Dog_metadata.class_name = "Dog_t";
         Dog_metadata.object_size = sizeof(Dog_t);
         Dog_metadata.super_class = &Animal_metadata;
@@ -345,13 +307,11 @@ void Dog_static_init(void)
     }
 }
 
-
 void Dog_non_static_init(Dog_t *dog)
 {
     dog->dog_num_legs = 4;
     printf("Instance initialization block Dog\n");
 }
-
 
 void Dog_instance_init_void(Dog_t *dog)
 {
@@ -360,18 +320,16 @@ void Dog_instance_init_void(Dog_t *dog)
     printf("Dog Ctor\n");
 }
 
-
-Dog_t* Dog_new_void(void)
+Dog_t *Dog_new_void(void)
 {
     /* ensure static initialization is done */
     Dog_static_init();
-    
+
     Dog_t *dog = (Dog_t *)malloc(sizeof(Dog_t));
     if (!dog)
     {
         return NULL;
     }
-
 
     /* initialize the Animal part of Dog: super(2) */
     Animal_instance_init_int((&(dog->animal)), 2);
@@ -385,17 +343,14 @@ Dog_t* Dog_new_void(void)
     return dog;
 }
 
-
-
 /* Dog function implementations */
 char *Dog_toString(Object_t *self, char *buffer)
 {
     Dog_t *dog = (Dog_t *)self;
     sprintf(buffer, "Dog with ID: %d\n", dog->animal.ID);
-    
+
     return buffer;
 }
-
 
 void Dog_finalize(Object_t *self)
 {
@@ -405,28 +360,19 @@ void Dog_finalize(Object_t *self)
     ((finalize_func_t)(dog->animal.obj.metadata->super_class->vtable[FINALIZE_FUNC]))(self);
 }
 
-
 void Dog_sayHello(Animal_t *animal)
 {
     Dog_t *dog = (Dog_t *)animal;
     printf("Dog Hello!\n");
-	printf("I have %d legs\n", dog->dog_num_legs);
+    printf("I have %d legs\n", dog->dog_num_legs);
 }
 
 /*********** end of class Dog ***********/
 
-
-
-
-
-
-
-
-
-
 /*********** class Cat ***********/
 
-typedef struct Cat_t {
+typedef struct Cat_t
+{
     Animal_t animal;
     char *colors;
     int cat_num_masters;
@@ -435,7 +381,6 @@ typedef struct Cat_t {
 static class_metadata Cat_metadata;
 static int is_cat_init = NOT_INIT;
 
-
 /* Cat function prototypes */
 void Cat_static_init(void);
 char *Cat_toString(Object_t *self, char *buffer);
@@ -443,7 +388,6 @@ void Cat_finalize(Object_t *self);
 void Cat_non_static_init(Cat_t *cat);
 void Cat_instance_init_void(Cat_t *cat);
 void Cat_instance_init_string(Cat_t *cat, char *colors);
-
 
 void Cat_static_init(void)
 {
@@ -455,9 +399,8 @@ void Cat_static_init(void)
         static vfunc_t cat_vtable[] = {
             (void (*)(void))Cat_toString,
             (void (*)(void))Cat_finalize,
-            (void (*)(void))Animal_sayHello
-        };
-        
+            (void (*)(void))Animal_sayHello};
+
         Cat_metadata.class_name = "Cat_t";
         Cat_metadata.object_size = sizeof(Cat_t);
         Cat_metadata.super_class = &Animal_metadata;
@@ -470,12 +413,10 @@ void Cat_static_init(void)
     }
 }
 
-
 void Cat_non_static_init(Cat_t *cat)
 {
     cat->cat_num_masters = 5;
 }
-
 
 void Cat_instance_init_void(Cat_t *cat)
 {
@@ -492,7 +433,6 @@ void Cat_instance_init_void(Cat_t *cat)
     cat->cat_num_masters = 2;
 }
 
-
 void Cat_instance_init_string(Cat_t *cat, char *colors)
 {
     Cat_static_init();
@@ -504,13 +444,11 @@ void Cat_instance_init_string(Cat_t *cat, char *colors)
     printf("Cat Ctor with color: %s\n", cat->colors);
 }
 
-
-
-Cat_t* Cat_new_void(void)
+Cat_t *Cat_new_void(void)
 {
     /* ensure static initialization is done */
     Cat_static_init();
-    
+
     Cat_t *cat = (Cat_t *)malloc(sizeof(Cat_t));
     if (!cat)
     {
@@ -524,19 +462,18 @@ Cat_t* Cat_new_void(void)
     return cat;
 }
 
-
-Cat_t* Cat_new_string(char *colors)
+Cat_t *Cat_new_string(char *colors)
 {
     /* ensure static initialization is done */
     Cat_static_init();
-    
+
     Cat_t *cat = (Cat_t *)malloc(sizeof(Cat_t));
     if (!cat)
     {
         return NULL;
     }
 
-    /* initialize the Animal part of Cat 
+    /* initialize the Animal part of Cat
     Animal_instance_init_void(&(cat->animal));
     */
     cat->animal.obj.metadata = &Cat_metadata;
@@ -548,17 +485,14 @@ Cat_t* Cat_new_string(char *colors)
     return cat;
 }
 
-
-
 /* Cat function implementations */
 char *Cat_toString(Object_t *self, char *buffer)
 {
     Cat_t *cat = (Cat_t *)self;
     sprintf(buffer, "Cat with ID: %d\n", cat->animal.ID);
-    
+
     return buffer;
 }
-
 
 void Cat_finalize(Object_t *self)
 {
@@ -570,32 +504,24 @@ void Cat_finalize(Object_t *self)
 
 /*********** end of class Cat ***********/
 
-
-
-
-
-
-
-
 /*********** class LegendaryAnimal ***********/
 
-typedef struct LegendaryAnimal_t {
+typedef struct LegendaryAnimal_t
+{
     Cat_t cat;
 } LegendaryAnimal_t;
 
 static class_metadata LegendaryAnimal_metadata;
 static int is_legendaryanimal_init = NOT_INIT;
 
-
 /* Cat function prototypes */
-LegendaryAnimal_t* LegendaryAnimal_new_void(void);
+LegendaryAnimal_t *LegendaryAnimal_new_void(void);
 char *LegendaryAnimal_toString(Object_t *self, char *buffer);
 void LegendaryAnimal_static_init(void);
 void LegendaryAnimal_finalize(Object_t *self);
 void LegendaryAnimal_non_static_init(LegendaryAnimal_t *la);
 void LegendaryAnimal_instance_init_void(LegendaryAnimal_t *la);
 void LegendaryAnimal_sayHello(Animal_t *animal);
-
 
 void LegendaryAnimal_static_init(void)
 {
@@ -607,9 +533,8 @@ void LegendaryAnimal_static_init(void)
         static vfunc_t legendaryanimal_vtable[] = {
             (void (*)(void))LegendaryAnimal_toString,
             (void (*)(void))LegendaryAnimal_finalize,
-            (void (*)(void))LegendaryAnimal_sayHello
-        };
-        
+            (void (*)(void))LegendaryAnimal_sayHello};
+
         LegendaryAnimal_metadata.class_name = "LegendaryAnimal_t";
         LegendaryAnimal_metadata.object_size = sizeof(LegendaryAnimal_t);
         LegendaryAnimal_metadata.super_class = &Cat_metadata;
@@ -622,12 +547,10 @@ void LegendaryAnimal_static_init(void)
     }
 }
 
-
 void LegendaryAnimal_non_static_init(LegendaryAnimal_t *la)
 {
     return;
 }
-
 
 void LegendaryAnimal_instance_init_void(LegendaryAnimal_t *la)
 {
@@ -638,13 +561,11 @@ void LegendaryAnimal_instance_init_void(LegendaryAnimal_t *la)
     printf("Legendary Ctor\n");
 }
 
-
-
-LegendaryAnimal_t* LegendaryAnimal_new_void(void)
+LegendaryAnimal_t *LegendaryAnimal_new_void(void)
 {
     /* ensure static initialization is done */
     LegendaryAnimal_static_init();
-    
+
     LegendaryAnimal_t *la = (LegendaryAnimal_t *)malloc(sizeof(LegendaryAnimal_t));
     if (!la)
     {
@@ -655,22 +576,19 @@ LegendaryAnimal_t* LegendaryAnimal_new_void(void)
     la->cat.animal.obj.metadata = &LegendaryAnimal_metadata;
     Cat_instance_init_void(&(la->cat));
 
-
     LegendaryAnimal_instance_init_void(la);
 
     return la;
 }
-
 
 /* LegendaryAnimal function implementations */
 char *LegendaryAnimal_toString(Object_t *self, char *buffer)
 {
     LegendaryAnimal_t *la = (LegendaryAnimal_t *)self;
     sprintf(buffer, "LegendaryAnimal with ID: %d\n", la->cat.animal.ID);
-    
+
     return buffer;
 }
-
 
 void LegendaryAnimal_finalize(Object_t *self)
 {
@@ -680,7 +598,6 @@ void LegendaryAnimal_finalize(Object_t *self)
     ((finalize_func_t)(la->cat.animal.obj.metadata->super_class->vtable[FINALIZE_FUNC]))(self);
 }
 
-
 void LegendaryAnimal_sayHello(Animal_t *self)
 {
     printf("Legendary Hello!\n");
@@ -688,17 +605,12 @@ void LegendaryAnimal_sayHello(Animal_t *self)
 
 /*********** end of class LegendaryAnimal ***********/
 
-
-
-
-
-
-
 /*********** main ***********/
 
 void foo(Animal_t *animal);
 
-int main() {
+int main()
+{
     int i = 0;
     Object_t obj;
     Animal_t *animal = Animal_new_void();
@@ -721,8 +633,7 @@ int main() {
         (Animal_t *)Cat_new_void(),
         (Animal_t *)Cat_new_string("white"),
         (Animal_t *)LegendaryAnimal_new_void(),
-        (Animal_t *)Animal_new_void()
-    };
+        (Animal_t *)Animal_new_void()};
 
     for (i = 0; i < 5; ++i)
     {
