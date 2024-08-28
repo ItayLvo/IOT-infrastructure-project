@@ -24,10 +24,6 @@ public class LinkedListGen<T> implements Iterable<T> {
     }
 
     public T popFront() {
-        if (head == null) {
-            return null;
-        }
-
         ++modCount;
 
         T t = head.data;
@@ -102,11 +98,14 @@ public class LinkedListGen<T> implements Iterable<T> {
         mergedLists.tail = list2.tail;
 
         //nullify old lists for garbage collection
-        list1 = null;
-        list2 = null;
+        list1.head = null;
+        list1.tail = null;
+        list2.head = null;
+        list2.tail = null;
 
         return mergedLists;
     }
+
 
 
     public static <T> LinkedListGen<T> newReverse(LinkedListGen<T> list) {
@@ -128,16 +127,16 @@ public class LinkedListGen<T> implements Iterable<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return new ListIterator<>(head);
+        return (Iterator<T>)new ListIterator<>(head);
     }
 
 
-    // nested Node<T> class:
-    private static class Node<T> {
-        private T data;
-        private Node<T> next;
+    // nested Node<e> class:
+    private static class Node<E> {
+        private E data;
+        private Node<E> next;
 
-        public Node(T t, Node<T> next) {
+        public Node(E t, Node<E> next) {
             this.data = t;
             this.next = next;
         }
