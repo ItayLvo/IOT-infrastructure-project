@@ -50,6 +50,17 @@ class LinkedListGenTest {
         assertEquals(2, res);
     }
 
+
+    @org.junit.jupiter.api.Test
+    void findShouldNotFindAndReturnNull() {
+        LinkedListGen<Integer> list = new LinkedListGen<>();
+        list.pushFront(1);
+        list.pushFront(2);
+        list.pushFront(3);
+        Iterator<Integer> iter = list.find(444);
+        assertNull(iter);
+    }
+
     @org.junit.jupiter.api.Test
     void mergeLists() {
         LinkedListGen<Integer> list1 = new LinkedListGen<>();

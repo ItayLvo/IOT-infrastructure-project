@@ -41,20 +41,38 @@ public class LinkedListGen<T> implements Iterable<T> {
     }
 
     public int size() {
-        Node<T> n = head;
         int count = 0;
-        while (n != null) {
+
+        for(T item : this) {
             ++count;
-            n = n.next;
         }
 
         return count;
     }
 
     public boolean isEmpty() {
-        return (size() == 0);
+        return (head == null);
     }
 
+
+    public Iterator<T> find(T data) {
+        ListIterator<T> iter = new ListIterator<T>(this.head);
+        Node<T> resultNode = null;
+
+        while (iter.hasNext()) {
+            //save current node before advancing it with next()
+            resultNode = iter.node;
+            T currentItem = iter.next();
+
+            if (currentItem.equals(data)) {
+                return new ListIterator<T>(resultNode);
+            }
+        }
+        // if didn't find the item, return null
+        return null;
+    }
+
+    /* alternative implementation using node, not "fail-fast safe":
     public Iterator<T> find(T data) {
         Node<T> n = head;
 
@@ -64,24 +82,10 @@ public class LinkedListGen<T> implements Iterable<T> {
             }
             n = n.next;
         }
-
         return null;
     }
-
-    /* alternative implementation using iterator:
-    public Iterator<T> find(T data) {
-        ListIterator<T> iter = new ListIterator<T>(this.head);
-
-        while (iter.hasNext()) {
-            T t = iter.next();
-            if (t.equals(data)) {
-                return new ListIterator<T>(new Node<T>(t, iter.node));
-            }
-        }
-
-        return iter;
-    }
     */
+
 
     //removes all nodes from both lists and returns a new one
     public static <T> LinkedListGen<T> mergeLists(LinkedListGen<T> list1, LinkedListGen<T> list2) {
@@ -107,11 +111,9 @@ public class LinkedListGen<T> implements Iterable<T> {
 
     public static <T> LinkedListGen<T> newReverse(LinkedListGen<T> list) {
         LinkedListGen<T> reversedList = new LinkedListGen<>();
-        Node<T> runner = new Node<>(list.head.data, list.head.next);
 
-        while (runner != null) {
-            reversedList.pushFront(runner.data);
-            runner = runner.next;
+        for (T item : list) {
+            reversedList.pushFront(item);
         }
 
         return reversedList;
