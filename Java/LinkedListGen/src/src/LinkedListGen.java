@@ -1,6 +1,7 @@
+package src;
+
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
-//import java.util.LinkedList;
 
 public class LinkedListGen<T> implements Iterable<T> {
     private Node<T> head;
