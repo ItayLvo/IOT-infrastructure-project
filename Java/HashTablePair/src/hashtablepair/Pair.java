@@ -51,7 +51,7 @@ public class Pair<K,V> implements Map.Entry<K,V> {
         }
 
         Pair<K,V> other = (Pair<K,V>) obj;
-        return Objects.equals(key, other.key) && Objects.equals(value, other.value);
+        return this.key.equals(other.getKey()); // && Objects.equals(value, other.value);
     }
 
     public static <K,V> Pair<K,V> of(K key, V value) {
