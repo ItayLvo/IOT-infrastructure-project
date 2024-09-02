@@ -179,4 +179,20 @@ class HashMapTest {
             System.out.println(ent.getKey() + ": " + ent.getValue());
         }
     }
+
+    @Test
+    void testFailFast() {
+        ConcurrentModificationException e = assertThrows(ConcurrentModificationException.class, () ->
+        {
+            HashMap<Integer, String> map = new HashMap<>();
+            map.put(1000, "one");
+            map.put(2000, "two");
+            map.put(3000, "three");
+            Set<Map.Entry<Integer, String>> entrySet = map.entrySet();
+            Iterator<Map.Entry<Integer, String>> iterator = entrySet.iterator();
+            iterator.next();
+            map.remove(2);
+            iterator.next();
+        });
+    }
 }

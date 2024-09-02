@@ -7,6 +7,10 @@ public class HashMap<K, V> implements Map<K, V> {
     public static final int DEFAULT_INITIAL_CAPACITY = 16;
     private final int capacity;
     private int size = 0;
+    private Set<K> keySet;
+    private Collection<V> values;
+    private Set<Entry<K, V>> entrySet;
+    private int modCount = 0;
 
 
     public HashMap() {
@@ -74,6 +78,7 @@ public class HashMap<K, V> implements Map<K, V> {
     @Override
     public V put(K k, V v) {
         int bucket = Math.abs(k.hashCode() % capacity);
+        ++modCount;
 
         // replace the existing k entry, if exists
         for (Entry<K, V> entry : buckets.get(bucket)) {
@@ -95,6 +100,8 @@ public class HashMap<K, V> implements Map<K, V> {
     @Override
     public V remove(Object o) {
         int bucket = Math.abs(o.hashCode() % capacity);
+        ++modCount;
+
         for (Entry<K, V> entry : buckets.get(bucket)) {
             if (entry.getKey().equals(o)) {
                 V v = entry.getValue();
@@ -116,6 +123,8 @@ public class HashMap<K, V> implements Map<K, V> {
 
     @Override
     public void clear() {
+        ++modCount;
+
         // clear every list inside the buckets, without changing the buckets arraylist itself
         for (List<Entry<K, V>> list : buckets) {
             list.clear();
@@ -125,17 +134,26 @@ public class HashMap<K, V> implements Map<K, V> {
 
     @Override //O(1) space
     public Set<K> keySet() {
-        return new SetOfKeys();
+        if (keySet == null)
+            keySet = new SetOfKeys();
+
+        return keySet;
     }
 
     @Override  //O(1) space
     public Collection<V> values() {
-        return new CollectionOfValues();
+        if (values == null)
+            values = new CollectionOfValues();
+
+        return values;
     }
 
     @Override  //O(1) space
     public Set<Entry<K, V>> entrySet() {
-        return new SetOfEntries();
+        if (entrySet == null)
+            entrySet = new SetOfEntries();
+
+        return entrySet;
     }
 
 
@@ -154,10 +172,12 @@ public class HashMap<K, V> implements Map<K, V> {
             int currentBucket = 0;
             int currentIndex = 0;
             Map.Entry<K, V> currentEntry = null;
+            int expectedModCount;
 
 
             public EntriesIterator() {
-                //set currentEntry at the first valid entry, or null if couldn't find any
+                expectedModCount = modCount;
+                //set currentEntry at the first valid entry, or null if it couldn't find any
                 advanceToNextEntry();
             }
 
@@ -183,6 +203,10 @@ public class HashMap<K, V> implements Map<K, V> {
 
             @Override
             public boolean hasNext() {
+                if (expectedModCount != HashMap.this.modCount) {
+                    throw new ConcurrentModificationException();
+                }
+
                 return currentEntry != null;
             }
 
@@ -190,6 +214,9 @@ public class HashMap<K, V> implements Map<K, V> {
             public Entry<K, V> next() {
                 if (currentEntry == null) {
                     throw new NoSuchElementException();
+                }
+                if (expectedModCount != HashMap.this.modCount) {
+                    throw new ConcurrentModificationException();
                 }
 
                 Entry<K, V> entryToReturn = currentEntry;
