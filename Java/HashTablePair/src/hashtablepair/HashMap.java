@@ -5,7 +5,7 @@ import java.util.*;
 public class HashMap<K, V> implements Map<K, V> {
     List<List<Entry<K, V>>> buckets;
     public static final int DEFAULT_INITIAL_CAPACITY = 16;
-    private final float capacity;
+    private final int capacity;
     private int size = 0;
 
 
@@ -39,7 +39,7 @@ public class HashMap<K, V> implements Map<K, V> {
         if (o == null)
             return false;
 
-        int bucket = (int) (o.hashCode() % capacity);
+        int bucket = Math.abs(o.hashCode() % capacity);
         for (Entry<K, V> entry : buckets.get(bucket)) {
             if (entry.getKey().equals(o)) {
                 return true;
@@ -62,7 +62,7 @@ public class HashMap<K, V> implements Map<K, V> {
 
     @Override
     public V get(Object o) {
-        int bucket = (int) (o.hashCode() % capacity);
+        int bucket = Math.abs(o.hashCode() % capacity);
         for (Entry<K, V> entry : buckets.get(bucket)) {
             if (entry.getKey().equals(o)) {
                 return entry.getValue();
@@ -73,21 +73,28 @@ public class HashMap<K, V> implements Map<K, V> {
 
     @Override
     public V put(K k, V v) {
-        // remove the existing k entry, if exists
-        remove(k);
+        int bucket = Math.abs(k.hashCode() % capacity);
 
-        //insert the new entry
-        Map.Entry<K, V> entry = new Pair<>(k, v);
-        int bucket = (int) (k.hashCode() % capacity);
-        buckets.get(bucket).add(entry);
+        // replace the existing k entry, if exists
+        for (Entry<K, V> entry : buckets.get(bucket)) {
+            if (entry.getKey().equals(k)) {
+                V oldValue = entry.getValue();
+                entry.setValue(v);
+                return oldValue;
+            }
+        }
+
+        // if key doesn't exist yet, insert the new entry
+        Map.Entry<K, V> newEntry = new Pair<>(k, v);
+        buckets.get(bucket).add(newEntry);
         ++size;
 
-        return v;
+        return null;
     }
 
     @Override
     public V remove(Object o) {
-        int bucket = (int) (o.hashCode() % capacity);
+        int bucket = Math.abs(o.hashCode() % capacity);
         for (Entry<K, V> entry : buckets.get(bucket)) {
             if (entry.getKey().equals(o)) {
                 V v = entry.getValue();
