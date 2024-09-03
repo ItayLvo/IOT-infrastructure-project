@@ -64,6 +64,27 @@ class HashMapTest {
     }
 
     @Test
+    void putNull() {
+        HashMap<Integer, String> map = new HashMap<>();
+        map.put(1, "one");
+        map.put(null, null);
+        String test = map.get(null);
+        assertNull(test);
+    }
+
+    @Test
+    void testNullKeyAndValue() {
+        HashMap<Integer, String> map = new HashMap<>();
+        map.put(1, "one");
+        map.put(null, null);
+        assertTrue(map.containsKey(null));
+        assertTrue(map.containsValue(null));
+        map.remove(null);
+        assertFalse(map.containsKey(null));
+        assertFalse(map.containsValue(null));
+    }
+
+    @Test
     void putOverrideOldPair() {
         HashMap<Integer, String> map = new HashMap<>();
         map.put(1, "one");

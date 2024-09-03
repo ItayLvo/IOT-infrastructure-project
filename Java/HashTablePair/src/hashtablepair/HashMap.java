@@ -40,12 +40,10 @@ public class HashMap<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsKey(Object o) {
-        if (o == null)
-            return false;
+        int bucket = (o == null) ? 0 : Math.abs(o.hashCode() % capacity);
 
-        int bucket = Math.abs(o.hashCode() % capacity);
         for (Entry<K, V> entry : buckets.get(bucket)) {
-            if (entry.getKey().equals(o)) {
+            if ((o == null && entry.getKey() == null) || entry.getKey().equals(o)) {
                 return true;
             }
         }
@@ -57,7 +55,7 @@ public class HashMap<K, V> implements Map<K, V> {
     public boolean containsValue(Object o) {
         Collection<V> values = values();
         for (V v : values) {
-            if (v.equals(o)) {
+            if ((o == null && v == null) || v.equals(o)) {
                 return true;
             }
         }
@@ -66,9 +64,10 @@ public class HashMap<K, V> implements Map<K, V> {
 
     @Override
     public V get(Object o) {
-        int bucket = Math.abs(o.hashCode() % capacity);
+        int bucket = (o == null) ? 0 : Math.abs(o.hashCode() % capacity);
+
         for (Entry<K, V> entry : buckets.get(bucket)) {
-            if (entry.getKey().equals(o)) {
+            if ((o == null && entry.getKey() == null) || entry.getKey().equals(o)) {
                 return entry.getValue();
             }
         }
@@ -77,12 +76,12 @@ public class HashMap<K, V> implements Map<K, V> {
 
     @Override
     public V put(K k, V v) {
-        int bucket = Math.abs(k.hashCode() % capacity);
+        int bucket = (k == null) ? 0 : Math.abs(k.hashCode() % capacity);
         ++modCount;
 
         // replace the existing k entry, if exists
         for (Entry<K, V> entry : buckets.get(bucket)) {
-            if (entry.getKey().equals(k)) {
+            if ((k == null && entry.getKey() == null) || entry.getKey().equals(k)) {
                 V oldValue = entry.getValue();
                 entry.setValue(v);
                 return oldValue;
@@ -99,11 +98,11 @@ public class HashMap<K, V> implements Map<K, V> {
 
     @Override
     public V remove(Object o) {
-        int bucket = Math.abs(o.hashCode() % capacity);
+        int bucket = (o == null) ? 0 : Math.abs(o.hashCode() % capacity);
         ++modCount;
 
         for (Entry<K, V> entry : buckets.get(bucket)) {
-            if (entry.getKey().equals(o)) {
+            if ((o == null && entry.getKey() == null) || entry.getKey().equals(o)) {
                 V v = entry.getValue();
                 buckets.get(bucket).remove(entry);
                 --size;
