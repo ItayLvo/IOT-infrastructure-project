@@ -1,19 +1,22 @@
 package exercise3;
 
 public class Consumer extends Thread {
-    MyMonitor monitorAtomicVar;
+    MyMonitor monitor;
 
-    public Consumer(MyMonitor monitorAtomicVar) {
-        this.monitorAtomicVar = monitorAtomicVar;
+    public Consumer(MyMonitor m) {
+        this.monitor = m;
     }
 
-    @Override
     public void run() {
+        consume();
+    }
+
+    private void consume() {
         while (true) {
             try {
-                monitorAtomicVar.ping();
+                monitor.remove();
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                System.out.println("Consumer interrupted");
             }
         }
     }

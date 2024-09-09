@@ -1,10 +1,17 @@
 package exercise3;
 
-public class MyMonitor {
+public interface MyMonitor {
 
-    public void ping() throws InterruptedException {
+    default public void ping() throws InterruptedException {
     }
 
-    public void pong() throws InterruptedException {
+    default public void pong() throws InterruptedException {
     }
+
+    default public void remove() throws InterruptedException {
+    }
+
+    default public void add(long i) throws InterruptedException {
+    }
+
 }

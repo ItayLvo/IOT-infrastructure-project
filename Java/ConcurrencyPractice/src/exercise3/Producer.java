@@ -1,20 +1,23 @@
 package exercise3;
 
 public class Producer extends Thread {
-    MyMonitor monitorAtomicVar;
+    MyMonitor monitor;
 
-    public Producer(MyMonitor monitorAtomicVar) {
-        this.monitorAtomicVar = monitorAtomicVar;
+    public Producer(MyMonitor m) {
+        this.monitor = m;
     }
 
-    @Override
     public void run() {
+        try {
+            produce();
+        } catch (InterruptedException e) { }
+    }
+
+    private void produce() throws InterruptedException {
+        long i = 0;
         while (true) {
-            try {
-                monitorAtomicVar.pong();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            monitor.add(i);
+            ++i;
         }
     }
 }

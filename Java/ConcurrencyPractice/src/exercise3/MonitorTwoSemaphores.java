@@ -3,7 +3,7 @@ package exercise3;
 
 import java.util.concurrent.Semaphore;
 
-public class MonitorTwoSemaphores extends MyMonitor{
+public class MonitorTwoSemaphores implements MyMonitor {
     private final Semaphore semaphoreEmpty = new Semaphore(1);
     private final Semaphore semaphoreFull = new Semaphore(0);
 

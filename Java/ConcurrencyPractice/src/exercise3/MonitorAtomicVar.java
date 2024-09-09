@@ -2,26 +2,24 @@ package exercise3;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MonitorAtomicVar extends MyMonitor {
-//    private final Semaphore semaphore = new Semaphore(1);
+public class MonitorAtomicVar implements MyMonitor {
     private AtomicInteger count = new AtomicInteger(0);
 
-    public void ping() {
+    public void ping() throws InterruptedException {
         while (true) {
-            while (count.get() > 0) { //busywait
+            while (count.get() != 0) { //busywait
             }
-            count.incrementAndGet();
             System.out.println(Thread.currentThread().getName() + ": Ping " + count.get());
+            count.incrementAndGet();
         }
     }
 
-    public void pong() {
+    public void pong() throws InterruptedException {
         while (true) {
             while (count.get() == 0) {  //busywait
-
             }
-            count.decrementAndGet();
             System.out.println(Thread.currentThread().getName() + ": Pong " + count.get());
+            count.decrementAndGet();
         }
     }
 
