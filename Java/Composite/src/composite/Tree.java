@@ -9,14 +9,17 @@ public class Tree implements AbstractFile {
 
     public Tree(String absolutePathOfRootDirectory) {
         File file = new File(absolutePathOfRootDirectory);
-        File[] subDirectories = file.listFiles();
+        tree.add(new PrimitiveFile(file));
 
-        for (File subFile : subDirectories) {
-            tree.add(new PrimitiveFile(subFile));
-            if (subFile.isDirectory()) {
-                tree.add(new Tree(subFile.getAbsolutePath()));
+        if (file.isDirectory()) {
+            File[] subDirectories = file.listFiles();
+            for (File subFile : subDirectories) {
+                if (subFile.isDirectory()) {
+                    tree.add(new Tree(subFile.getAbsolutePath()));
+                } else {
+                    tree.add(new PrimitiveFile(subFile));
+                }
             }
-
         }
     }
 
