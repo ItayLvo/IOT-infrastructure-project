@@ -16,7 +16,8 @@ public class Tree implements AbstractFile {
             for (File subFile : subDirectories) {
                 if (subFile.isDirectory()) {
                     tree.add(new Tree(subFile.getAbsolutePath()));
-                } else {
+                }
+                else {
                     tree.add(new PrimitiveFile(subFile));
                 }
             }
