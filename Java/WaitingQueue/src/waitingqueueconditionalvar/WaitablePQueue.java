@@ -4,8 +4,6 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -32,12 +30,11 @@ public class WaitablePQueue<E> {
     }
 
     public WaitablePQueue() {
-       this(DEFAULT_CAPACITY);
+        this(DEFAULT_CAPACITY);
     }
 
     public void enqueue(E e) {
         lock.lock();
-
         try {
             // wait until the is space in the queue
             while (queue.size() == capacity) {
@@ -69,73 +66,77 @@ public class WaitablePQueue<E> {
         }
     }
 
-    //TODO
     public E dequeue(long timeout, TimeUnit unit) {
-        return null;
-    }
+        long remainingTimeToWait = unit.toNanos(timeout);
+        long deadline = System.nanoTime() + remainingTimeToWait;
 
-
-    /*
-    private void resetTimeout() {
-        if (timer != null) {
-            timer.cancel();
-        }
-
-        timer = new Timer();
-
-        // schedule a new task that will call resetMachine() after the timeout period
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                resetMachine(); // This will be called if the timeout period expires
+        try {
+            if (!lock.tryLock(remainingTimeToWait, TimeUnit.NANOSECONDS)) {
+                return null;
             }
-        }, TIMEOUT_SECONDS * 1000); // Schedule the task to run after TIMEOUT_SECONDS
-    }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
 
-    private void cancelTimeout() {
-        // Cancel the timer to prevent the reset task from running
-        if (timer != null) {
-            timer.cancel();
+        //update remaining time to wait after waiting for lock
+        remainingTimeToWait = deadline - System.nanoTime();
+        try {
+            while (queue.isEmpty()) {
+                if (remainingTimeToWait <= 0) {
+                    return null; // timeout while waiting for an item
+                }
+                remainingTimeToWait = condition.awaitNanos(remainingTimeToWait);
+            }
+            return queue.remove();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } finally {
+            lock.unlock();
         }
     }
-
-    private void resetMachine() {
-        monitor.display("Timeout. refunding credit: " + credit);
-        credit = 0;
-        selectedProduct = null;
-        state = VendingMachineState.WAITING_FOR_SELECTION;
-    }
-    */
 
 
     public boolean remove(Object o) {
-        boolean isRemoved;
-
         lock.lock();
-        isRemoved = queue.remove(o);
-        condition.signal();
-        lock.unlock();
-        return isRemoved;
+        try {
+            boolean isRemoved = queue.remove(o);
+            if (isRemoved) {
+                condition.signal();
+            }
+            return isRemoved;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public E peek() {
         lock.lock();
-        E e = queue.peek();
-        lock.unlock();
-        return e;
+        try {
+            return queue.peek();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public int size() {
         lock.lock();
-        int size = queue.size();
-        lock.unlock();
-        return size;
+        try {
+            return queue.size();
+        } finally {
+            lock.unlock();
+        }
+
     }
 
     public boolean isEmpty() {
         lock.lock();
-        boolean isEmpty = queue.isEmpty();
-        lock.unlock();
-        return isEmpty;
+        try {
+            return queue.isEmpty();
+        } finally {
+            lock.unlock();
+        }
     }
+
 }

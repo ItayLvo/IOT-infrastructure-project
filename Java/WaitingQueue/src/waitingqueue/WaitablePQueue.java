@@ -3,34 +3,34 @@ package waitingqueue;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class WaitablePQueue<E> {
     private Queue<E> queue;
-    private Semaphore semaphore;
-    private Timer timer;
+    private Semaphore semaphore = new Semaphore(0);
+    private Lock lock = new ReentrantLock();
 
     //constructor with Comparator
     public WaitablePQueue(Comparator<E> comparator) {
         queue = new PriorityQueue<E>(comparator);
-        semaphore = new Semaphore(0);
     }
 
     //Constructor without Comparator, E should be Comparable
     public WaitablePQueue() {
         queue = new PriorityQueue<E>();
-        semaphore = new Semaphore(0);
     }
 
     public void enqueue(E e) {
-        synchronized (queue) {
+        lock.lock();
+        try {
             queue.add(e);
+            semaphore.release();
+        } finally {
+            lock.unlock();
         }
-        semaphore.release();
     }
 
     public E dequeue() {
@@ -40,14 +40,53 @@ public class WaitablePQueue<E> {
             throw new RuntimeException(ex);
         }
 
-        synchronized (queue) {
+        lock.lock();
+        try {
             return queue.remove();
+        } finally {
+            lock.unlock();
         }
     }
 
 
     public E dequeue(long timeout, TimeUnit unit) {
-        return null;
+        E item = null;
+
+        //calculate timeout deadline and remaining time to wait
+        long remainingTimeToWait = unit.toNanos(timeout);
+        long deadline = System.nanoTime() + remainingTimeToWait;
+
+        //try to acquire semaphore before timeout
+        try {
+            if (!semaphore.tryAcquire(remainingTimeToWait, TimeUnit.NANOSECONDS)) {
+                return null;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
+
+        //update remaining time to wait after waiting for semaphore
+        remainingTimeToWait = deadline - System.nanoTime();
+
+        boolean acquiredLock = false;
+        try {
+            if (!lock.tryLock(remainingTimeToWait, TimeUnit.NANOSECONDS)) {
+                return null;    //if timed out while waiting for lock - return null
+            }
+            acquiredLock = true;
+            return queue.remove();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } finally {
+            if (acquiredLock) {
+                lock.unlock();
+            } else {
+                //if timed out while waiting for lock - release semaphore
+                semaphore.release();
+            }
+        }
     }
 
 
@@ -84,19 +123,17 @@ public class WaitablePQueue<E> {
     */
 
 
-
     public boolean remove(Object o) {
-        boolean isRemoved;
-
-        synchronized (queue) {
-            isRemoved = queue.remove(o);
+        lock.lock();
+        try {
+            boolean isRemoved = queue.remove(o);
+            if (isRemoved) {
+                semaphore.release();
+            }
+            return isRemoved;
+        } finally {
+            lock.unlock();
         }
-
-        if (isRemoved == true) {
-            semaphore.release();
-        }
-
-        return isRemoved;
     }
 
     public E peek() {

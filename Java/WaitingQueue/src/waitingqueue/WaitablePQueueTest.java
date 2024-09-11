@@ -3,6 +3,7 @@ package waitingqueue;
 import org.junit.jupiter.api.Test;
 
 import java.util.Comparator;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -79,5 +80,16 @@ class WaitablePQueueTest {
         assertEquals(3, wpq.peek());
         wpq.enqueue(1);
         assertEquals(1, wpq.peek());
+    }
+
+    @Test
+    void timeoutDuringDequeue() {
+        WaitablePQueue<Integer> wpq = new WaitablePQueue<>();
+        wpq.enqueue(3);
+        wpq.enqueue(1);
+        Integer i = wpq.dequeue();
+        Integer j = wpq.dequeue();
+        Integer k = wpq.dequeue(3, TimeUnit.SECONDS);
+        assertNull(k);
     }
 }
