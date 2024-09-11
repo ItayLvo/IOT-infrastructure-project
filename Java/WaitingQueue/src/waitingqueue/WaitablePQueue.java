@@ -10,8 +10,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class WaitablePQueue<E> {
     private Queue<E> queue;
-    private Semaphore semaphore = new Semaphore(0);
-    private Lock lock = new ReentrantLock();
+    private final Semaphore semaphore = new Semaphore(0);
+    private final Lock lock = new ReentrantLock();
 
     //constructor with Comparator
     public WaitablePQueue(Comparator<E> comparator) {
@@ -50,8 +50,6 @@ public class WaitablePQueue<E> {
 
 
     public E dequeue(long timeout, TimeUnit unit) {
-        E item = null;
-
         //calculate timeout deadline and remaining time to wait
         long remainingTimeToWait = unit.toNanos(timeout);
         long deadline = System.nanoTime() + remainingTimeToWait;
@@ -90,39 +88,6 @@ public class WaitablePQueue<E> {
     }
 
 
-    /*
-    private void resetTimeout() {
-        if (timer != null) {
-            timer.cancel();
-        }
-
-        timer = new Timer();
-
-        // schedule a new task that will call resetMachine() after the timeout period
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                resetMachine(); // This will be called if the timeout period expires
-            }
-        }, TIMEOUT_SECONDS * 1000); // Schedule the task to run after TIMEOUT_SECONDS
-    }
-
-    private void cancelTimeout() {
-        // Cancel the timer to prevent the reset task from running
-        if (timer != null) {
-            timer.cancel();
-        }
-    }
-
-    private void resetMachine() {
-        monitor.display("Timeout. refunding credit: " + credit);
-        credit = 0;
-        selectedProduct = null;
-        state = VendingMachineState.WAITING_FOR_SELECTION;
-    }
-    */
-
-
     public boolean remove(Object o) {
         lock.lock();
         try {
@@ -137,22 +102,31 @@ public class WaitablePQueue<E> {
     }
 
     public E peek() {
-        synchronized (queue) {
+        lock.lock();
+        try {
             return queue.peek();
+        } finally {
+            lock.unlock();
         }
     }
 
 
     public int size() {
-        synchronized (queue) {
+        lock.lock();
+        try {
             return queue.size();
+        } finally {
+            lock.unlock();
         }
     }
 
 
     public boolean isEmpty() {
-        synchronized (queue) {
+        lock.lock();
+        try {
             return queue.isEmpty();
+        } finally {
+            lock.unlock();
         }
     }
 }
