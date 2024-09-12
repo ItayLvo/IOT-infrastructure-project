@@ -1,6 +1,6 @@
 package composite;
 
-public interface AbstractFile {
+public interface PrintableFile {
 
     public void print();
 }
