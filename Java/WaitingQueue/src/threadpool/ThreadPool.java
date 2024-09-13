@@ -29,9 +29,9 @@ public class ThreadPool implements Executor {
     }
 
     private final class Worker extends Thread {     //TODO do i need this wrapper class or are the Thread methods enough?
-//        private volatile boolean killThread = false;
-//        private volatile boolean isPaused = false;
-//        private final Object workerPauseLock = new Object();
+//      private volatile boolean killThread = false;
+//      private volatile boolean isPaused = false;
+//      private final Object workerPauseLock = new Object();
 
         @Override
         public void run() {
@@ -43,7 +43,7 @@ public class ThreadPool implements Executor {
                     task.executeTask();
                 }
             } finally {
-                // thread was killed: decrease number of current threads
+                //thread was killed: decrease number of current threads
                 synchronized (poolPauseLock) {
                     --currentNumberOfThreads;
                     //notify any threads waiting for awaitTermination
@@ -57,48 +57,48 @@ public class ThreadPool implements Executor {
 
     //TODO remove this and fields when done
 //old run() after adding kill/pause/resume features:
-//        @Override
-//        public void run() {
-//            while (!killThread) {
-//                synchronized (workerPauseLock) {
-//                    if (killThread) {   // may have changed while waiting to synchronize on pauseLock
-//                        break;
-//                    }
-//                    if (isPaused) {
-//                        try {
-//                            workerPauseLock.wait(); // block until another thread calls pauseLock.notifyAll()
-//                        } catch (InterruptedException ex) {
-//                            break;
-//                        }
-//                        if (killThread) {   // killThread status might have changed while we waited
-//                            break;
-//                        }
-//                    }
-//                }
-//                // try to dequeue a task from the queue
-//                Task<?> task = taskQueue.dequeue();
-//                // run the current task
-//                task.executeTask();
-//            }   // end of while loop
-//            --currentNumberOfThreads;
-//        }
+//       @Override
+//       public void run() {
+//           while (!killThread) {
+//               synchronized (workerPauseLock) {
+//                   if (killThread) {   //may have changed while waiting to synchronize on pauseLock
+//                       break;
+//                   }
+//                   if (isPaused) {
+//                       try {
+//                           workerPauseLock.wait(); //block until another thread calls pauseLock.notifyAll()
+//                       } catch (InterruptedException ex) {
+//                           break;
+//                       }
+//                       if (killThread) {   //killThread status might have changed while we waited
+//                           break;
+//                       }
+//                   }
+//               }
+//               //try to dequeue a task from the queue
+//               Task<?> task = taskQueue.dequeue();
+//               //run the current task
+//               task.executeTask();
+//           }   //end of while loop
+//           --currentNumberOfThreads;
+//       }
 //
 //
-//        public void killWorker() {
-//            killThread = true;
-//            resumeWorker(); // to unblock
-//        }
+//       public void killWorker() {
+//           killThread = true;
+//           resumeWorker(); //to unblock
+//       }
 //
-//        public void pauseWorker() {
-//            isPaused = true;
-//        }
+//       public void pauseWorker() {
+//           isPaused = true;
+//       }
 //
-//        public void resumeWorker() {
-//            synchronized (workerPauseLock) {
-//                isPaused = false;
-//                workerPauseLock.notifyAll();    // unblock waiting threads
-//            }
-//        }
+//       public void resumeWorker() {
+//           synchronized (workerPauseLock) {
+//               isPaused = false;
+//               workerPauseLock.notifyAll();    //unblock waiting threads
+//           }
+//       }
 
 
 
@@ -196,7 +196,8 @@ public class ThreadPool implements Executor {
                 return null;
             }
         };
-        Task<Void> sleepingPillTask = new Task<>(pauseThreadCallable, Integer.MIN_VALUE + 1);
+        //the sleeping pill task will have the lowest possible priority, so it's pushed to the end of the queue
+        Task<Void> sleepingPillTask = new Task<>(pauseThreadCallable, Integer.MAX_VALUE);
         return sleepingPillTask;
     }
 
