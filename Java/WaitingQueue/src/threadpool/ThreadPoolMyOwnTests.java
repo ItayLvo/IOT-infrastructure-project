@@ -14,17 +14,21 @@ class ThreadPoolMyOwnTests {
     @Test
     void testSubmitBasic() {
         ThreadPool pool = new ThreadPool(2);
-        assertEquals(2, pool.getCurrentNumberOfThreads());
         Callable<Long> callable1 = getCallable();
         Callable<Long> callable2 = getCallable();
         Callable<Long> callable3 = getCallable();
+        assertEquals(2, pool.getCurrentNumberOfThreads());
 
         pool.submit(callable1);
         pool.submit(callable2);
         pool.submit(callable3);
 
         pool.shutdown();
-        pool.awaitTermination();
+        try {
+            pool.awaitTermination();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         System.out.println("end of main");
         assertEquals(0, pool.getCurrentNumberOfThreads());
     }
@@ -160,7 +164,11 @@ class ThreadPoolMyOwnTests {
 
 
         pool.shutdown();
-        pool.awaitTermination();
+        try {
+            pool.awaitTermination();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         assertEquals(0, pool.getCurrentNumberOfThreads());
     }
@@ -191,7 +199,11 @@ class ThreadPoolMyOwnTests {
         pool.submit(callableHIGH2, Priority.HIGH);
 
         pool.shutdown();
-        pool.awaitTermination();
+        try {
+            pool.awaitTermination();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -231,7 +243,11 @@ class ThreadPoolMyOwnTests {
         }
 
         pool.shutdown();
-        pool.awaitTermination();
+        try {
+            pool.awaitTermination();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -276,7 +292,11 @@ class ThreadPoolMyOwnTests {
         assertTrue(result6.isCancelled());
 
         pool.shutdown();
-        pool.awaitTermination();
+        try {
+            pool.awaitTermination();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -305,6 +325,7 @@ class ThreadPoolMyOwnTests {
         pool.submit(callable8);
         pool.submit(callable9);
 
+        assertEquals(1, pool.getCurrentNumberOfThreads());
 
         try {
             Thread.sleep(500);
@@ -312,7 +333,7 @@ class ThreadPoolMyOwnTests {
             throw new RuntimeException(e);
         }
 
-        pool.setNumOfThreads(3);
+        pool.setNumOfThreads(5);
 
         try {
             Thread.sleep(4000);
@@ -320,10 +341,22 @@ class ThreadPoolMyOwnTests {
             throw new RuntimeException(e);
         }
 
+        assertEquals(5, pool.getCurrentNumberOfThreads());
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         pool.setNumOfThreads(1);
 
         pool.shutdown();
-        pool.awaitTermination();
+        try {
+            pool.awaitTermination();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals(0, pool.getCurrentNumberOfThreads());
     }
 
 
