@@ -13,9 +13,6 @@ public class ThreadPool implements Executor {
     private final int LOWEST_PRIORITY = Priority.LOW.getValue() + -1;
 
 
-    //TODO: set higher/lower enum for sleeping and killing pill
-
-
     public ThreadPool() {
         //set number of threads in the pool according to number of CPU cores
         this(Runtime.getRuntime().availableProcessors());
