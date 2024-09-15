@@ -325,13 +325,14 @@ class ThreadPoolMyOwnTests {
         pool.submit(callable8);
         pool.submit(callable9);
 
-        assertEquals(1, pool.getCurrentNumberOfThreads());
+
 
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        assertEquals(1, pool.getCurrentNumberOfThreads());
 
         pool.setNumOfThreads(5);
 

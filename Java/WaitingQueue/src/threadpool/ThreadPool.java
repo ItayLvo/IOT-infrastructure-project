@@ -9,6 +9,9 @@ public class ThreadPool implements Executor {
     private final Object poolPauseLock = new Object();
     private volatile boolean isShutDown = false;
     private volatile boolean isPaused = false;
+    private final int HIGHEST_PRIORITY = Priority.HIGH.getValue() + 1;
+    private final int LOWEST_PRIORITY = Priority.LOW.getValue() + -1;
+
 
     //TODO: set higher/lower enum for sleeping and killing pill
 
@@ -108,7 +111,7 @@ public class ThreadPool implements Executor {
             //decrease number of threads in the pool
             for (int i = 0; i < (tmpCurrentNumberOfThreads - nThreads); ++i) {
                 //create a "poison pill" callable and wrap it in a new Task with max priority, then enqueue it
-                Task<Void> killThreadTask = createPoisonPillTask(100);
+                Task<Void> killThreadTask = createPoisonPillTask(HIGHEST_PRIORITY);
                 taskQueue.enqueue(killThreadTask);
             }
         }
@@ -136,8 +139,8 @@ public class ThreadPool implements Executor {
         isPaused = true;
 
         for (int i = 0; i < currentNumberOfThreads; ++i) {
-            //the sleeping pill task will have the highest priority (but lower than the poison pill)
-            Task<Void> pauseThreadTask = createSleepingPillTask(99);
+            //the sleeping pill task will have the highest priority
+            Task<Void> pauseThreadTask = createSleepingPillTask(HIGHEST_PRIORITY);
             taskQueue.enqueue(pauseThreadTask);
         }
     }
@@ -181,7 +184,7 @@ public class ThreadPool implements Executor {
         //create and enqueue a poison pill task for each thread
         for (int i = 0; i < (currentNumberOfThreads); ++i) {
             //create a "poison pill" callable and wrap it in a new Task with the lowest priority, then enqueue it
-            Task<Void> killThreadTask = createPoisonPillTask(0);
+            Task<Void> killThreadTask = createPoisonPillTask(LOWEST_PRIORITY);
             taskQueue.enqueue(killThreadTask);
         }
     }
