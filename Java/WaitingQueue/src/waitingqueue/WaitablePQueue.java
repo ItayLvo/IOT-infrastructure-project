@@ -20,7 +20,7 @@ public class WaitablePQueue<E> {
 
     //Constructor without Comparator, E should be Comparable
     public WaitablePQueue() {
-        queue = new PriorityQueue<E>();
+        this(null);
     }
 
     public void enqueue(E e) {

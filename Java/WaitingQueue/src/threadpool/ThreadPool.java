@@ -87,7 +87,7 @@ public class ThreadPool implements Executor {
 
     public <T> Future<T> submit(Callable<T> command, Priority p) {
         if (!isShutDown) {
-            Task<T> task = new Task<>(command, p.ordinal());
+            Task<T> task = new Task<>(command, p.getValue());
             taskQueue.enqueue(task);
             return task.getFuture();
         }
