@@ -8,9 +8,9 @@ public class ThreadPool implements Executor {
     private volatile int currentNumberOfThreads;
     private final Object poolPauseLock = new Object();
     private volatile boolean isShutDown = false;
-    private volatile boolean isPaused = false;
+    private volatile boolean isPaused = false;  //TODO atomic
     private final int HIGHEST_PRIORITY = Priority.HIGH.getValue() + 1;
-    private final int LOWEST_PRIORITY = Priority.LOW.getValue() + -1;
+    private final int LOWEST_PRIORITY = Priority.LOW.getValue() - 1 ;
 
 
     public ThreadPool() {
@@ -83,18 +83,26 @@ public class ThreadPool implements Executor {
     }
 
     public <T> Future<T> submit(Callable<T> command, Priority p) {
-        if (!isShutDown) {
-            Task<T> task = new Task<>(command, p.getValue());
-            taskQueue.enqueue(task);
-            return task.getFuture();
+        if(command == null) {
+            throw new NullPointerException();
         }
 
-        //if shutdown() was called before submit
-        throw new RejectedExecutionException("ThreadPool is shut down");
+        if (isShutDown) {
+            //if shutdown() was called before submit
+            throw new RejectedExecutionException("ThreadPool is shut down");
+        }
+
+        Task<T> task = new Task<>(command, p.getValue());
+        taskQueue.enqueue(task);
+
+        return task.getFuture();
     }
 
 
     void setNumOfThreads(int nThreads) {
+        if (nThreads < 0) {
+            throw new IllegalArgumentException("Number of threads cannot be negative");
+        }
         //save counter in tmp var because the global counter changes for every worker created
         int tmpCurrentNumberOfThreads = currentNumberOfThreads;
 
@@ -260,9 +268,9 @@ public class ThreadPool implements Executor {
         private class TaskFuture implements Future<T> {
 
             @Override
-            public boolean cancel(boolean b) {
-                //check if task is already complete
-                if (isDone) {
+            public boolean cancel(boolean ignoredArgument) {
+                //check if task is already complete or cancelled before
+                if (isDone || isCancelled) {
                     return false;
                 }
                 //try to remove task from queue
@@ -271,6 +279,8 @@ public class ThreadPool implements Executor {
                 if (removed) {
                     isCancelled = true;
                 }
+                //after cancel() - isDone() will always be true, no matter at what stage of execution
+                isDone = true;
 
                 return removed;
             }
@@ -293,8 +303,9 @@ public class ThreadPool implements Executor {
                 try {
                     return get(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
                 } catch (TimeoutException e) {
+                    //should not happen!
+                    throw new RuntimeException("Timed out on get()");
                 }
-                return null;
             }
 
 
@@ -315,10 +326,18 @@ public class ThreadPool implements Executor {
                     return Task.this.result;
                 } else {
                     //if the task is not done yet, wait for the semaphore token (executeTask() releases it when done)
-                    if (isDoneSemaphore.tryAcquire(l, timeUnit) == true) {
+                    if (isDoneSemaphore.tryAcquire(l, timeUnit) == true) {  //TODO check if needs to be in while loop?
+                        //check if cancellation or exception status changed while waiting
+                        if (Task.this.exception != null) {
+                            throw new ExecutionException(exception);
+                        }
+                        if (isCancelled) {
+                            throw new CancellationException();
+                        }
+
                         return Task.this.result;
                     } else {
-                        //if timed out
+                        //if semaphore timed out
                         throw new TimeoutException();
                     }
                 }
