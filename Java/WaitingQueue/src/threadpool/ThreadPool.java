@@ -6,13 +6,17 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class ThreadPool implements Executor {
-    private final Set<Thread> threadPool = new HashSet<>();   //TODO final?
     private final WaitablePQueue<Task<?>> taskQueue = new WaitablePQueue<>();
     private volatile int currentNumberOfThreads;
     private boolean isShutDown = false;
     private final Object poolPauseLock = new Object();
     private volatile boolean isPaused = false;
 
+    //TODO: dont check condition in thread run loop, just use sleeping pill. use tasks for pause, kill, resume, etc
+    //TODO: fix sleeping pill priority to highest-1         DONE
+    //TODO: not supposed to set num thead while paused      DONE
+    //TODO: fix shutdown, cant send sleeping pill because it overrides all existing tasks. needs to be lowest priority, and use flag to stop queue enqueuing    DONE
+    //TODO: await: you can use get() to block until last poison pill
 
     //set number of threads in the pool according to number of CPU cores
     public ThreadPool() {
@@ -23,28 +27,27 @@ public class ThreadPool implements Executor {
         currentNumberOfThreads = nThreads;
         for (int i = 0; i < nThreads; ++i) {
             Worker worker = new Worker();
-            threadPool.add(worker); //TODO is this a memory leak? do i need to keep track of the workers and have a reference to them?
             worker.start();
         }
     }
 
-    private final class Worker extends Thread {     //TODO do i need this wrapper class or are the Thread methods enough?
-//      private volatile boolean killThread = false;
-//      private volatile boolean isPaused = false;
-//      private final Object workerPauseLock = new Object();
+    private final class Worker extends Thread {
 
         @Override
         public void run() {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     //try to dequeue a task from the queue
+                    System.out.println(Thread.currentThread().getName() + " is waiting for tasks");
                     Task<?> task = taskQueue.dequeue();
                     //run the current task
+                    System.out.println(Thread.currentThread().getName() + " has dequeued a task and calling execute() on " + task.toString());
                     task.executeTask();
                 }
             } finally {
                 //thread was killed: decrease number of current threads
                 synchronized (poolPauseLock) {
+                    System.out.println(Thread.currentThread().getName() + " is killed. updated number of threads = " + (currentNumberOfThreads - 1));
                     --currentNumberOfThreads;
                     //notify any threads waiting for awaitTermination
                     if (currentNumberOfThreads == 0) {
@@ -54,53 +57,6 @@ public class ThreadPool implements Executor {
             }
         }
     }   //end of Worker class
-
-    //TODO remove this and fields when done
-//old run() after adding kill/pause/resume features:
-//       @Override
-//       public void run() {
-//           while (!killThread) {
-//               synchronized (workerPauseLock) {
-//                   if (killThread) {   //may have changed while waiting to synchronize on pauseLock
-//                       break;
-//                   }
-//                   if (isPaused) {
-//                       try {
-//                           workerPauseLock.wait(); //block until another thread calls pauseLock.notifyAll()
-//                       } catch (InterruptedException ex) {
-//                           break;
-//                       }
-//                       if (killThread) {   //killThread status might have changed while we waited
-//                           break;
-//                       }
-//                   }
-//               }
-//               //try to dequeue a task from the queue
-//               Task<?> task = taskQueue.dequeue();
-//               //run the current task
-//               task.executeTask();
-//           }   //end of while loop
-//           --currentNumberOfThreads;
-//       }
-//
-//
-//       public void killWorker() {
-//           killThread = true;
-//           resumeWorker(); //to unblock
-//       }
-//
-//       public void pauseWorker() {
-//           isPaused = true;
-//       }
-//
-//       public void resumeWorker() {
-//           synchronized (workerPauseLock) {
-//               isPaused = false;
-//               workerPauseLock.notifyAll();    //unblock waiting threads
-//           }
-//       }
-
-
 
 
     @Override
@@ -152,14 +108,14 @@ public class ThreadPool implements Executor {
             //decrease number of threads in the pool
             for (int i = 0; i < (currentNumberOfThreads - nThreads); ++i) {
                 //create a "poison pill" callable and wrap it in a new Task with max priority, then enqueue it
-                Task<Void> killThreadTask = createPoisonPillTask();
+                Task<Void> killThreadTask = createPoisonPillTask(100);
                 taskQueue.enqueue(killThreadTask);
             }
         }
-        currentNumberOfThreads = nThreads;
     }
 
-    private Task<Void> createPoisonPillTask() {
+
+    private Task<Void> createPoisonPillTask(Integer priority) {
         Callable<Void> killThreadCallable = new Callable() {
             @Override
             public Void call() {
@@ -167,27 +123,37 @@ public class ThreadPool implements Executor {
                 return null;
             }
         };
-        Task<Void> killThreadTask = new Task<>(killThreadCallable, Integer.MIN_VALUE);
+        Task<Void> killThreadTask = new Task<>(killThreadCallable, priority);
         return killThreadTask;
     }
 
 
     void pause() {
+        //set flag to true to stop client from inserting new tasks
+        isShutDown = true;
+
+        //set isPaused flag that threads check in their sleeping pill task
+        isPaused = true;
+
         for (int i = 0; i < currentNumberOfThreads; ++i) {
-            Task<Void> pauseThreadTask = createSleepingPillTask();
+            System.out.println("sent " + (i+1) + "th sleeping pill");
+            //the sleeping pill task will have the highest priority (outside the killing pill)
+            Task<Void> pauseThreadTask = createSleepingPillTask(99);
             taskQueue.enqueue(pauseThreadTask);
         }
     }
 
 
-    private Task<Void> createSleepingPillTask() {
+    private Task<Void> createSleepingPillTask(Integer priority) {
         Callable<Void> pauseThreadCallable = new Callable() {
             @Override
             public Void call() {
                 synchronized (poolPauseLock) {
                     while (isPaused) {
                         try {
+                            System.out.println("waiting! " + Thread.currentThread().getName());
                             poolPauseLock.wait();
+                            System.out.println("woke up! " + Thread.currentThread().getName());
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
@@ -196,13 +162,15 @@ public class ThreadPool implements Executor {
                 return null;
             }
         };
-        //the sleeping pill task will have the lowest possible priority, so it's pushed to the end of the queue
-        Task<Void> sleepingPillTask = new Task<>(pauseThreadCallable, Integer.MAX_VALUE);
+
+        Task<Void> sleepingPillTask = new Task<>(pauseThreadCallable, priority);
         return sleepingPillTask;
     }
 
 
     void resume() {
+        isShutDown = false; //allow users to insert new tasks
+
         synchronized (poolPauseLock) {
             isPaused = false;
             poolPauseLock.notifyAll();
@@ -211,8 +179,15 @@ public class ThreadPool implements Executor {
 
 
     void shutdown() {
-        setNumOfThreads(0); //all threads will terminate after they are done with their current task
+        //set shutdown flag to true so client can't add any tasks to the task queue
         isShutDown = true;
+
+        //create and enqueue a poison pill task for each thread
+        for (int i = 0; i < (currentNumberOfThreads); ++i) {
+            //create a "poison pill" callable and wrap it in a new Task with the lowest priority, then enqueue it
+            Task<Void> killThreadTask = createPoisonPillTask(0);
+            taskQueue.enqueue(killThreadTask);
+        }
     }
 
     void awaitTermination() {
@@ -225,14 +200,13 @@ public class ThreadPool implements Executor {
 
 
     boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        shutdown();
-
         //calculate timeout deadline and remaining time to wait
         long remainingTimeToWait = unit.toMillis(timeout);
         long deadline = System.currentTimeMillis() + remainingTimeToWait;
 
         synchronized (poolPauseLock) {
             while (currentNumberOfThreads > 0) {
+                System.out.println("number of alive threads = " + currentNumberOfThreads);
                 remainingTimeToWait = deadline - System.currentTimeMillis();
                 if (remainingTimeToWait <= 0) {
                     return false;   //timed out
@@ -285,7 +259,7 @@ public class ThreadPool implements Executor {
 
         @Override
         public int compareTo(Task<T> other) {
-            return this.priority - other.priority;
+            return other.priority - this.priority;
         }
 
 
