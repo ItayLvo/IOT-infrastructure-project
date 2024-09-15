@@ -5,6 +5,8 @@ import waitingqueue.WaitablePQueue;
 
 import java.util.Comparator;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -192,6 +194,151 @@ class ThreadPoolMyOwnTests {
         pool.awaitTermination();
 
     }
+
+
+    @Test
+    void testGet() {
+        ThreadPool pool = new ThreadPool(2);
+        Callable<Long> callable1 = getCallableReturnValue();
+        Callable<Long> callable2 = getCallableReturnValue();
+        Callable<Long> callable3 = getCallableReturnValue();
+        Callable<Long> callable4 = getCallableReturnValue();
+        Callable<Long> callable5 = getCallableReturnValue();
+        Callable<Long> callable6 = getCallableReturnValue();
+
+        Future<Long> result1 =  pool.submit(callable1);
+
+        try {
+            System.out.println(result1.get());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("is done task1? (after get) " + result1.isDone());
+        pool.submit(callable2);
+        pool.submit(callable3);
+        pool.submit(callable4);
+        pool.submit(callable5);
+
+        Future<Long> result6 = pool.submit(callable6, Priority.LOW);
+
+        try {
+            System.out.println("is done task6 (before get)? " + result6.isDone());
+            System.out.println(result6.get());
+            System.out.println("is done task6 (after get)? " + result6.isDone());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
+        pool.shutdown();
+        pool.awaitTermination();
+
+    }
+
+
+    @Test
+    void voidTestCancelAndIsCancelled() {
+        ThreadPool pool = new ThreadPool(2);
+        Callable<Long> callable1 = getCallableReturnValue();
+        Callable<Long> callable2 = getCallableReturnValue();
+        Callable<Long> callable3 = getCallableReturnValue();
+        Callable<Long> callable4 = getCallableReturnValue();
+        Callable<Long> callable5 = getCallableReturnValue();
+        Callable<Long> callable6 = getCallableReturnValue();
+
+        Future<Long> result1 =  pool.submit(callable1);
+        assertFalse(result1.isCancelled());
+
+        Future<Long> result2 =  pool.submit(callable2);
+        Future<Long> result3 =  pool.submit(callable3);
+        Future<Long> result4 = pool.submit(callable4);
+
+        try {
+            Thread.sleep(5);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        Future<Long> result5 = pool.submit(callable5, Priority.LOW);
+        Future<Long> result6 = pool.submit(callable6, Priority.LOW);
+
+        result5.cancel(true);
+        result6.cancel(true);
+
+        try {
+            result1.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
+        assertFalse(result1.isCancelled());
+        assertTrue(result5.isCancelled());
+        assertTrue(result6.isCancelled());
+
+        pool.shutdown();
+        pool.awaitTermination();
+    }
+
+
+    @Test
+    void testIncreaseNumThreads() {
+        ThreadPool pool = new ThreadPool(1);
+
+        Callable<Long> callable1 = getCallableLongSleep();
+        Callable<Long> callable2 = getCallableLongSleep();
+        Callable<Long> callable3 = getCallableLongSleep();
+        Callable<Long> callable4 = getCallableLongSleep();
+        Callable<Long> callable5 = getCallableLongSleep();
+        Callable<Long> callable6 = getCallableLongSleep();
+        Callable<Long> callable7 = getCallableLongSleep();
+        Callable<Long> callable8 = getCallableLongSleep();
+        Callable<Long> callable9 = getCallableLongSleep();
+
+
+        pool.submit(callable1);
+        pool.submit(callable2);
+        pool.submit(callable3);
+        pool.submit(callable4);
+        pool.submit(callable5);
+        pool.submit(callable6);
+        pool.submit(callable7);
+        pool.submit(callable8);
+        pool.submit(callable9);
+
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        pool.setNumOfThreads(3);
+
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        pool.setNumOfThreads(1);
+
+        pool.shutdown();
+        pool.awaitTermination();
+    }
+
+
+    private Callable<Long> getCallableReturnValue() {
+        return new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                System.out.println("Executing callable. " + Thread.currentThread().getName());
+                Thread.sleep(2000);
+                System.out.println("Finished callable. " + Thread.currentThread().getName());
+                return 5L;
+            }
+        };
+    }
+
 
     private Callable<Long> getCallableHigh() {
         return new Callable<Long>() {

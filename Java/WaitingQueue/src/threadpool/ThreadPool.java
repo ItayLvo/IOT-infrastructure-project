@@ -71,7 +71,7 @@ public class ThreadPool implements Executor {
 
     }
 
-    public Future<?> submit(Runnable command, Priority p) { //TODO check what happens when you don't update result and leave it null!
+    public Future<?> submit(Runnable command, Priority p) {
         Callable<Object> callableWrapper = Executors.callable(command);
         return submit(callableWrapper, p);
     }
@@ -104,6 +104,7 @@ public class ThreadPool implements Executor {
                 Worker worker = new Worker();
                 worker.start();
             }
+            currentNumberOfThreads = nThreads;  //update current count of threads after creating the new workers
         } else {
             //decrease number of threads in the pool
             for (int i = 0; i < (currentNumberOfThreads - nThreads); ++i) {
