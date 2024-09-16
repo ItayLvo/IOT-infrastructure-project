@@ -6,6 +6,7 @@ public class Callback<T> {
     private Dispatcher<T> dispatcher;
     private final Consumer<T> consumer;
     private final Runnable stopUpdateRunnable;
+    private T latestData;
 
     public Callback(Consumer<T> consumer, Runnable stopUpdateRunnable) {
         this.consumer = consumer;
@@ -14,6 +15,7 @@ public class Callback<T> {
 
     public void update(T data) {
         consumer.accept(data);
+        latestData = data;
     }
 
     public void stopUpdate() {
@@ -30,5 +32,9 @@ public class Callback<T> {
         }
 
         dispatcher.unregister(this);
+    }
+
+    public T getData() {
+        return latestData;
     }
 }

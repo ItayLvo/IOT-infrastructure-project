@@ -57,6 +57,7 @@ class ObserverPatternTest {
 
         subscriber.register(publisher);
         publisher.produce(100);
+        System.out.println(subscriber.getData());
         publisher.close();
 
         assertEquals("Received: 100 | Stopped", result.toString());

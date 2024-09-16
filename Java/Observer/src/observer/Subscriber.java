@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 
 public class Subscriber<T> {
     private Callback<T> callback;
-    private T latestData;
 
     public Subscriber(Consumer<T> consumer, Runnable stopUpdateRunnable) {
         this.callback = new Callback<>(consumer, stopUpdateRunnable);
@@ -27,7 +26,6 @@ public class Subscriber<T> {
             @Override
             public void accept(T t) {
                 System.out.println("Update was received: " + t);
-                latestData = t;
             }
         };
 
@@ -43,6 +41,6 @@ public class Subscriber<T> {
     }
 
     public T getData() {
-        return latestData;
+        return this.callback.getData();
     }
 }
