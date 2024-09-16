@@ -31,6 +31,7 @@ public class Dispatcher<T> {
             subscriber.stopUpdate();
             subscriber.setDispatcher(null);
         }
+        subscribers.clear();
     }
 
 

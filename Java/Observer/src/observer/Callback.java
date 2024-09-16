@@ -18,9 +18,6 @@ public class Callback<T> {
 
     public void stopUpdate() {
         stopUpdateRunnable.run();
-        if (dispatcher != null) {
-            unregister();
-        }
     }
 
     public void setDispatcher(Dispatcher<T> dispatcher) {
