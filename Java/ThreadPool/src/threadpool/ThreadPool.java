@@ -58,7 +58,7 @@ public class ThreadPool implements Executor {
 
     @Override
     public void execute(Runnable runnable) {
-        //do nothing
+        submit(runnable);
     }
 
 
