@@ -8,14 +8,14 @@ public class ThreadPool implements Executor {
     private volatile int currentNumberOfThreads;
     private final Object poolPauseLock = new Object();
     private volatile boolean isShutDown = false;
-    private volatile boolean isPaused = false;  //TODO atomic
-    private final int HIGHEST_PRIORITY = Priority.HIGH.getValue() + 1;
-    private final int LOWEST_PRIORITY = Priority.LOW.getValue() - 1 ;
+    private volatile boolean isPaused = false;
+    private static final int HIGHEST_PRIORITY = Priority.HIGH.getValue() + 1;
+    private static final int LOWEST_PRIORITY = Priority.LOW.getValue() - 1 ;
 
 
     public ThreadPool() {
-        //set number of threads in the pool according to number of CPU cores
-        this(Runtime.getRuntime().availableProcessors());
+        //set number of threads in the pool according to number of CPU cores times 1.5
+        this((int) (Runtime.getRuntime().availableProcessors() * 1.5));
     }
 
     public ThreadPool(int nThreads) {
@@ -103,12 +103,21 @@ public class ThreadPool implements Executor {
         if (nThreads < 0) {
             throw new IllegalArgumentException("Number of threads cannot be negative");
         }
-        //save counter in tmp var because the global counter changes for every worker created
+        if (isShutDown){
+            throw new RejectedExecutionException("ThreadPool is shut down");
+        }
+
+        //save counter in tmp var because the global counter changes for every worker created/killed
         int tmpCurrentNumberOfThreads = currentNumberOfThreads;
 
         if (nThreads > currentNumberOfThreads) {
             //increase number of threads in the pool
             for (int i = 0; i < (nThreads - tmpCurrentNumberOfThreads); ++i) {
+                if (isPaused) {
+                    //if pool is currently paused - add a sleeping pill for each new thread
+                    Task<Void> pauseThreadTask = createSleepingPillTask(HIGHEST_PRIORITY);
+                    taskQueue.enqueue(pauseThreadTask);
+                }
                 Worker worker = new Worker();
                 worker.start();
             }
@@ -138,6 +147,9 @@ public class ThreadPool implements Executor {
 
 
     void pause() {
+        if (isPaused) {
+            return;
+        }
         //set flag to true to stop client from inserting new tasks
         isShutDown = true;
         //set isPaused flag that threads check in their sleeping pill task
@@ -229,7 +241,7 @@ public class ThreadPool implements Executor {
         private final int priority;
         private T result = null;
         private final Semaphore isDoneSemaphore = new Semaphore(0);
-        private Exception exception = null;
+        private Exception callableExceptionStatus = null;
         private boolean isDone = false;
         private boolean isCancelled = false;
         public volatile boolean isPoison = false;
@@ -247,7 +259,7 @@ public class ThreadPool implements Executor {
                 result = callable.call();   //execute the command
                 isDone = true;  //set isDone flag, which is checked in Future.get() method
             } catch (Exception e) {
-                this.exception = e; //if call() threw an exception, catch it and save it for Future.get(), then continue to next task
+                this.callableExceptionStatus = e; //if call() threw an exception, catch it and save it for Future.get(), then continue to next task
             } finally {
                 isDoneSemaphore.release();  //release semaphore for Future.get() method
             }
@@ -312,8 +324,8 @@ public class ThreadPool implements Executor {
             @Override
             public T get(long l, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
                 //if Task.executeTask() resulted in an exception
-                if (Task.this.exception != null) {
-                    throw new ExecutionException(exception);
+                if (Task.this.callableExceptionStatus != null) {
+                    throw new ExecutionException(callableExceptionStatus);
                 }
 
                 //if the task was cancelled using Future.cancel()
@@ -326,10 +338,10 @@ public class ThreadPool implements Executor {
                     return Task.this.result;
                 } else {
                     //if the task is not done yet, wait for the semaphore token (executeTask() releases it when done)
-                    if (isDoneSemaphore.tryAcquire(l, timeUnit) == true) {  //TODO check if needs to be in while loop?
+                    if (isDoneSemaphore.tryAcquire(l, timeUnit) == true) {
                         //check if cancellation or exception status changed while waiting
-                        if (Task.this.exception != null) {
-                            throw new ExecutionException(exception);
+                        if (Task.this.callableExceptionStatus != null) {
+                            throw new ExecutionException(callableExceptionStatus);
                         }
                         if (isCancelled) {
                             throw new CancellationException();
