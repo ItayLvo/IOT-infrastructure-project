@@ -2,10 +2,11 @@ package threadpool;
 
 import waitingqueue.WaitablePQueue;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThreadPool implements Executor {
     private final WaitablePQueue<Task<?>> taskQueue = new WaitablePQueue<>();
-    private volatile int currentNumberOfThreads;
+    private final AtomicInteger currentNumberOfThreads;
     private final Object poolPauseLock = new Object();
     private volatile boolean isShutDown = false;
     private volatile boolean isPaused = false;
@@ -19,6 +20,7 @@ public class ThreadPool implements Executor {
     }
 
     public ThreadPool(int nThreads) {
+        currentNumberOfThreads = new AtomicInteger(0);
         //create and start n running Threads
         for (int i = 0; i < nThreads; ++i) {
             Worker worker = new Worker();
@@ -31,7 +33,7 @@ public class ThreadPool implements Executor {
         @Override
         public void run() {
             //each created threads increases the current thread counter
-            ++currentNumberOfThreads;
+            currentNumberOfThreads.incrementAndGet();
             boolean isTaskPoison = false;
             try {
                 while (!isTaskPoison) {
@@ -45,9 +47,9 @@ public class ThreadPool implements Executor {
             } finally {
                 //thread was killed: decrease number of current threads
                 synchronized (poolPauseLock) {
-                    --currentNumberOfThreads;
+                    currentNumberOfThreads.decrementAndGet();
                     //notify any threads waiting for awaitTermination
-                    if (currentNumberOfThreads == 0) {
+                    if (currentNumberOfThreads.get() == 0) {
                         poolPauseLock.notifyAll();
                     }
                 }
@@ -107,14 +109,14 @@ public class ThreadPool implements Executor {
             throw new RejectedExecutionException("ThreadPool is shut down");
         }
 
-        //save counter in tmp var because the global counter changes for every worker created/killed
-        int tmpCurrentNumberOfThreads = currentNumberOfThreads;
+        //save thread counter in tmp var because the global counter will change for every worker created/killed
+        int tmpCurrentNumberOfThreads = currentNumberOfThreads.get();
 
-        if (nThreads > currentNumberOfThreads) {
+        if (nThreads > tmpCurrentNumberOfThreads) {
             //increase number of threads in the pool
             for (int i = 0; i < (nThreads - tmpCurrentNumberOfThreads); ++i) {
                 if (isPaused) {
-                    //if pool is currently paused - add a sleeping pill for each new thread
+                    //if pool is currently paused - enqueue a sleeping pill for each new thread
                     Task<Void> pauseThreadTask = createSleepingPillTask(HIGHEST_PRIORITY);
                     taskQueue.enqueue(pauseThreadTask);
                 }
@@ -133,7 +135,7 @@ public class ThreadPool implements Executor {
 
 
     private Task<Void> createPoisonPillTask(Integer priority) {
-        Callable<Void> killThreadCallable = new Callable() {
+        Callable<Void> killThreadCallable = new Callable<Void>() {
             @Override
             public Void call() {
                 return null;    //do nothing
@@ -155,7 +157,7 @@ public class ThreadPool implements Executor {
         //set isPaused flag that threads check in their sleeping pill task
         isPaused = true;
 
-        for (int i = 0; i < currentNumberOfThreads; ++i) {
+        for (int i = 0; i < currentNumberOfThreads.get(); ++i) {
             //the sleeping pill task will have the highest priority
             Task<Void> pauseThreadTask = createSleepingPillTask(HIGHEST_PRIORITY);
             taskQueue.enqueue(pauseThreadTask);
@@ -163,8 +165,8 @@ public class ThreadPool implements Executor {
     }
 
 
-    private Task<Void> createSleepingPillTask(Integer priority) {
-        Callable<Void> pauseThreadCallable = new Callable() {
+    private Task<Void> createSleepingPillTask(int priority) {
+        Callable<Void> pauseThreadCallable = new Callable<Void>() {
             @Override
             public Void call() {
                 synchronized (poolPauseLock) {
@@ -199,7 +201,7 @@ public class ThreadPool implements Executor {
         isShutDown = true;
 
         //create and enqueue a poison pill task for each thread
-        for (int i = 0; i < (currentNumberOfThreads); ++i) {
+        for (int i = 0; i < (currentNumberOfThreads.get()); ++i) {
             //create a "poison pill" callable and wrap it in a new Task with the lowest priority, then enqueue it
             Task<Void> killThreadTask = createPoisonPillTask(LOWEST_PRIORITY);
             taskQueue.enqueue(killThreadTask);
@@ -217,7 +219,7 @@ public class ThreadPool implements Executor {
         long deadline = System.currentTimeMillis() + remainingTimeToWait;
 
         synchronized (poolPauseLock) {
-            while (currentNumberOfThreads > 0) {
+            while (currentNumberOfThreads.get() > 0) {
                 remainingTimeToWait = deadline - System.currentTimeMillis();
                 if (remainingTimeToWait <= 0) {
                     return false;   //timed out
@@ -229,9 +231,9 @@ public class ThreadPool implements Executor {
         return true;
     }
 
-
+    //temporary helper method for JUnit tests - should be removed!
     public int getCurrentNumberOfThreads() {
-        return currentNumberOfThreads;
+        return currentNumberOfThreads.get();
     }
 
 
