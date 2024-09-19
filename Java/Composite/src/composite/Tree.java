@@ -10,7 +10,6 @@ public class Tree implements PrintableFile {
 
     public Tree(String absolutePathOfRootDirectory) throws FileNotFoundException {
         File file;
-
         //try to open file with given path
         try {
         file = new File(absolutePathOfRootDirectory); }
