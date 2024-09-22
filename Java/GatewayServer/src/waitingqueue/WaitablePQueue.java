@@ -9,13 +9,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class WaitablePQueue<E> {
-    private Queue<E> queue;
+    private final Queue<E> queue;
     private final Semaphore semaphore = new Semaphore(0);
     private final Lock lock = new ReentrantLock();
 
     //constructor with Comparator
     public WaitablePQueue(Comparator<E> comparator) {
-        queue = new PriorityQueue<E>(comparator);
+        queue = new PriorityQueue<>(comparator);
     }
 
     //Constructor without Comparator, E should be Comparable

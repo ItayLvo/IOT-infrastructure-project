@@ -1,21 +1,18 @@
 package gatewayserver;
 
-import factory.Command;
-
-import java.util.Map;
+import java.util.concurrent.Future;
 
 public class GatewayServer {
-    RequestProcessingService RPS;
+    private final RequestProcessingService RPS;
 
     public GatewayServer() {
         Parser parser = new CommandParser();
         this.RPS = new RequestProcessingService(parser);
     }
 
-    public void handleRequest(String request) {
-        RPS.handleRequest(request);
+    public Future<?> handleRequest(String request) {
+        return RPS.handleRequest(request);
 
-        System.out.println("done...");
     }
 
 

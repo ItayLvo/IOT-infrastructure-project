@@ -1,18 +1,9 @@
 package factory;
 
-public abstract class Command implements Runnable {
-    String data;
+public interface Command extends Runnable {
 
-    public Command(String data) {
-        this.data = data;
-    }
-
-    public String getData() {
-        return data;
-    }
+    String getData();
 
     @Override
-    public void run() {
-        System.out.println("Command is: " + Class.class.getName() + ", data: " + data);
-    }
+    void run();
 }
