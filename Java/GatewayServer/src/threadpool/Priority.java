@@ -7,7 +7,7 @@ public enum Priority{
 
     private final int value;
 
-    private Priority(int value) {
+    Priority(int value) {
         this.value = value;
     }
 
