@@ -14,9 +14,10 @@ import java.util.jar.JarFile;
 
 public class DynamicJarLoader {
     private static final String interfaceName = Command.class.getName();
+    private static final String pluginDirectory = "/home/itay/git/build/test";
 
 
-    public List<Class<?>> loadClassesFromJAR(String pathOfJARFile) throws IOException, ClassNotFoundException {
+    public static List<Class<?>> loadClassesFromJAR(String pathOfJARFile) throws IOException, ClassNotFoundException {
         List<Class<?>> classList = new ArrayList<>();
         File jarFile = new File(pathOfJARFile);
 
@@ -25,7 +26,9 @@ public class DynamicJarLoader {
             return classList;
         }
 
-        JarFile jar = new JarFile(jarFile);
+        String fullPath = pluginDirectory + File.separator + jarFile.getName();
+        System.out.println(fullPath);
+        JarFile jar = new JarFile(fullPath);
 
         URL[] jarURL = {jarFile.toURI().toURL()};
         URLClassLoader classLoader = new URLClassLoader(jarURL);
@@ -36,7 +39,7 @@ public class DynamicJarLoader {
             String className = jarEntry.getName();
             if (className.endsWith(".class")) {
                 String fullyQualifiedClassName = className.replace('/', '.').substring(0, className.length() - ".class".length());
-                System.out.println(fullyQualifiedClassName);    //TODO
+                System.out.println(fullyQualifiedClassName);    //TODO delete prints
                 Class<?> clazz = classLoader.loadClass(fullyQualifiedClassName);
 //                System.out.println("Current class = " + clazz.getName());
                 Class<?>[] currentInterfaces = clazz.getInterfaces();

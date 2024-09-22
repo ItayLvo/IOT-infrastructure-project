@@ -5,6 +5,7 @@ import pluginservice.DirMonitor;
 import pluginservice.DynamicJarLoader;
 import threadpool.ThreadPool;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
@@ -17,7 +18,7 @@ public class RequestProcessingService {
     private final Parser parser;
     private final Factory<String, Command, String> commandFactory = new Factory<>();
     private final ThreadPool threadPool = new ThreadPool(3);    //TODO change this argument later
-    private final PluginService pluginService = new PluginService("/home/itay/git/build/test");
+    private final PluginService pluginService = new PluginService();
 
     public RequestProcessingService(Parser parser) {
         this.parser = parser;
@@ -32,13 +33,9 @@ public class RequestProcessingService {
         return commandFactory.create(key, data);
     }
 
-    public void executeCommand(Command command) {   //TODO do i need this?
-        threadPool.execute(command);
-    }
 
     //private method to set up all factory creation methods
     private void initializeFactory() {
-//        commandFactory.add("registerCompany", RegisterCompanyCommand::new); //before adding the addRecipe method. removed row for code-reuse TODO
         addRecipeToCommandFactory("registerCompany", RegisterCompanyCommand::new);
     }
 
@@ -63,35 +60,44 @@ public class RequestProcessingService {
     }
 
 
-    public class PluginService {
-        private final String pluginDirectory;
-        private final DirMonitor dirMonitor;
-        private final DynamicJarLoader jarLoader = new DynamicJarLoader();
+    private class PluginService {
+        private static final String pluginDirectory = "/home/itay/git/build/test";
 
-
-        public PluginService(String pluginDirectory) {
-            this.pluginDirectory = pluginDirectory;
-            this.dirMonitor = new DirMonitor(pluginDirectory, this);
+        public PluginService() {
+            loadInitialJARsFromDir();
 
             //create and run the directory watcher thread
+            DirMonitor dirMonitor = new DirMonitor(pluginDirectory, this::handleJARDetected);
             Thread dirMonitorThread = new Thread(dirMonitor);
             dirMonitorThread.start();
         }
 
 
-        public void handleJARDetected(Path pathToJAR) throws IOException, ClassNotFoundException, NoSuchMethodException {
+        private void handleJARDetected(Path pathToJAR) {
             String fullPath = pluginDirectory + "/" + pathToJAR.toString();
             System.out.println(fullPath);
-            List<Class<?>> newCommandsList = jarLoader.loadClassesFromJAR(fullPath);
+            List<Class<?>> newCommandsList;
+            try {
+                newCommandsList = DynamicJarLoader.loadClassesFromJAR(fullPath);
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException("Couldn't load classes from JAR file", e);
+            }
+
             for (Class<?> newCommand : newCommandsList) {
                     String newCommandName = newCommand.getSimpleName();
-                    Constructor<?> commandConstructor = newCommand.getConstructor(String.class);
+                Constructor<?> commandConstructor;
+                try {
+                    commandConstructor = newCommand.getConstructor(String.class);
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException("Couldn't get a constructor which accepts String as an argument", e);
+                }
 
-                    // create a Function<String, Command> using the constructor
-                    Function<String, Command> constructorFunction = (dataArgument) -> {
+                // create a Function<String, Command> using the constructor
+                Constructor<?> finalCommandConstructor = commandConstructor;
+                Function<String, Command> constructorFunction = (dataArgument) -> {
                         try {
                             // instantiate the command using the constructor
-                            return (Command) commandConstructor.newInstance(dataArgument);
+                            return (Command) finalCommandConstructor.newInstance(dataArgument);
                         } catch (Exception e) {
                             System.out.println(e.getMessage());
                             throw new RuntimeException("Failed to create command instance", e);
@@ -103,6 +109,21 @@ public class RequestProcessingService {
         }
 
 
-    }
+        private void loadInitialJARsFromDir() {
+            File JarDirectory = new File(pluginDirectory);
+            if (!JarDirectory.exists() || !JarDirectory.isDirectory()) {
+                return;
+            }
+
+            for (File file : JarDirectory.listFiles()) {
+                if (file.getName().endsWith(".jar")) {
+                    handleJARDetected(file.toPath());
+                }
+            }
+        }
+
+
+
+    }   //end of PluginService inner class
 
 }

@@ -1,58 +1,63 @@
 package pluginservice;
 
-import gatewayserver.RequestProcessingService;
-
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.function.Consumer;
 
 public class DirMonitor implements Runnable {
     private final String pathOfDirToMonitor;
-    private final RequestProcessingService.PluginService pluginService;
+    private final Consumer<Path> actionOnJarDetected;
 
-
-    public DirMonitor(String pathOfDirToMonitor, RequestProcessingService.PluginService pluginService) {
+    public DirMonitor(String pathOfDirToMonitor, Consumer<Path> actionOnJarDetected) {
         this.pathOfDirToMonitor = pathOfDirToMonitor;
-        this.pluginService = pluginService;
+        this.actionOnJarDetected = actionOnJarDetected;
     }
+
 
 
     @Override
     public void run() {
-        try {
-            monitorDirectory();
-        } catch (IOException | NoSuchMethodException | ClassNotFoundException | InterruptedException e) {
-            System.out.println(e.getMessage() + " *** exception in run() of DirMonitor");
-            throw new RuntimeException(e);
-        }
+        monitorDirectory();
     }
 
 
-    public void monitorDirectory() throws IOException, InterruptedException, ClassNotFoundException, NoSuchMethodException {
-        WatchService watchService = FileSystems.getDefault().newWatchService();
 
-        Path pathToMonitor = Paths.get(this.pathOfDirToMonitor); // "/home/itay/git/build/test"
-//        Path destinationPath = Paths.get("/home/itay/git/build/watcher_testing.txt");
+    public void monitorDirectory() {
+        WatchService watchService;
+        try {
+            watchService = FileSystems.getDefault().newWatchService();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to initiate Watch Service", e);
+        }
 
-//        if (!Files.exists(destinationPath)) {
-//            Files.createFile(destinationPath);
-//        }
+        Path pathToMonitor = Paths.get(this.pathOfDirToMonitor);
 
-        pathToMonitor.register(watchService,
-                StandardWatchEventKinds.ENTRY_MODIFY,
-                StandardWatchEventKinds.ENTRY_CREATE);
-                // we don't handle JARs being deleted, only added (so no ENTRY_DELETE)
+        try {
+            pathToMonitor.register(watchService,
+                    StandardWatchEventKinds.ENTRY_MODIFY,
+                    StandardWatchEventKinds.ENTRY_CREATE);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to register new Watch Service events", e);
+        }
+        // we don't handle JARs being deleted, only added (so no ENTRY_DELETE)
 
         WatchKey key;
-        while ((key = watchService.take()) != null) {
-            for (WatchEvent<?> event : key.pollEvents()) {
+        try {
+            while ((key = watchService.take()) != null) {
+                for (WatchEvent<?> event : key.pollEvents()) {
 //                String logEntry = "Event kind: " + event.kind() + ". File affected: " + event.context() + ". Timestamp: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\n";
 //                Files.write(destinationPath, logEntry.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 //                System.out.println("LogEntry = " + logEntry);
 //                System.out.println("event.context() = " + event.context()); //TODO
-                this.pluginService.handleJARDetected((Path)event.context());
-            }
-            key.reset();
 
+//                this.pluginService.handleJARDetected((Path)event.context());  //THIS WAS LAST WORKING VERSION! using public PluginService stuff
+                    actionOnJarDetected.accept(pathToMonitor.resolve((Path) event.context()));
+                }
+                key.reset();
+
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted during WatchService.take()", e);
         }
     }
 }
