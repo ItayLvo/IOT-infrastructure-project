@@ -1,12 +1,8 @@
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,20 +10,26 @@ public class Server {
 
     public void start(final int portNumber) throws IOException {
         int port = portNumber;
-        Set<SocketChannel> channels = new HashSet<>();
+        Set<SocketChannel> tcpClientChannels = new HashSet<>();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 
         //create a non-blocking ServerSocketChannel and selector
-        try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        try (ServerSocketChannel tcpServerSocketChannel = ServerSocketChannel.open();
+             DatagramChannel udpChannel = DatagramChannel.open();
              Selector selector = Selector.open()) {
 
-            serverSocketChannel.configureBlocking(false);
-
+            //setup the TCP ServerSocketChannel
+            tcpServerSocketChannel.configureBlocking(false);
             //bind the server to a specific port number
-            serverSocketChannel.bind(new InetSocketAddress(port));
-
+            tcpServerSocketChannel.bind(new InetSocketAddress(port));
             //register the server channel with the selector for "accept" events (new connections)
-            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-            ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+            tcpServerSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+            //setup the UDP DatagramChannel
+            udpChannel.configureBlocking(false);
+            udpChannel.bind(new InetSocketAddress(port));
+            udpChannel.register(selector, SelectionKey.OP_READ);
+
 
             while (true) {
                 // wait for events - blocking until an event is rdy
@@ -41,7 +43,7 @@ public class Server {
                             //accept the new connection and create a SocketChannel for the client
                             ServerSocketChannel channel = (ServerSocketChannel) key.channel();
                             SocketChannel client = channel.accept();
-                            channels.add(client);   //add all client sockets to collection that will be all closed when server dies
+                            tcpClientChannels.add(client);   //add all client sockets to collection that will be all closed when server dies
                             client.configureBlocking(false);
                             Socket socket = client.socket();
                             System.out.println("client remote address: " + client.getRemoteAddress());
@@ -53,7 +55,7 @@ public class Server {
                     } else if (key.isReadable()) {
                         if (key.channel() instanceof SocketChannel) {
                             SocketChannel client = (SocketChannel) key.channel();
-                            channels.add(client);
+                            tcpClientChannels.add(client);
 
                             //receive message from client:
                             int bytesRead = client.read(byteBuffer);
@@ -74,6 +76,23 @@ public class Server {
                             }
                             byteBuffer.clear();
                         }
+                        else if (key.channel() instanceof DatagramChannel) {
+                            DatagramChannel udpClientChannel = (DatagramChannel) key.channel();
+                            byteBuffer.clear();
+                            //handle message from client:
+                            InetSocketAddress clientAddress = (InetSocketAddress) udpClientChannel.receive(byteBuffer);
+                            byteBuffer.flip();
+                            byte[] message = new byte[byteBuffer.remaining()];
+                            byteBuffer.get(message);
+                            System.out.println("The message from the client is: " + new String(message));
+
+                            //respond to UDP client:
+                            byteBuffer.clear();
+                            byteBuffer.put(("Server received: " + new String(message)).getBytes());
+                            byteBuffer.flip();
+                            udpClientChannel.send(byteBuffer, clientAddress);
+                            byteBuffer.clear();
+                        }
                     }
                 }
                 //clear the selected keys to prepare for the next set of events
@@ -82,8 +101,8 @@ public class Server {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            //close all client channels when the server shuts down
-            for (SocketChannel client : channels) {
+            //close all client tcpClientChannels when the server shuts down
+            for (SocketChannel client : tcpClientChannels) {
                 client.close();
             }
         }
