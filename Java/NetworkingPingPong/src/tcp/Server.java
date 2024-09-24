@@ -20,15 +20,19 @@ public class Server {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             while (true) {
                 String line = in.readLine();
+                if (line != null) {
+                    System.out.println(line);
+                }
                 Thread.sleep(1000);
-                if (line.equals("ping")) {
-                    System.out.println("ping");
-                    out.println("pong");
-                }
-                else if (line.equals("pong")) {
-                    System.out.println("pong");
-                    out.println("ping");
-                }
+//                if (line.equals("ping")) {
+//                    System.out.println("ping");
+//                    out.println("pong");
+//                }
+//                else if (line.equals("pong")) {
+//                    System.out.println("pong");
+//                    out.println("ping");
+//                }
+                out.println("hi amit its itay, you sent me " + line);
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
