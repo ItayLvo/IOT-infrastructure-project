@@ -7,15 +7,18 @@ public class Client {
 
     public void start(final int portNumber) throws IOException, InterruptedException {
         try (SocketChannel channel = SocketChannel.open()) {
+            //connect the client socket to the server
             channel.connect(new InetSocketAddress(portNumber));
 
             ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 
             while (true) {
-                String message = System.lineSeparator() + "hello, i am client!";
+                //prepare a message for the server:
+                String message = "hello, i am client!";
                 byteBuffer.clear();
                 byteBuffer.put(message.getBytes());
                 byteBuffer.flip(); //flip buffer to prepare for writing to the channel
+                //write the message to the server:
                 while (byteBuffer.hasRemaining()) {
                     channel.write(byteBuffer);
                 }
