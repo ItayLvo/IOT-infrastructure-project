@@ -9,11 +9,13 @@ public class Client {
     public static void main(String[] args) {
         try {
             DatagramSocket socket = new DatagramSocket();
+            socket.setBroadcast(true);
             byte[] buffer = new byte[1024];
 
             while (true) {
                 byte[] msg = "hi it's client!".getBytes();
-                DatagramPacket packet = new DatagramPacket(msg, msg.length, InetAddress.getByName("localhost"), 9111);
+                //change broadcast address to "localhost" to change back from broadcast
+                DatagramPacket packet = new DatagramPacket(msg, msg.length, InetAddress.getByName("255.255.255.255"), 9111);
                 socket.send(packet);
                 DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivedPacket);

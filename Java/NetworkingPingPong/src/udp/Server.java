@@ -9,6 +9,7 @@ public class Server {
     public static void main(String[] args) {
         try {
             DatagramSocket socket = new DatagramSocket(9111);
+            socket.setBroadcast(true);
             byte[] buffer = new byte[1024];
             while (true) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -20,7 +21,8 @@ public class Server {
                 String messageFromClient = new String(packet.getData(), 0, packet.getLength());
                 System.out.println("message from client = " + messageFromClient);
                 String response = ("hi its server and i received your msg: " + messageFromClient);
-                packet = new DatagramPacket(response.getBytes(), response.getBytes().length, senderAddress, port);
+                packet = new DatagramPacket(response.getBytes(), response.getBytes().length, InetAddress.getByName("255.255.255.255"), port);
+//                packet = new DatagramPacket(response.getBytes(), response.getBytes().length, senderAddress, port);
                 packet.setData("message from server to client".getBytes());
                 socket.send(packet);
                 Thread.sleep(2000);
