@@ -16,7 +16,7 @@ public class RegisterCompanyCommand implements Command {
     }
 
     @Override
-    public void run() {
+    public void execute() {
         System.out.println("registering company command!\tThis class is: " + this.getClass().getSimpleName() + ", data: " + data);
     }
 

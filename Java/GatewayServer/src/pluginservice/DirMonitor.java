@@ -14,12 +14,10 @@ public class DirMonitor implements Runnable {
     }
 
 
-
     @Override
     public void run() {
         monitorDirectory();
     }
-
 
 
     public void monitorDirectory() {
@@ -59,5 +57,11 @@ public class DirMonitor implements Runnable {
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted during WatchService.take()", e);
         }
+        try {
+            watchService.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Error closing the WatcherService", e);
+        }
+
     }
 }

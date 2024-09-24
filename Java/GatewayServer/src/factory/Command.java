@@ -1,9 +1,8 @@
 package factory;
 
-public interface Command extends Runnable {
+public interface Command {
 
     String getData();
 
-    @Override
-    void run();
+    void execute();
 }

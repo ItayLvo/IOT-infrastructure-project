@@ -53,7 +53,7 @@ public class RequestProcessingService {
             public void run() {
                 Map.Entry<String, String> keyDataPair = parseRequest(request);
                 Command command = createCommand(keyDataPair.getKey(), keyDataPair.getValue());
-                command.run();
+                command.execute();
             }
         };
         return threadPool.submit(requestRunnable);
