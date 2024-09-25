@@ -3,18 +3,21 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-public class Client {
+public class TcpClient {
 
     public void start(final int portNumber) throws IOException, InterruptedException {
         try (SocketChannel channel = SocketChannel.open()) {
-            //connect the client socket to the server
-            channel.connect(new InetSocketAddress(portNumber));
 
-            ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+            //connect the channel to a specific address and port
+            InetSocketAddress serverAddress = new InetSocketAddress("localhost", portNumber);
+            channel.connect(serverAddress);
+
+
+            String message = "hi from TCP client";
+            ByteBuffer byteBuffer = ByteBuffer.allocate(512);
 
             while (true) {
                 //prepare a message for the server:
-                String message = "hello, i am client!";
                 byteBuffer.clear();
                 byteBuffer.put(message.getBytes());
                 byteBuffer.flip(); //flip buffer to prepare for writing to the channel
@@ -39,7 +42,7 @@ public class Client {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        Client client = new Client();
+        TcpClient client = new TcpClient();
         client.start(9111);
     }
 }
