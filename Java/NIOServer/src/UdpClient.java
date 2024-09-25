@@ -12,7 +12,7 @@ public class UdpClient {
     }
     public void start(final int portNumber) throws IOException, InterruptedException {
         try (DatagramChannel channel = DatagramChannel.open()) {
-            InetSocketAddress socketAddress = new InetSocketAddress(InetAddress.getLocalHost(), portNumber);
+            InetSocketAddress socketAddress = new InetSocketAddress(InetAddress.getByName("10.1.0.85"), portNumber);
 
             ByteBuffer byteBuffer = ByteBuffer.allocate(512);
 
@@ -28,7 +28,7 @@ public class UdpClient {
                 byteBuffer.clear();
                 InetSocketAddress senderAddress = (InetSocketAddress) channel.receive(byteBuffer);
                 byteBuffer.flip();
-                System.out.println("response from server is: " + new String(byteBuffer.array()));
+                System.out.println("response from server is: " + new String(byteBuffer.array()).trim());
 
                 Thread.sleep(2000);
             }

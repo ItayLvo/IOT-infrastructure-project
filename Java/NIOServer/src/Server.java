@@ -7,8 +7,26 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Server {
+    private volatile boolean isServerRunning;
+    private final String hostName;
+    private final int portNumber;
 
-    public void start(final int portNumber) throws IOException {
+    public Server(String hostName, int portNumber) {
+        this.hostName = hostName;
+        this.portNumber = portNumber;
+    }
+
+    public void stop() {
+        isServerRunning = false;
+    }
+
+    public void listen() {
+        Thread serverThread = new Thread(this::start);
+        serverThread.start();
+    }
+
+    private void start() {
+        isServerRunning = true;
         Set<SocketChannel> tcpClientChannels = new HashSet<>();
         ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 
@@ -18,11 +36,11 @@ public class Server {
              Selector selector = Selector.open()) {
 
             //set up the UDP and TCP channels: configure blocking, bind to address, register with selector
-            setupTcpChannel(tcpServerSocketChannel, portNumber, selector);
-            setupUdpChannel(udpChannel, portNumber, selector);
+            setupTcpChannel(tcpServerSocketChannel, hostName, portNumber, selector);
+            setupUdpChannel(udpChannel, hostName, portNumber, selector);
 
 
-            while (true) {
+            while (isServerRunning) {
                 //wait for events - blocking until an event is rdy
                 selector.select();
                 //iterate over all selected keys (events)
@@ -48,7 +66,11 @@ public class Server {
         } finally {
             //close all client tcpClientChannels when the server shuts down
             for (SocketChannel client : tcpClientChannels) {
-                client.close();
+                try {
+                    client.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
@@ -112,19 +134,19 @@ public class Server {
     }
 
 
-    private static void setupUdpChannel(DatagramChannel udpChannel, int port, Selector selector) throws IOException {
+    private static void setupUdpChannel(DatagramChannel udpChannel, String hostName, int port, Selector selector) throws IOException {
         udpChannel.configureBlocking(false);
         //bind the DatagramChannel to the local address for listening to inbound UDP packets
-        udpChannel.bind(new InetSocketAddress(port));
+        udpChannel.bind(new InetSocketAddress(hostName,port));
         //register the channel with the selector for reading events
         udpChannel.register(selector, SelectionKey.OP_READ);
     }
 
 
-    private static void setupTcpChannel(ServerSocketChannel tcpServerSocketChannel, int port, Selector selector) throws IOException {
+    private static void setupTcpChannel(ServerSocketChannel tcpServerSocketChannel, String hostName, int port, Selector selector) throws IOException {
         tcpServerSocketChannel.configureBlocking(false);
         //bind the server to a specific port number
-        tcpServerSocketChannel.bind(new InetSocketAddress(port));
+        tcpServerSocketChannel.bind(new InetSocketAddress(hostName, port));
         //register the server channel with the selector for "accept" events (new connections)
         tcpServerSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
     }

@@ -9,7 +9,7 @@ public class TcpClient {
         try (SocketChannel channel = SocketChannel.open()) {
 
             //connect the channel to a specific address and port
-            InetSocketAddress serverAddress = new InetSocketAddress("localhost", portNumber);
+            InetSocketAddress serverAddress = new InetSocketAddress("10.1.0.85", portNumber);
             channel.connect(serverAddress);
 
 
