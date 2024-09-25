@@ -13,7 +13,6 @@ public class UdpClient {
     public void start(final int portNumber) throws IOException, InterruptedException {
         try (DatagramChannel channel = DatagramChannel.open()) {
             InetSocketAddress socketAddress = new InetSocketAddress(InetAddress.getLocalHost(), portNumber);
-//            channel.connect(socketAddress); //in UDP this is optional!
 
             ByteBuffer byteBuffer = ByteBuffer.allocate(512);
 
