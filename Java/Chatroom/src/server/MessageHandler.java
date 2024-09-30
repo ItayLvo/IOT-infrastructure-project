@@ -48,10 +48,10 @@ public class MessageHandler {
                 System.out.println("SEND_MESSAGE");
                 String messageToSend = message.getMessage();
                 //check if username is registered
-                if (!chatroomManager.isClientRegistered(client)) {
+                if (chatroomManager.isClientRegistered(client)) {
                     //send the message to all registered users
                     String sendingUsername = chatroomManager.getUsername(client);
-                    Message broadcastMessage = new Message("[" + sendingUsername + "] :" + message.getMessage(), MessageType.BROADCAST_MESSAGE);
+                    Message broadcastMessage = new Message("[" + sendingUsername + "] " + message.getMessage(), MessageType.BROADCAST_MESSAGE);
                     sendMessageToAllUsers(broadcastMessage, chatroomManager);
                 }
                 else {  //if the client is not registered
@@ -75,8 +75,7 @@ public class MessageHandler {
                 System.out.println(message.getMessage() + ": MESSAGE_DECLINED");
                 break;
             case BROADCAST_MESSAGE:
-                String messageReceived = message.getMessage();
-                System.out.println(messageReceived);
+                System.out.println(message.getMessage() + ": BROADCAST_MESSAGE");
 
                 /*
                 ByteBuffer byteBuffer = ByteBuffer.allocate(2048);
@@ -106,11 +105,11 @@ public class MessageHandler {
 
 
     private void sendMessageToClient(Message message, SocketChannel clientChannel) throws IOException {
-        //serialize the Server.Message object to a byte array
+        //serialize the Message object to a byte array
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
             objectOutputStream.writeObject(message);
-            objectOutputStream.flush();  // Ensure all data is written
+            objectOutputStream.flush();  //ensure all data is written
         }
 
         //get the byte array containing the serialized Server.Message object

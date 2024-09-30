@@ -1,6 +1,12 @@
 package server;
 
 public class ChatroomServer {
+
+    public static void main(String[] args) {
+        ChatroomServer server = new ChatroomServer("10.1.0.85", 9111);
+        server.start();
+    }
+
     RequestHandler requestHandler = new RequestHandler();
     private final String hostName;
     private final int portNumber;
@@ -16,6 +22,9 @@ public class ChatroomServer {
         serverThread.start();
     }
 
+    public void stop() {
+        requestHandler.stopRunning();
+    }
 
     private void listen() {
         requestHandler.startListening(hostName, portNumber);

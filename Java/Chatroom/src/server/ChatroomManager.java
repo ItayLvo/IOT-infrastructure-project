@@ -21,7 +21,7 @@ public class ChatroomManager {
     }
 
     public boolean isUsernameAvailable(String userName) {
-        return users.containsValue(userName);
+        return !(users.containsValue(userName));
     }
 
     public boolean isClientRegistered(SocketChannel client) {
