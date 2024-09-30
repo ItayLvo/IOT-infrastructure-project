@@ -99,6 +99,9 @@ public class Server {
         SocketChannel client = (SocketChannel) key.channel();
         //receive message from client:
         int bytesRead = client.read(byteBuffer);
+        if (bytesRead == -1) {
+            return;
+        }
         byteBuffer.flip();
         byte[] message = new byte[byteBuffer.remaining()];
         byteBuffer.get(message);

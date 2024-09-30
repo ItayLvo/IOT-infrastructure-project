@@ -21,7 +21,6 @@ public class UdpClient {
                 byte[] msg = "hi from UDP client".getBytes();
                 byteBuffer.put(msg);
                 byteBuffer.flip();
-//                DatagramPacket datagramPacket = new DatagramPacket(msg, msg.length, InetAddress.getByName("localhost"), portNumber);  //dont need this??
                 channel.send(byteBuffer, socketAddress);
 
                 //receive response from server:
