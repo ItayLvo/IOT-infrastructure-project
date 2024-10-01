@@ -1,5 +1,7 @@
 package server;
 
+import il.co.ilrd.chatroom_server.*;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -21,6 +23,9 @@ public class MessageHandler {
                 if (chatroomManager.isUsernameAvailable(username)) {
                     //register the user to the room (saves in collection)
                     chatroomManager.userRegistration(client, message.getMessage());
+                    //send reg approved
+                    Message regApprovedMsg = new Message(username, MessageType.REGISTER_APPROVED);
+                    sendMessageToClient(regApprovedMsg, client);
                     //send a "joined" message to all registered users
                     notifyUserJoinedOrLeft(username, chatroomManager, "joined");
                 }
@@ -76,21 +81,6 @@ public class MessageHandler {
                 break;
             case BROADCAST_MESSAGE:
                 System.out.println(message.getMessage() + ": BROADCAST_MESSAGE");
-
-                /*
-                ByteBuffer byteBuffer = ByteBuffer.allocate(2048);
-                //prepare server response to client:
-                byteBuffer.clear();
-                String response = "Server received: " + new String(byteArray);
-                byteBuffer.put(response.getBytes());
-                byteBuffer.flip();
-
-                //write response back to client
-                while (byteBuffer.hasRemaining()) {
-                    client.write(byteBuffer);
-                }
-                byteBuffer.clear();
-                */
 
                 break;
         }

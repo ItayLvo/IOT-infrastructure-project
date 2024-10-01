@@ -1,8 +1,6 @@
 package client;
 
-import server.MessageType;
-import server.Message;
-
+import il.co.ilrd.chatroom_server.*;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -19,7 +17,10 @@ public class ChatroomClient {
             ByteBuffer byteBuffer = ByteBuffer.allocate(2048);
 
             //connect the channel to a specific address and port
-            InetSocketAddress serverAddress = new InetSocketAddress("10.1.0.85", portNumber);
+//            InetSocketAddress serverAddress = new InetSocketAddress("10.10.2.79", 59595); //amit
+            InetSocketAddress serverAddress = new InetSocketAddress("10.10.1.105", 9111); //itay
+//            InetSocketAddress serverAddress = new InetSocketAddress("10.10.0.221", 50000); //or
+
             channel.connect(serverAddress);
 
             //init the listener thread
@@ -145,8 +146,8 @@ public class ChatroomClient {
                 //deserialize the message into a Server.Message instance
                 try (ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
                     message = (Message) objectInputStream.readObject();
-                    System.out.println("msg from server: " + message.getMessage());
-                    System.out.println("type: " + message.getMessageType());
+                    System.out.println("msg from server: " + message.getMessageType());
+                    System.out.println("type: " + message.getMessage());
                 } catch (IOException | ClassNotFoundException e) {
                     System.out.println("de-serialization failed");
                     e.printStackTrace();

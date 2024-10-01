@@ -1,13 +1,15 @@
-package server;
+package il.co.ilrd.chatroom_server;
 
 public enum MessageType {
     REGISTER,
     UNREGISTER,
     SEND_MESSAGE,
+
     REGISTER_APPROVED,
     REGISTER_DECLINED,
     UNREGISTER_APPROVED,
     UNREGISTER_DECLINED,
     MESSAGE_DECLINED,
-    BROADCAST_MESSAGE;
+
+    BROADCAST_MESSAGE
 }

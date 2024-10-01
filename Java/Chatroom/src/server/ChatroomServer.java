@@ -3,7 +3,7 @@ package server;
 public class ChatroomServer {
 
     public static void main(String[] args) {
-        ChatroomServer server = new ChatroomServer("10.1.0.85", 9111);
+        ChatroomServer server = new ChatroomServer("10.10.1.105", 9111);
         server.start();
     }
 
